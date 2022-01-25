@@ -146,7 +146,10 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable)
     static FString GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item);
     UFUNCTION(BlueprintCallable)
-    static FContentLib_Item GenerateCLItemFromString(FString String);
+	static FContentLib_Item GenerateCLItemFromString(FString String);
+
+	UFUNCTION(BlueprintCallable)
+	static 	FString GenerateStringFromCLItem(FContentLib_Item Item);
     
     UFUNCTION(BlueprintCallable)
     static FContentLib_VisualKit GenerateKitFromString(FString String);

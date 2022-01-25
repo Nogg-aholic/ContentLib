@@ -126,6 +126,172 @@ FContentLib_Item::FContentLib_Item(): Form(EResourceForm::RF_INVALID), StackSize
 {
 }
 
+FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
+{
+	const auto CDO = Item;
+	const auto Obj = MakeShared<FJsonObject>();
+	FString FormString = "Invalid";
+	if (CDO.Form == EResourceForm::RF_SOLID)
+	{
+		FormString = "Solid";
+	}
+	else if (CDO.Form == EResourceForm::RF_LIQUID)
+	{
+		FormString = "Liquid";
+	}
+	else if (CDO.Form == EResourceForm::RF_GAS)
+	{
+		FormString = "Gas";
+	}
+	else if (CDO.Form == EResourceForm::RF_HEAT)
+	{
+		FormString = "Heat";
+	}
+	FString SizeString = "Invalid";
+
+	if (CDO.StackSize == EStackSize::SS_ONE)
+	{
+		SizeString = "One";
+	}
+	else if (CDO.StackSize == EStackSize::SS_SMALL)
+	{
+		SizeString = "Small";
+	}
+	else if (CDO.StackSize == EStackSize::SS_MEDIUM)
+	{
+		SizeString = "Medium";
+	}
+	else if (CDO.StackSize == EStackSize::SS_BIG)
+	{
+		SizeString = "Big";
+	}
+	else if (CDO.StackSize == EStackSize::SS_HUGE)
+	{
+		SizeString = "Huge";
+	}
+	else if (CDO.StackSize == EStackSize::SS_FLUID)
+	{
+		SizeString = "Liquid";
+	}
+	else if (CDO.StackSize == EStackSize::SS_LAST_ENUM)
+	{
+		SizeString = "Invalid";
+	}
+
+	const auto Form = MakeShared<FJsonValueString>(FormString);
+	const auto Size = MakeShared<FJsonValueString>(SizeString);
+	Obj->Values.Add("Form", Form);
+	Obj->Values.Add("StackSize", Size);
+
+	if (CDO.Name != "")
+	{
+		const auto Name = MakeShared<FJsonValueString>(CDO.Name);
+		Obj->Values.Add("Name", Name);
+	}
+
+	if (CDO.NameShort != "")
+	{
+		const auto NameShort = MakeShared<FJsonValueString>(CDO.NameShort);
+		Obj->Values.Add("NameShort", NameShort);
+	}
+
+	if (CDO.Description != "")
+	{
+		const auto Description = MakeShared<FJsonValueString>(CDO.Description);
+		Obj->Values.Add("Description", Description);
+	}
+	if (CDO.Category != "")
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO.Category);
+		Obj->Values.Add("Category", ItemCategory);
+	}
+	if (CDO.VisualKit != "")
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO.VisualKit);
+		Obj->Values.Add("VisualKit", ItemCategory);
+	}
+
+	if (CDO.EnergyValue != -1)
+	{
+		const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO.EnergyValue);
+		Obj->Values.Add("EnergyValue", EnergyValue);
+	}
+
+	if (CDO.RadioactiveDecay != -1)
+	{
+		const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO.RadioactiveDecay);
+		Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
+	}
+
+	if (CDO.CanBeDiscarded != -1)
+	{
+		const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(static_cast<bool>(CDO.CanBeDiscarded));
+		Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
+	}
+	if (CDO.RememberPickUp != -1)
+	{
+		const auto RememberPickUp = MakeShared<FJsonValueBoolean>(static_cast<bool>(CDO.RememberPickUp));
+		Obj->Values.Add("RememberPickUp", RememberPickUp);
+	}
+
+	if (CDO.ResourceSinkPoints != -1)
+	{
+		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO.ResourceSinkPoints);
+		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+	}
+
+	if (CDO.ResourceItem.CollectSpeedMultiplier != -1 || CDO.ResourceItem.PingColor != FColor(0,0,0,0))
+	{
+		const auto Objx = MakeShared<FJsonObject>();
+
+		if (CDO.ResourceItem.PingColor != FColor(0, 0, 0, 0))
+		{
+			auto Color = MakeShared<FJsonObject>();
+			const auto PingColor_R = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.R);
+			const auto PingColor_G = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.G);
+			const auto PingColor_B = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.B);
+			const auto PingColor_A = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.A);
+			Color->Values.Add("r", PingColor_R);
+			Color->Values.Add("g", PingColor_G);
+			Color->Values.Add("b", PingColor_B);
+			Color->Values.Add("a", PingColor_A);
+			Objx->Values.Add("PingColor", MakeShared<FJsonValueObject>(Color));
+
+		}
+		if (CDO.ResourceItem.CollectSpeedMultiplier != -1)
+		{
+			const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(CDO.ResourceItem.CollectSpeedMultiplier);
+			Objx->Values.Add("CollectSpeedMultiplier", CollectSpeedMultiplier);
+
+		}
+
+		Obj->Values.Add("ResourceItem", MakeShared<FJsonValueObject>(Objx));
+	}
+
+	if (CDO.FuelWasteItem.SpentFuelClass != "" || CDO.FuelWasteItem.AmountOfWaste != -1)
+	{
+		const auto Objx = MakeShared<FJsonObject>();
+
+		if (CDO.FuelWasteItem.SpentFuelClass != "")
+		{
+			const auto SpentFuelClass = MakeShared<FJsonValueString>(CDO.FuelWasteItem.SpentFuelClass);
+			Objx->Values.Add("SpentFuelClass", SpentFuelClass);
+		}
+		if (CDO.FuelWasteItem.AmountOfWaste != -1)
+		{
+			const auto AmountOfWaste = MakeShared<FJsonValueNumber>(CDO.FuelWasteItem.AmountOfWaste);
+			Obj->Values.Add("AmountOfWaste", AmountOfWaste);
+
+		}
+		Obj->Values.Add("FuelWasteItem", MakeShared<FJsonValueObject>(Objx));
+	}
+
+	FString Write;
+	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
+		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	FJsonSerializer::Serialize(Obj, JsonWriter);
+	return Write;
+}
 
 FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item)
 {
@@ -134,7 +300,6 @@ if (!Item)
 
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
 	FString FormString = "Invalid";
 	if (CDO->mForm == EResourceForm::RF_SOLID)
 	{
@@ -176,7 +341,7 @@ if (!Item)
 	}
 	else if (CDO->mStackSize == EStackSize::SS_FLUID)
 	{
-		SizeString = "Fluid";
+		SizeString = "Liquid";
 	}
 	else if (CDO->mStackSize == EStackSize::SS_LAST_ENUM)
 	{
@@ -185,29 +350,63 @@ if (!Item)
 	
 	const auto Form = MakeShared<FJsonValueString>(FormString);
 	const auto Size = MakeShared<FJsonValueString>(SizeString);
-
-	const auto NameShort = MakeShared<FJsonValueString>(CDO->mAbbreviatedDisplayName.ToString());
-	const auto Description = MakeShared<FJsonValueString>(CDO->mDescription.ToString());
-	const auto ItemCategory = MakeShared<FJsonValueString>(CDO->mItemCategory->GetPathName());
-
-	const auto VisualKit = MakeShared<FJsonValueObject>(FContentLib_VisualKit::GetAsJsonObject(Item));
-	const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO->mEnergyValue);
-	const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO->mRadioactiveDecay);
-	const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(CDO->mCanBeDiscarded);
-	const auto RememberPickUp = MakeShared<FJsonValueBoolean>(CDO->mRememberPickUp);
-	const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO->mResourceSinkPoints);
 	Obj->Values.Add("Form", Form);
 	Obj->Values.Add("StackSize", Size);
-	Obj->Values.Add("Name", Name);
-	Obj->Values.Add("NameShort", NameShort);
-	Obj->Values.Add("Description", Description);
-	Obj->Values.Add("Category", ItemCategory);
+
+	if (CDO->mDisplayName.ToString() != "")
+	{
+		const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
+		Obj->Values.Add("Name", Name);
+	}
+
+	if (CDO->mAbbreviatedDisplayName.ToString() != "")
+	{
+		const auto NameShort = MakeShared<FJsonValueString>(CDO->mAbbreviatedDisplayName.ToString());
+		Obj->Values.Add("NameShort", NameShort);
+	}
+
+	if (CDO->mDescription.ToString() != "")
+	{
+		const auto Description = MakeShared<FJsonValueString>(CDO->mDescription.ToString());
+		Obj->Values.Add("Description", Description);
+	}
+	if (CDO->mItemCategory)
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO->mItemCategory->GetPathName());
+		Obj->Values.Add("Category", ItemCategory);
+	}
+
+	const auto VisualKit = MakeShared<FJsonValueObject>(FContentLib_VisualKit::GetAsJsonObject(Item));
 	Obj->Values.Add("VisualKit", VisualKit);
-	Obj->Values.Add("EnergyValue", EnergyValue);
-	Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
-	Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
-	Obj->Values.Add("RememberPickUp", RememberPickUp);
-	Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+
+	if (CDO->mEnergyValue != 0)
+	{
+		const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO->mEnergyValue);
+		Obj->Values.Add("EnergyValue", EnergyValue);
+	}
+
+	if (CDO->mRadioactiveDecay != 0)
+	{
+		const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO->mRadioactiveDecay);
+		Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
+	}
+
+	if (CDO->mCanBeDiscarded)
+	{
+		const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(CDO->mCanBeDiscarded);
+		Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
+	}
+	if (CDO->mRememberPickUp)
+	{
+		const auto RememberPickUp = MakeShared<FJsonValueBoolean>(CDO->mRememberPickUp);
+		Obj->Values.Add("RememberPickUp", RememberPickUp);
+	}
+
+	if (CDO->mResourceSinkPoints != 0)
+	{
+		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO->mResourceSinkPoints);
+		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+	}
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{

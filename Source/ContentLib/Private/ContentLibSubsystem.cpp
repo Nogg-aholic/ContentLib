@@ -26,6 +26,7 @@
 #include "Resources/FGResourceDescriptor.h"
 #include "Unlocks/FGUnlockRecipe.h"
 #include "Unlocks/FGUnlockSchematic.h"
+#include "UObject/CoreRedirects.h"
 
 
 void UContentLibSubsystem::FillLoadedClasses()
@@ -473,7 +474,38 @@ void UContentLibSubsystem::ClientInit()
 						|| Parent->IsChildOf(UFGBuildCategory::StaticClass())
 						)
 					{
-						LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
+						if(Parent == UFGItemDescriptor::StaticClass())
+						{
+							if(DumpItems.Contains(*e.ObjectPath.ToString().Append("_C")))
+							{
+								// replace Load
+								const FString JsonString = *DumpItems.Find(*e.ObjectPath.ToString().Append("_C"));
+								FContentLib_Item Item = UCLItemBPFLib::GenerateCLItemFromString(JsonString);
+								FString Left; FString Right; 
+								e.ObjectPath.ToString().Split("_C", &Left, &Right,ESearchCase::IgnoreCase,ESearchDir::FromEnd);
+								Left.Split(".", &Left, &Right, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+								TSubclassOf<UObject>  Obj =  UBPFContentLib::CreateContentLibClass(Right,  UFGItemDescriptor::StaticClass());
+								// If consolidating blueprints, make sure redirectors are created for the consolidated blueprint class and CDO
+								
+								// One redirector for the class
+								const ECoreRedirectFlags Flags = ECoreRedirectFlags::Type_Package | ECoreRedirectFlags::Option_MatchSubstring;
+								TArray<FCoreRedirect> Redirects;
+								Redirects.Add(FCoreRedirect(Flags, *e.AssetName.ToString(), Obj->GetPathName()));
+								FCoreRedirects::AddRedirectList(Redirects,Obj->GetName());
+								auto * I = LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
+								if(I != Obj)
+								{
+									UE_LOG(LogTemp,Fatal,TEXT("Redirect Failed"));
+								}
+								
+							}
+							else
+							{
+								DumpItems.Add(*e.ObjectPath.ToString().Append("_C"),UCLItemBPFLib::GenerateFromDescriptorClass(LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"))));
+							}
+						}
+						else
+							LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
 					}
 				}
 			}

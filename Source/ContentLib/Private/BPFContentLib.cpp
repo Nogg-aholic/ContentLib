@@ -550,6 +550,10 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 	}
 	else
 	{
+		if(Name.Contains(" "))
+		{
+			Name = Name.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
+		}
 		FString Prefix; FString Suffix = "_C"; TArray<UClass*> ClassArr;
 		if(ParentClass->IsChildOf(UFGItemDescriptor::StaticClass()))
 		{
@@ -690,10 +694,13 @@ bool UBPFContentLib::StringCompareItem(FString e, FString Name, FString Prefix, 
 	return false;
 }
 
-UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UContentLibSubsystem* Subsystem, bool Schematic)
+UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSubsystem* Subsystem, bool Schematic)
 {
 	UClass* CategoryClass = nullptr;
-
+	if(CategoryString.Contains(" "))
+	{
+		CategoryString = CategoryString.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
+	}
 	if (CategoryString.Contains("/"))
 	{
 		UClass* Loaded = LoadObject<UClass>(nullptr, *CategoryString);
@@ -713,10 +720,15 @@ UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UConten
 				{
 					UE_LOG(LogTemp, Warning, TEXT("CL: Created Category %s"), *Cat->GetName())
 					if(Schematic)
+					{
 						Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+						Subsystem->mSchematicCategories.Add(Cat);
+					}
 					else
+					{
+						Subsystem->mItemCategories.Add(Cat);
 						Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
-						
+					}	
 					CategoryClass = Cat;
 				}
 				else
@@ -753,9 +765,15 @@ UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UConten
 			{
 				UE_LOG(LogTemp, Warning, TEXT("CL Recipes: Created Category %s "), *Cat->GetName())
 				if(Schematic)
+				{
+					Subsystem->mSchematicCategories.Add(Cat);
 					Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
+				}
 				else
+				{
+					Subsystem->mItemCategories.Add(Cat);
 					Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
+				}
 				CategoryClass = Cat;
 			}
 			else
