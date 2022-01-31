@@ -1,16 +1,16 @@
 {
 	"FileVersion": 3,
 	"Version": 0,
-	"VersionName": "0.1.0",
-	"SemVersion": "0.1.0",
+	"VersionName": "0.2.0",
+	"SemVersion": "0.2.0",
 	"FriendlyName": "ContentLib",
-	"Description": "",
+	"Description": "Easily create or modify Items, Recipes, and more via JSON for any machine and any mod!",
 	"Category": "Modding",
-	"CreatedBy": "Nog",
-	"CreatedByURL": "",
+	"CreatedBy": "Nog, Robb",
+	"CreatedByURL": "https://ficsit.app/mod/5T4Z1exTKPDbWF",
 	"DocsURL": "",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "http://discord.gg/zqp6U7Y7Nu",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
@@ -26,7 +26,7 @@
 		{
 			"Name": "SML",
 			"Enabled": true,
-			"SemVersion": "^3.0.0"
+			"SemVersion": "^3.3.0"
 		}
 	]
 }

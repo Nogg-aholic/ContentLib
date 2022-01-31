@@ -2,7 +2,7 @@
 
 
 #include "ContentLibSubsystem.h"
-
+#include "ContentLib.h"
 
 
 #include "AssetRegistryModule.h"
@@ -46,7 +46,7 @@ void UContentLibSubsystem::FillLoadedClasses()
 	GetDerivedClasses(UFGRecipe::StaticClass(), mRecipes, true);
 	GetDerivedClasses(UFGResearchTree::StaticClass(), mResearchTrees, true);
 	GetDerivedClasses(UFGSchematicCategory::StaticClass(), mSchematicCategories, true);
-	GetDerivedClasses(UFGBuildCategory::StaticClass(), mItemCategories, true);
+	GetDerivedClasses(UFGBuildCategory::StaticClass(), mItemCategories, true); // TODOU5 is this supposed to go to the same place (mItemCategories) even though it's build?
 }
 
 void UContentLibSubsystem::CollectVisualKits()
@@ -56,11 +56,11 @@ void UContentLibSubsystem::CollectVisualKits()
 	{
 		UFGItemDescriptor* Item = Cast<UFGItemDescriptor>(ItemPair.Key->GetDefaultObject());;
 		FContentLib_VisualKit Kit;
-		Kit.Mesh = Item->mConveyorMesh->GetPathName();
-		Kit.BigIcon = Item->mPersistentBigIcon->GetPathName();
-		Kit.SmallIcon = Item->mSmallIcon->GetPathName();
-		Kit.FluidColor = Item->mFluidColor;
-		Kit.GasColor = Item->mGasColor;
+		Kit.Mesh = UFGItemDescriptor::GetItemMesh(ItemPair.Key)->GetPathName();
+		Kit.BigIcon = UFGItemDescriptor::GetBigIcon(ItemPair.Key)->GetPathName();
+		Kit.SmallIcon = UFGItemDescriptor::GetSmallIcon(ItemPair.Key)->GetPathName();
+		Kit.FluidColor = UFGItemDescriptor::GetFluidColor(ItemPair.Key);
+		Kit.GasColor = UFGItemDescriptor::GetGasColor(ItemPair.Key);
 		VisualKits.Add(ItemPair.Key->GetName(), Kit);
 	}
 }
@@ -91,7 +91,7 @@ float FFactoryGame_ProductBuildingCost::GetMjCostForPotential(const float Potent
 		{
 			const float Power = Cast<AFGBuildableFactory>(Building.GetDefaultObject())->CalcProducingPowerConsumptionForPotential(Potential);
 			const float TimeMod = FMath::Clamp(Potential, Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetMinPotential(),Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetMaxPossiblePotential());
-			const float Duration = Recipe.GetDefaultObject()->mManufactoringDuration / TimeMod;
+			const float Duration = UFGRecipe::GetManufacturingDuration(Recipe) / TimeMod;
 			return (Duration * Power);
 		}
 		else
@@ -118,7 +118,7 @@ int32 FFactoryGame_RecipeMJ::GetItemAmount(const TSubclassOf<UFGItemDescriptor> 
 	}
 	if (!Out.Contains(Item))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Item not part of this Recipe ! "));
+		UE_LOG(LogContentLib, Error, TEXT("Item not part of this Recipe ! "));
 		return 0.f;
 	}
 	return Arr[Out.Find(Item)].Amount;
@@ -129,7 +129,7 @@ bool FFactoryGame_RecipeMJ::CanCalculateMj(UContentLibSubsystem* System) const
 	if (!System || !nRecipe)
 		return false;
 	
-	for (auto i : nRecipe.GetDefaultObject()->mIngredients)
+	for (auto i : UFGRecipe::GetIngredients(nRecipe))
 	{
 		if (!System->Items.Find(i.ItemClass)->HasMj())
 			return false;
@@ -158,8 +158,9 @@ bool FFactoryGame_RecipeMJ::TryAssignMJ(UContentLibSubsystem* System)
 	if(!CanCalculateMj(System))
 		return false;
 	FFactoryGame_Recipe & Recipe = *System->Recipes.Find(nRecipe);
+	const auto ingredients = UFGRecipe::GetIngredients(nRecipe);
 	float Sum = 0.f;
-	for (auto Ingredient : nRecipe.GetDefaultObject()->mIngredients)
+	for (auto Ingredient : ingredients)
 	{
 		System->Items.Find(Ingredient.ItemClass)->AssignAverageMj(System);
 		if (System->Items.Find(Ingredient.ItemClass)->HasMj())
@@ -228,7 +229,7 @@ float FFactoryGame_RecipeMJ::GetProductMjValue(TSubclassOf<UFGItemDescriptor> It
 	{
 		if (!Producers.Contains(Buildable))
 		{
-			UE_LOG(LogTemp, Error, TEXT("Building cannot Craft this !"));
+			UE_LOG(LogContentLib, Error, TEXT("Building cannot Craft this !"));
 		}
 		else
 		{
@@ -315,17 +316,17 @@ void FFactoryGame_Descriptor::AssignResourceValue()
 		{
 			ProcessedItemStruct.SetMj(14.85f);
 		}
-		else if (ItemClass.GetDefaultObject()->mForm == EResourceForm::RF_SOLID && !ItemClass.GetDefaultObject()->GetName().Contains(
+		else if (UFGItemDescriptor::GetForm(ItemClass) == EResourceForm::RF_SOLID && !ItemClass.GetDefaultObject()->GetName().Contains(
             "Desc_CrystalShard"))
             	ProcessedItemStruct.SetMj(10.f);
-		else if (ItemClass.GetDefaultObject()->mForm == EResourceForm::RF_LIQUID || ItemClass.GetDefaultObject()->mForm ==
+		else if (UFGItemDescriptor::GetForm(ItemClass) == EResourceForm::RF_LIQUID || UFGItemDescriptor::GetForm(ItemClass) ==
             EResourceForm::RF_GAS)
             	ProcessedItemStruct.SetMj(.01f);
 
 	}
 	else if (ItemClass->IsChildOf(UFGItemDescriptorBiomass::StaticClass()))
 	{
-		ProcessedItemStruct.SetMj(ItemClass.GetDefaultObject()->mEnergyValue);
+		ProcessedItemStruct.SetMj(UFGItemDescriptor::GetEnergyValue(ItemClass));
 	}
 	else if(ItemClass->IsChildOf(UFGConsumableDescriptor::StaticClass()))
 	{
@@ -373,7 +374,7 @@ float FFactoryGame_Descriptor::AssignAverageMj(UContentLibSubsystem* System, con
 			{
 				IngredientCost += RecipeStruct.MJ.GetProductMjValue(ItemClass)* RecipeStruct.GetItemToTotalProductRatio(ItemClass,System);
 				Count++;
-				//UE_LOG(LogTemp, Error, TEXT("%s in Recipe %s IngredientCost-> %f"), *ItemClass->GetName(),*i->GetName(),IngredientCost /Count);
+				//UE_LOG(LogContentLib, Error, TEXT("%s in Recipe %s IngredientCost-> %f"), *ItemClass->GetName(),*i->GetName(),IngredientCost /Count);
 			}
 		}
 		if (Count > 0 && IngredientCost > 0)
@@ -384,16 +385,6 @@ float FFactoryGame_Descriptor::AssignAverageMj(UContentLibSubsystem* System, con
 	}
 	
 };
-
-
-
-
-
-
-
-
-
-
 
 void UContentLibSubsystem::FullRecipeCalculation()
 {
@@ -425,17 +416,17 @@ void UContentLibSubsystem::FullRecipeCalculation()
 	UCLUtilBPFLib::CalculateCost(ManualOnly,this);
 	UCLUtilBPFLib::CalculateCost(BuildingRecipes,this);
 	
-	UE_LOG(LogTemp, Display,TEXT("-----------------------------------------------------"));
-	UE_LOG(LogTemp, Display,TEXT("___________________Results Recipes___________________"));
+	UE_LOG(LogContentLib, Display,TEXT("-----------------------------------------------------"));
+	UE_LOG(LogContentLib, Display,TEXT("___________________Results Recipes___________________"));
 
 	UCLUtilBPFLib::PrintSortedRecipes(this);
-	UE_LOG(LogTemp, Display,TEXT("_____________________________________________________"));
-	UE_LOG(LogTemp, Display,TEXT("-----------------------------------------------------"));
-	UE_LOG(LogTemp, Display,TEXT("____________________Results Items____________________"));
+	UE_LOG(LogContentLib, Display,TEXT("_____________________________________________________"));
+	UE_LOG(LogContentLib, Display,TEXT("-----------------------------------------------------"));
+	UE_LOG(LogContentLib, Display,TEXT("____________________Results Items____________________"));
 
 	UCLUtilBPFLib::PrintSortedItems(this);
-	UE_LOG(LogTemp, Display,TEXT("_____________________________________________________"));
-	UE_LOG(LogTemp, Display,TEXT("-----------------------------------------------------"));
+	UE_LOG(LogContentLib, Display,TEXT("_____________________________________________________"));
+	UE_LOG(LogContentLib, Display,TEXT("-----------------------------------------------------"));
 }
 
 void UContentLibSubsystem::ClientInit()
@@ -443,12 +434,17 @@ void UContentLibSubsystem::ClientInit()
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray< FString> Paths;
+	UE_LOG(LogContentLib, Warning, TEXT("ContentLib loading relevant Mod Assets..."));
 	AssetRegistryModule.Get().GetSubPaths(TEXT("/"),Paths , false);
 	for (auto i : Paths)
 	{
-		if (!i.Equals("/Engine", ESearchCase::IgnoreCase) && !i.Equals("/Game", ESearchCase::IgnoreCase) && !i.Equals("/Wwise", ESearchCase::IgnoreCase) && !i.Equals("/Paper2D", ESearchCase::IgnoreCase) && !i.Equals("/Niagara", ESearchCase::IgnoreCase))
+		if (!i.Equals("/Engine", ESearchCase::IgnoreCase)
+			&& !i.Equals("/Game", ESearchCase::IgnoreCase)
+			&& !i.Equals("/Wwise", ESearchCase::IgnoreCase)
+			&& !i.Equals("/Paper2D", ESearchCase::IgnoreCase)
+			&& !i.Equals("/Niagara", ESearchCase::IgnoreCase))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Loading Mod Assets : %s"), *i);
+			UE_LOG(LogContentLib, Warning, TEXT("ContentLib Loading Mod Assets : %s"), *i);
 			TArray<FAssetData> AssetsData;
 			FARFilter Filter;
 			Filter.TagsAndValues.Add(TEXT("NativeParentClass"));
@@ -479,7 +475,9 @@ void UContentLibSubsystem::ClientInit()
 			}
 		}
 	}
+	UE_LOG(LogContentLib, Warning, TEXT("ContentLib done loading relevant Mod Assets"));
 	
+	UE_LOG(LogContentLib, Warning, TEXT("ContentLib loading relevant FG Assets..."));
 	TArray<FAssetData> AssetsData;
 	FARFilter Filter;
 	Filter.TagsAndValues.Add(TEXT("NativeParentClass"));
@@ -508,6 +506,7 @@ void UContentLibSubsystem::ClientInit()
 			}
 		}
 	}
+	UE_LOG(LogContentLib, Warning, TEXT("ContentLib done loading relevant FG Assets"));
 
 	
 	TArray<TSubclassOf<class UFGSchematic>> toProcess;
@@ -575,13 +574,14 @@ FFactoryGame_Recipe::FFactoryGame_Recipe(const TSubclassOf<UFGRecipe> Class, con
 
 TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(const TSubclassOf<UFGItemDescriptor> Item) const
 {
-	const auto CDO = nRecipeClass.GetDefaultObject();
+	const auto ingredients = UFGRecipe::GetIngredients(nRecipeClass);
+	const auto products = UFGRecipe::GetProducts(nRecipeClass);
 	TArray<float> Array;
-	for (const auto i : CDO->mIngredients)
+	for (const auto i : ingredients)
 	{
 		if(i.ItemClass != Item)
 			continue;
-		for (const auto e : CDO->mProduct)
+		for (const auto e : products)
 		{
 			Array.Add(e.Amount / i.Amount);
 		}
@@ -593,15 +593,16 @@ float FFactoryGame_Recipe::GetItemToTotalProductRatio(TSubclassOf<UFGItemDescrip
 {
 	if (!System)
 	{
-		UE_LOG(LogTemp, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function GetItemToTotalProductRatio ----------------------"));
+		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function GetItemToTotalProductRatio ----------------------"));
 		return 0.f;
 	}
-	const auto CDO = nRecipeClass.GetDefaultObject();
-	if(CDO->mProduct.Num() > 1)
+	//const auto CDO = nRecipeClass.GetDefaultObject();
+	const auto products = UFGRecipe::GetProducts(nRecipeClass);
+	if(products.Num() > 1)
 	{
 		if(MJ.HasAssignedMJ())
 		{
-			for (const auto Product : CDO->mProduct)
+			for (const auto Product : products)
 			{
 				if(Product.ItemClass != Item)
 					continue;
@@ -621,7 +622,7 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 {
 	if (!System)
 	{
-		UE_LOG(LogTemp, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverMachines ----------------------"));
+		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverMachines ----------------------"));
 		return;
 	}
 	TArray<TSubclassOf<UObject>> BuildClasses;
@@ -656,7 +657,7 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 {
 	if (!System)
 	{
-		UE_LOG(LogTemp, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverItem ----------------------"));
+		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverItem ----------------------"));
 		return;
 	}
 	for (auto Ingredient : Ingredients())
@@ -707,7 +708,7 @@ bool FFactoryGame_Recipe::IsManual() const
 bool FFactoryGame_Recipe::UnlockedFromAlternate()
 {
 	for(auto Schematic : nUnlockedBy)
-		if(Schematic.GetDefaultObject()->mType == ESchematicType::EST_Alternate)
+		if(UFGSchematic::GetType(Schematic) == ESchematicType::EST_Alternate)
 			return true;
 
 	return false;

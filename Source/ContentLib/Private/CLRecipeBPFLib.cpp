@@ -2,7 +2,7 @@
 
 
 #include "CLRecipeBPFLib.h"
-
+#include "ContentLib.h"
 
 #include "FGSchematic.h"
 #include "Unlocks/FGUnlockRecipe.h"
@@ -78,7 +78,7 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 					Recipe.GetDefaultObject()->mProducedIn.Add(Loaded);
 			else if(!Recipe.GetDefaultObject()->mProducedIn.Contains(Loaded))
 			{
-				UE_LOG(LogTemp,Error,TEXT("Finding Builder by Path %s failed"), *i);
+				UE_LOG(LogContentLib,Error,TEXT("Finding Builder by Path %s failed"), *i);
 			}	
 		}
 		else
@@ -116,7 +116,7 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 			}
 
 			if(!Found)
-				UE_LOG(LogTemp, Error, TEXT("CL Recipes: Failed to find Builder %s for Recipe %s"), *i, *Recipe->GetName())
+				UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Builder %s for Recipe %s"), *i, *Recipe->GetName())
 
 		}
 	}
@@ -144,11 +144,11 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
 
 		return FContentLib_Recipe();
 	}
@@ -159,7 +159,7 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 	Serializer.Deserialize(Reader, Result);
 	if(!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_Recipe();
 	}
 

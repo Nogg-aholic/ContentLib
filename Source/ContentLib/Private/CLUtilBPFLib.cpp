@@ -2,7 +2,7 @@
 
 
 #include "CLUtilBPFLib.h"
-
+#include "ContentLib.h"
 
 #include "BPFContentLib.h"
 #include "ContentLibSubsystem.h"
@@ -87,7 +87,7 @@ TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::Ca
 
 void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,UContentLibSubsystem* System)
 {
-	UE_LOG(LogTemp, Display, TEXT("******************** Content Info MJ Calculation %i Recipes to Calculate ********************"), RecipesToCalc.Num());
+	UE_LOG(LogContentLib, Display, TEXT("******************** Content Info MJ Calculation %i Recipes to Calculate ********************"), RecipesToCalc.Num());
 	int32 CounterInside = 0;
 	int8  Loops = 0;
 	while (CounterInside < RecipesToCalc.Num())
@@ -104,7 +104,7 @@ void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,U
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("******************** Content Info MJ Calculation failed, Had to stop after 20 LoopCyles, Result : %i / %i ********************"), CounterInside, RecipesToCalc.Num());
+			UE_LOG(LogContentLib, Error, TEXT("******************** Content Info MJ Calculation failed, Had to stop after 20 LoopCyles, Result : %i / %i ********************"), CounterInside, RecipesToCalc.Num());
 			return;
 		}
 	}
@@ -148,7 +148,7 @@ void UCLUtilBPFLib::PrintSortedRecipes(UContentLibSubsystem* System)
 	SortPairs(Array_To_Sort_Keys,Array_To_Sort_Values);
 	for(int32 i = 0; i< Array_To_Sort_Keys.Num(); i++)
 	{
-		UE_LOG(LogTemp, Display,TEXT("Recipe: %s MJ: %f"), *Array_To_Sort_Keys[i]->GetName(),Array_To_Sort_Values[i]);
+		UE_LOG(LogContentLib, Display,TEXT("Recipe: %s MJ: %f"), *Array_To_Sort_Keys[i]->GetName(),Array_To_Sort_Values[i]);
 	}
 }
 
@@ -167,7 +167,7 @@ void UCLUtilBPFLib::PrintSortedItems(UContentLibSubsystem* System)
 	SortPairs(Array_To_Sort_Keys,Array_To_Sort_Values);
 	for(int32 i = 0; i< Array_To_Sort_Keys.Num(); i++)
 	{
-		UE_LOG(LogTemp,Display,TEXT("Item: %s MJ: %f"), *Array_To_Sort_Keys[i]->GetName(),Array_To_Sort_Values[i]);
+		UE_LOG(LogContentLib,Display,TEXT("Item: %s MJ: %f"), *Array_To_Sort_Keys[i]->GetName(),Array_To_Sort_Values[i]);
 	}
 };
 

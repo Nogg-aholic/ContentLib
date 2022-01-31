@@ -72,9 +72,6 @@ struct  CONTENTLIB_API  FFactoryGame_RecipeMJ
 	TSubclassOf<UFGRecipe> nRecipe;
 };
 
-
-
-
 USTRUCT(BlueprintType)
 struct  CONTENTLIB_API  FFactoryGame_Descriptor
 {

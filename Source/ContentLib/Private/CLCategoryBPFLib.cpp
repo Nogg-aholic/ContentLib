@@ -2,7 +2,7 @@
 
 
 #include "CLCategoryBPFLib.h"
-
+#include "ContentLib.h"
 
 #include "BPFContentLib.h"
 #include "FGBuildCategory.h"
@@ -31,11 +31,11 @@ FContentLib_ItemCategory UCLCategoryBPFLib::CLItemCategoryFromString(FString Str
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
 
 		return FContentLib_ItemCategory();
 	}
@@ -46,7 +46,7 @@ FContentLib_ItemCategory UCLCategoryBPFLib::CLItemCategoryFromString(FString Str
 	Serializer.Deserialize(Reader, Result);
 	if(!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_ItemCategory();
 	}
 
@@ -83,11 +83,11 @@ FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(F
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
 
 		return FContentLib_SchematicCategory();
 	}
@@ -98,7 +98,7 @@ FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(F
 	Serializer.Deserialize(Reader, Result);
 	if(!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_SchematicCategory();
 	}
 

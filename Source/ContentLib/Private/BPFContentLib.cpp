@@ -2,7 +2,7 @@
 
 
 #include "BPFContentLib.h"
-
+#include "ContentLib.h"
 
 
 #include "FGItemCategory.h"
@@ -52,14 +52,14 @@ void UBPFContentLib::BindOnBPFunction(const TSubclassOf<UObject> Class, FObjectF
 	{
 		if (!ConstructFunction)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Was not able to Bind on Function : %s Function was not Found. Function Dump:"), *FunctionName);
+			UE_LOG(LogContentLib, Error, TEXT("Was not able to Bind on Function : %s Function was not Found. Function Dump:"), *FunctionName);
 			for (auto i : Class->*get(grab_FuncTable()))
 			{
-				UE_LOG(LogTemp, Error, TEXT("FunctionName : %s"), *i.Key.ToString())
+				UE_LOG(LogContentLib, Error, TEXT("FunctionName : %s"), *i.Key.ToString())
 			}
 		}
 		else
-			UE_LOG(LogTemp, Error, TEXT("Was not able to Bind on Function : %s Function was Native"), *FunctionName);
+			UE_LOG(LogContentLib, Error, TEXT("Was not able to Bind on Function : %s Function was Native"), *FunctionName);
 
 		return;
 	}
@@ -113,17 +113,17 @@ bool UBPFContentLib::SetStringIntMapFieldWithLog(TMap<FString,int32>& Field, FSt
 				{
 					if (Item->Type != EJson::String)
 					{
-						UE_LOG(LogTemp, Error, TEXT("Invalid Type on Ingredient. Expected String"));
+						UE_LOG(LogContentLib, Error, TEXT("Invalid Type on Ingredient. Expected String"));
 					}
 					else
 					{
-						UE_LOG(LogTemp, Error, TEXT("Invalid Type on Amount! Expected Number"));
+						UE_LOG(LogContentLib, Error, TEXT("Invalid Type on Amount! Expected Number"));
 					}
 				}
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("No Item or Amount In Json"));
+				UE_LOG(LogContentLib, Error, TEXT("No Item or Amount In Json"));
 			}
 		}
 	}
@@ -142,7 +142,7 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("R value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
 			if (Obj->TryGetField("g")->Type == EJson::Number)
 			{
@@ -151,7 +151,7 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("G value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
 			if (Obj->TryGetField("b")->Type == EJson::Number)
@@ -160,7 +160,7 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("b value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
 			if (Obj->TryGetField("a")->Type == EJson::Number)
@@ -169,7 +169,7 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("A value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("A value in Color is not of type Number !"));
 			}
 		}
 		return true;
@@ -190,7 +190,7 @@ bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString Fie
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("R value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
 			if (Obj->TryGetField("g")->Type == EJson::Number)
 			{
@@ -199,7 +199,7 @@ bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString Fie
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("G value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
 			if (Obj->TryGetField("b")->Type == EJson::Number)
@@ -208,7 +208,7 @@ bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString Fie
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("b value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
 			if (Obj->TryGetField("a")->Type == EJson::Number)
@@ -217,7 +217,7 @@ bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString Fie
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("A value in Color is not of type Number !"));
+				UE_LOG(LogContentLib, Error, TEXT("A value in Color is not of type Number !"));
 			}
 		}
 		return true;
@@ -232,7 +232,7 @@ void UBPFContentLib::SetBooleanFieldWithLog(bool& Field, const FString FieldName
 
 	if(Result->TryGetField(FieldName)->Type != EJson::Boolean)
 	{
-		UE_LOG(LogTemp,Error,TEXT("Field %s is not of Type Boolean"), *FieldName)
+		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Boolean"), *FieldName)
 		return;
 	}
 	
@@ -246,7 +246,7 @@ void UBPFContentLib::SetFloatFieldWithLog(float& Field, const FString FieldName,
 
 	if(Result->TryGetField(FieldName)->Type != EJson::Number)
 	{
-		UE_LOG(LogTemp,Error,TEXT("Field %s is not of Type Number"), *FieldName)
+		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Number"), *FieldName)
 		return;
 	}
 	
@@ -259,7 +259,7 @@ void UBPFContentLib::SetIntegerFieldWithLog(int32 & Field, const FString FieldNa
 
 	if(Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean)
 	{
-		UE_LOG(LogTemp,Error,TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
+		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
 		return;
 	}
 	else if (Result->TryGetField(FieldName)->Type == EJson::Boolean)
@@ -277,7 +277,7 @@ void UBPFContentLib::SetSmallIntegerFieldWithLog(uint8& Field, const FString Fie
 
 	if (Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
 			return;
 	}
 	else if (Result->TryGetField(FieldName)->Type == EJson::Boolean)
@@ -294,7 +294,7 @@ void UBPFContentLib::SetStringFieldWithLog(FString & Field, const FString FieldN
 
 	if(Result->TryGetField(FieldName)->Type != EJson::String)
 	{
-		UE_LOG(LogTemp,Error,TEXT("Field %s is not of Type String"), *FieldName)
+		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type String"), *FieldName)
 		return;
 	}
 	
@@ -308,7 +308,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 
 	if(Result->TryGetField(FieldName)->Type != EJson::Array)
 	{
-		UE_LOG(LogTemp,Error,TEXT("Field %s is not of Type Array"), *FieldName)
+		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Array"), *FieldName)
 		return false;
 	}
 	for(auto i : Result->TryGetField(FieldName)->AsArray())
@@ -324,7 +324,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
     	}
 		else
 		{
-			UE_LOG(LogTemp,Error,TEXT("Field %s contains Elements of invalid Type"), *FieldName)
+			UE_LOG(LogContentLib,Error,TEXT("Field %s contains Elements of invalid Type"), *FieldName)
 		}
     }
 	return true;
@@ -343,7 +343,7 @@ void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool 
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
+		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
 	}
 #endif
 }
@@ -357,7 +357,7 @@ UTexture2D* UBPFContentLib::LoadTextureFromFile(FString& String, FString Path, b
 		return LoadedModIcon;	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
+		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
 		return nullptr;
 	}
 }
@@ -377,7 +377,7 @@ bool UBPFContentLib::LoadStringFromFile(FString& String, FString Path, bool Rela
 	else
 	{
 		return false;
-		UE_LOG(LogTemp, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
+		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
 	}
 #endif
 }
@@ -533,7 +533,7 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 
 	if (Name == "")
 	{
-		UE_LOG(LogTemp, Error, TEXT("Finding %s by Name failed. Empty Path !"), *ParentClass->GetName());
+		UE_LOG(LogContentLib, Error, TEXT("Finding %s by Name failed. Empty Path !"), *ParentClass->GetName());
 		return nullptr;
 	}
 	if (Name.Contains("/"))
@@ -545,11 +545,15 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 	    }
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Finding %s by Path %s failed"), *ParentClass->GetName(), *Name);
+			UE_LOG(LogContentLib, Warning, TEXT("Finding %s by Path %s failed, not necessarily an error"), *ParentClass->GetName(), *Name);
 		}
 	}
 	else
 	{
+		if(Name.Contains(" "))
+		{
+			Name = Name.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
+		}
 		FString Prefix; FString Suffix = "_C"; TArray<UClass*> ClassArr;
 		if(ParentClass->IsChildOf(UFGItemDescriptor::StaticClass()))
 		{
@@ -621,7 +625,7 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 		}
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("Finding %s by Name %s failed"), *ParentClass->GetName(), *Name);
+	UE_LOG(LogContentLib, Warning, TEXT("Finding %s by Name %s failed, not necessarily an error"), *ParentClass->GetName(), *Name);
 	return nullptr;
 	
 }
@@ -630,7 +634,12 @@ TSubclassOf<UObject> UBPFContentLib::CreateContentLibClass(FString Name, UClass*
 {
 	if (Name == "" || FindObject<UClass>(ANY_PACKAGE, *Name, false) || FindObject<UClass>(
 		ANY_PACKAGE, *Name.Append("_C"), false))
+	{
+		if (Name == "")
+			UE_LOG(LogContentLib, Error, TEXT("Name was empty, can't create class"));
 		return nullptr;
+	}
+		
 	const EClassFlags ParamsClassFlags = CLASS_Native | CLASS_MatchedSerializers;
 	//Code below is taken from GetPrivateStaticClassBody
 	//Allocate memory from ObjectAllocator for class object and call class constructor directly
@@ -690,12 +699,17 @@ bool UBPFContentLib::StringCompareItem(FString e, FString Name, FString Prefix, 
 	return false;
 }
 
-UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UContentLibSubsystem* Subsystem, bool Schematic)
+UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSubsystem* Subsystem, bool Schematic)
 {
 	UClass* CategoryClass = nullptr;
-
+	if(CategoryString.Contains(" "))
+	{
+		CategoryString = CategoryString.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
+	}
 	if (CategoryString.Contains("/"))
 	{
+		// Interpret as full path
+
 		UClass* Loaded = LoadObject<UClass>(nullptr, *CategoryString);
 		if (Loaded && Loaded->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass()))
 			CategoryClass = Loaded;
@@ -706,25 +720,30 @@ UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UConten
 			CategoryString.Split("/", &Left, &Right, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
 			if (Right != "")
 			{
-				FString TempName = "Cat_";
-				TempName.Append(Right);
-				TSubclassOf<UFGItemCategory> Cat = UBPFContentLib::CreateContentLibClass(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
+				FString NewCategoryName = "Cat_";
+				NewCategoryName.Append(Right);
+				TSubclassOf<UObject> Cat = UBPFContentLib::CreateContentLibClass(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
 				if (Cat)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("CL: Created Category %s"), *Cat->GetName())
+					UE_LOG(LogContentLib, Warning, TEXT("CL: (full path) Created Category %s"), *Cat->GetName())
 					if(Schematic)
+					{
 						Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+						Subsystem->mSchematicCategories.Add(Cat);
+					}
 					else
+					{
+						Subsystem->mItemCategories.Add(Cat);
 						Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
-						
+					}	
 					CategoryClass = Cat;
 				}
 				else
 				{
-					UClass* Find = FindObject<UClass>(ANY_PACKAGE, *TempName, false);
+					UClass* Find = FindObject<UClass>(ANY_PACKAGE, *NewCategoryName, false);
 					if (!Find)
 					{
-						Find = FindObject<UClass>(ANY_PACKAGE, *TempName.Append("_C"), false);
+						Find = FindObject<UClass>(ANY_PACKAGE, *NewCategoryName.Append("_C"), false);
 					}
 					if (Find && Find->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass()))
 					{
@@ -736,34 +755,47 @@ UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UConten
 					}
 					else
 					{
-						UE_LOG(LogTemp, Error, TEXT("CL: Creating Category Failed...."));
+						UE_LOG(LogContentLib, Error, TEXT("CL: Creating Category Failed...."));
 						return nullptr;
 					}
 				}
+			}
+			else {
+				UE_LOG(LogContentLib, Error, TEXT("CL: Right side of full path is empty, probably broken path %s"), *CategoryString);
 			}
 		}
 	}
 	else
 	{
-		CategoryClass = UBPFContentLib::FindClassWithLog(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass(), Subsystem);
+		// Look up by name since not a full path
+		FString CategoryNameWithPrefix = "Cat_";
+		CategoryNameWithPrefix.Append(CategoryString);
+
+		CategoryClass = UBPFContentLib::FindClassWithLog(CategoryNameWithPrefix, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass(), Subsystem);
 		if (!CategoryClass)
 		{
-			TSubclassOf<UFGItemCategory> Cat =  UBPFContentLib::CreateContentLibClass(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
+			TSubclassOf<UObject> Cat =  UBPFContentLib::CreateContentLibClass(CategoryNameWithPrefix, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
 			if (Cat)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("CL Recipes: Created Category %s "), *Cat->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: (lookup) Created Category %s "), *Cat->GetName())
 				if(Schematic)
+				{
+					Subsystem->mSchematicCategories.Add(Cat);
 					Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
+				}
 				else
+				{
+					Subsystem->mItemCategories.Add(Cat);
 					Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
+				}
 				CategoryClass = Cat;
 			}
 			else
 			{
-				UClass* Find = FindObject<UClass>(ANY_PACKAGE, *CategoryString, false);
+				UClass* Find = FindObject<UClass>(ANY_PACKAGE, *CategoryNameWithPrefix, false);
 				if (!Find)
 				{
-					FString TempS = CategoryString;
+					FString TempS = CategoryNameWithPrefix;
 					Find = FindObject<UClass>(ANY_PACKAGE, *TempS.Append("_C"), false);
 				}
 				if (Find && Find->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass()))
@@ -776,7 +808,7 @@ UClass* UBPFContentLib::SetCategoryWithLoad(const FString CategoryString,UConten
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("CL: Creating Category Failed."))
+					UE_LOG(LogContentLib, Error, TEXT("CL: Creating Category Failed."))
 					return nullptr;
 				}
 			}
@@ -821,7 +853,7 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FStri
 			}
 			else
 			{
-				UE_LOG(LogTemp,Error,TEXT("Finding Item by Path %s failed"), *i.Key);
+				UE_LOG(LogContentLib,Error,TEXT("Finding Item by Path %s failed"), *i.Key);
 			}
 		}
 		else
@@ -857,7 +889,7 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FStri
 			}
 
 			if (!Found)
-				UE_LOG(LogTemp, Error, TEXT("CL: Failed to find Item %s"), *i.Key)
+				UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *i.Key)
 
 		}
 	}
@@ -876,7 +908,7 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic , UCo
 			{
 				Cast<UFGUnlockRecipe>(f)->mRecipes.Add(Recipe);
 				Added = true;
-				UE_LOG(LogTemp, Warning, TEXT("CL: Added Recipe to %s in Schematic %s "), *Recipe->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe to %s in Schematic %s "), *Recipe->GetName(), *Schematic->GetName())
 				break;
 			}
 		}
@@ -889,13 +921,13 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic , UCo
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"));
 			if (!Class)
 			{
-				UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockRecipe* Object = NewObject<UFGUnlockRecipe>(Schematic.GetDefaultObject(),Class);
 		Object->mRecipes.Add(Recipe);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogTemp, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 
 	}
 	
@@ -915,7 +947,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 			{
 				Cast<UFGUnlockSchematic>(f)->mSchematics.Add(SchematicToAdd);
 				Added = true;
-				UE_LOG(LogTemp, Warning, TEXT("CL: Added Schematic to %s in Schematic %s "), *SchematicToAdd->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic to %s in Schematic %s "), *SchematicToAdd->GetName(), *Schematic->GetName())
 				break;
 			}
 		}
@@ -928,13 +960,13 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"));
 			if (!Class)
 			{
-				UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(Schematic.GetDefaultObject(),Class);
 		Object->mSchematics.Add(SchematicToAdd);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogTemp, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 
 	}
 	
@@ -953,7 +985,7 @@ void UBPFContentLib::AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UCon
 			{
 				Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock = Slots;
 				Added = true;
-				UE_LOG(LogTemp, Warning, TEXT("CL: Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
 				break;
 			}
 		}
@@ -966,13 +998,13 @@ void UBPFContentLib::AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UCon
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C"));
 			if (!Class)
 			{
-				UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockInventorySlot* Object = NewObject<UFGUnlockInventorySlot>(Schematic.GetDefaultObject(),Class);
 		Object->mNumInventorySlotsToUnlock = Slots;
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogTemp, Warning, TEXT("CL: Created new Unlock. Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
 	}
 	
 }
@@ -995,13 +1027,13 @@ void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"));
 		if (!Class)
 		{
-			UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
+			UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
 		}
 	}
 	UFGUnlockGiveItem* Object = NewObject<UFGUnlockGiveItem>(Schematic.GetDefaultObject(),Class);
 	AddToItemAmountArray(Object->mItemsToGive,ItemsToGive,Subsystem->mItems,ClearFirst);
 	Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-	UE_LOG(LogTemp, Warning, TEXT("CL: Created new Unlock. Set for Items to Give in Schematic %s "), *Schematic->GetName())
+	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set for Items to Give in Schematic %s "), *Schematic->GetName())
 }
 void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const int32 Slots)
 {
@@ -1014,7 +1046,7 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , U
 			{
 				Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock = Slots;
 				Added = true;
-				UE_LOG(LogTemp, Warning, TEXT("CL: Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
 				break;
 			}
 		}
@@ -1027,13 +1059,13 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , U
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C"));
 			if (!Class)
 			{
-				UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockArmEquipmentSlot* Object = NewObject<UFGUnlockArmEquipmentSlot>(Schematic.GetDefaultObject(),Class);
 		Object->mNumArmEquipmentSlotsToUnlock = Slots;
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogTemp, Warning, TEXT("CL: Created new Unlock. Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
 	}
 	
 }
@@ -1053,7 +1085,7 @@ void UBPFContentLib::UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem)
 				if (Manager->IsSchematicPurchased(i))
 				{
 					Unlock->UnlockRecipe(nRecipe.Key);
-					UE_LOG(LogTemp, Warning, TEXT("CL: Unlocked Recipe %s"), *nRecipe.Key->GetName())
+					UE_LOG(LogContentLib, Warning, TEXT("CL: Unlocked Recipe %s"), *nRecipe.Key->GetName())
 
 				}
 			}
@@ -1074,7 +1106,7 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 			{
 				Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Add(SchematicDep);
 				Added = true;
-				UE_LOG(LogTemp, Warning, TEXT("CL : Added SchematicDep to %s in Schematic %s "), *SchematicDep->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL : Added SchematicDep to %s in Schematic %s "), *SchematicDep->GetName(), *Schematic->GetName())
 				break;
 			}
 		}
@@ -1087,13 +1119,13 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 			Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
 			if (!Class)
 			{
-				UE_LOG(LogTemp,Fatal,TEXT("CL: Couldnt find BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGSchematicPurchasedDependency* Object = NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(),Class);
 		Object->mSchematics.Add(SchematicDep);
 		Schematic.GetDefaultObject()->mSchematicDependencies.Add(Object);
-		UE_LOG(LogTemp, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency. Added Schematic to %s in Schematic %s."), *SchematicDep->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency. Added Schematic to %s in Schematic %s."), *SchematicDep->GetName(), *Schematic->GetName())
 
 	}
 }

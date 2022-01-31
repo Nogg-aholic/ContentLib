@@ -2,6 +2,7 @@
 
 
 #include "CLSchematicBPFLib.h"
+#include "ContentLib.h"
 
 #include "FGSchematicCategory.h"
 #include "BPFContentLib.h"
@@ -471,12 +472,12 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 						Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"));
 						if (!Class)
 						{
-							UE_LOG(LogTemp, Fatal, TEXT("CL: Couldnt find /Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"))
+							UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find /Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"))
 						}
 					}
 					UFGResearchTreeNode* Node = NewObject<UFGResearchTreeNode>(SchematicDep->GetDefaultObject(), Class);
 					Nodes.Add(Node);
-					UE_LOG(LogTemp, Warning, TEXT("CL: Created new Research Tree Node. Added Schematic to %s in ResearchTree %s."), *ResearchTreeNodeClass->GetName(), *SchematicDep->GetName());
+					UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Research Tree Node. Added Schematic to %s in ResearchTree %s."), *ResearchTreeNodeClass->GetName(), *SchematicDep->GetName());
 					SubSystem->HandleResearchTreeNodeChange(Node, Schematic.ResearchTree, SchematicClass,SchematicDep);
 
 				}

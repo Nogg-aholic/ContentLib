@@ -5,9 +5,7 @@
 #include "BPFContentLib.h"
 #include "FGWorldSettings.h"
 #include "Serialization/JsonSerializer.h"
-
-
-
+#include "ContentLib.h"
 
 FContentLib_VisualKit::FContentLib_VisualKit()
 {
@@ -34,24 +32,26 @@ TSharedRef<FJsonObject> FContentLib_VisualKit::GetAsJsonObject(const TSubclassOf
 {
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	const auto Mesh = MakeShared<FJsonValueString>(CDO->mConveyorMesh->GetPathName());
-	const auto BigIcon = MakeShared<FJsonValueString>(CDO->mPersistentBigIcon->GetPathName());
-	const auto SmallIcon = MakeShared<FJsonValueString>(CDO->mSmallIcon->GetPathName());
+	const auto Mesh = MakeShared<FJsonValueString>(UFGItemDescriptor::GetItemMesh(Item)->GetPathName());
+	const auto BigIcon = MakeShared<FJsonValueString>(UFGItemDescriptor::GetBigIcon(Item)->GetPathName());
+	const auto SmallIcon = MakeShared<FJsonValueString>(UFGItemDescriptor::GetSmallIcon(Item)->GetPathName());
 	auto Color = MakeShared<FJsonObject>();
-	const auto FluidColor_R = MakeShared<FJsonValueNumber>(CDO->mFluidColor.R);
-	const auto FluidColor_G = MakeShared<FJsonValueNumber>(CDO->mFluidColor.G);
-	const auto FluidColor_B = MakeShared<FJsonValueNumber>(CDO->mFluidColor.B);
-	const auto FluidColor_A = MakeShared<FJsonValueNumber>(CDO->mFluidColor.A);
+	const auto fluid = UFGItemDescriptor::GetFluidColor(Item);
+	const auto FluidColor_R = MakeShared<FJsonValueNumber>(fluid.R);
+	const auto FluidColor_G = MakeShared<FJsonValueNumber>(fluid.G);
+	 const auto FluidColor_B = MakeShared<FJsonValueNumber>(fluid.B);
+	const auto FluidColor_A = MakeShared<FJsonValueNumber>(fluid.A);
 	Color->Values.Add("r", FluidColor_R);
 	Color->Values.Add("g", FluidColor_G);
 	Color->Values.Add("b", FluidColor_B);
 	Color->Values.Add("a", FluidColor_A);
 
 	auto ColorGas = MakeShared<FJsonObject>();
-	const auto GasColor_R = MakeShared<FJsonValueNumber>(CDO->mGasColor.R);
-	const auto GasColor_G = MakeShared<FJsonValueNumber>(CDO->mGasColor.G);
-	const auto GasColor_B = MakeShared<FJsonValueNumber>(CDO->mGasColor.B);
-	const auto GasColor_A = MakeShared<FJsonValueNumber>(CDO->mGasColor.A);
+	const auto gasColor = UFGItemDescriptor::GetGasColor(Item);
+	const auto GasColor_R = MakeShared<FJsonValueNumber>(gasColor.R);
+	const auto GasColor_G = MakeShared<FJsonValueNumber>(gasColor.G);
+	const auto GasColor_B = MakeShared<FJsonValueNumber>(gasColor.B);
+	const auto GasColor_A = MakeShared<FJsonValueNumber>(gasColor.A);
 	ColorGas->Values.Add("r", GasColor_R);
 	ColorGas->Values.Add("g", GasColor_G);
 	ColorGas->Values.Add("b", GasColor_B);
@@ -80,15 +80,16 @@ TSharedRef<FJsonObject> FContentLib_ResourceItem::GetResourceAsJsonObject(TSubcl
 	const auto CDO = Cast<UFGResourceDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
 	auto Color = MakeShared<FJsonObject>();
-	const auto PingColor_R = MakeShared<FJsonValueNumber>(CDO->mPingColor.R);
-	const auto PingColor_G = MakeShared<FJsonValueNumber>(CDO->mPingColor.G);
-	const auto PingColor_B = MakeShared<FJsonValueNumber>(CDO->mPingColor.B);
-	const auto PingColor_A = MakeShared<FJsonValueNumber>(CDO->mPingColor.A);
+	const auto pingColor = UFGResourceDescriptor::GetPingColor(Item);
+	const auto PingColor_R = MakeShared<FJsonValueNumber>(pingColor.R);
+	const auto PingColor_G = MakeShared<FJsonValueNumber>(pingColor.G);
+	const auto PingColor_B = MakeShared<FJsonValueNumber>(pingColor.B);
+	const auto PingColor_A = MakeShared<FJsonValueNumber>(pingColor.A);
 	Color->Values.Add("r", PingColor_R);
 	Color->Values.Add("g", PingColor_G);
 	Color->Values.Add("b", PingColor_B);
 	Color->Values.Add("a", PingColor_A);
-	const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(CDO->mCollectSpeedMultiplier);
+	const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(UFGResourceDescriptor::GetCollectSpeedMultiplier(Item));
 
 	Obj->Values.Add("PingColor", MakeShared<FJsonValueObject>(Color));
 	Obj->Values.Add("CollectSpeedMultiplier", CollectSpeedMultiplier);
@@ -126,16 +127,195 @@ FContentLib_Item::FContentLib_Item(): Form(EResourceForm::RF_INVALID), StackSize
 {
 }
 
+FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
+{
+	// TODO remove code duplication here
+	const auto CDO = Item;
+	const auto Obj = MakeShared<FJsonObject>();
+
+	FString FormString = "Unknown";
+	if (CDO.Form == EResourceForm::RF_SOLID)
+	{
+		FormString = "Solid";
+	}
+	else if (CDO.Form == EResourceForm::RF_LIQUID)
+	{
+		FormString = "Liquid";
+	}
+	else if (CDO.Form == EResourceForm::RF_GAS)
+	{
+		FormString = "Gas";
+	}
+	else if (CDO.Form == EResourceForm::RF_HEAT)
+	{
+		FormString = "Heat";
+	}
+	else if (CDO.Form == EResourceForm::RF_INVALID)
+	{
+		FormString = "Invalid";
+	}
+	else if (CDO.Form == EResourceForm::RF_LAST_ENUM)
+	{
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
+			FormString = "Unknown";
+	}
+
+	FString SizeString = "Unknown";
+	if (CDO.StackSize == EStackSize::SS_ONE)
+	{
+		SizeString = "One";
+	}
+	else if (CDO.StackSize == EStackSize::SS_SMALL)
+	{
+		SizeString = "Small";
+	}
+	else if (CDO.StackSize == EStackSize::SS_MEDIUM)
+	{
+		SizeString = "Medium";
+	}
+	else if (CDO.StackSize == EStackSize::SS_BIG)
+	{
+		SizeString = "Big";
+	}
+	else if (CDO.StackSize == EStackSize::SS_HUGE)
+	{
+		SizeString = "Huge";
+	}
+	else if (CDO.StackSize == EStackSize::SS_FLUID)
+	{
+		SizeString = "Fluid";
+	}
+	else if (CDO.StackSize == EStackSize::SS_LAST_ENUM)
+	{
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
+		SizeString = "Unknown";
+	}
+
+	const auto Form = MakeShared<FJsonValueString>(FormString);
+	const auto Size = MakeShared<FJsonValueString>(SizeString);
+	Obj->Values.Add("Form", Form);
+	Obj->Values.Add("StackSize", Size);
+
+	if (CDO.Name != "")
+	{
+		const auto Name = MakeShared<FJsonValueString>(CDO.Name);
+		Obj->Values.Add("Name", Name);
+	}
+
+	if (CDO.NameShort != "")
+	{
+		const auto NameShort = MakeShared<FJsonValueString>(CDO.NameShort);
+		Obj->Values.Add("NameShort", NameShort);
+	}
+
+	if (CDO.Description != "")
+	{
+		const auto Description = MakeShared<FJsonValueString>(CDO.Description);
+		Obj->Values.Add("Description", Description);
+	}
+	if (CDO.Category != "")
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO.Category);
+		Obj->Values.Add("Category", ItemCategory);
+	}
+	if (CDO.VisualKit != "")
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO.VisualKit);
+		Obj->Values.Add("VisualKit", ItemCategory);
+	}
+
+	if (CDO.EnergyValue != -1)
+	{
+		const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO.EnergyValue);
+		Obj->Values.Add("EnergyValue", EnergyValue);
+	}
+
+	if (CDO.RadioactiveDecay != -1)
+	{
+		const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO.RadioactiveDecay);
+		Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
+	}
+
+	if (CDO.CanBeDiscarded != -1)
+	{
+		const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(static_cast<bool>(CDO.CanBeDiscarded));
+		Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
+	}
+	if (CDO.RememberPickUp != -1)
+	{
+		const auto RememberPickUp = MakeShared<FJsonValueBoolean>(static_cast<bool>(CDO.RememberPickUp));
+		Obj->Values.Add("RememberPickUp", RememberPickUp);
+	}
+
+	if (CDO.ResourceSinkPoints != -1)
+	{
+		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO.ResourceSinkPoints);
+		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+	}
+
+	if (CDO.ResourceItem.CollectSpeedMultiplier != -1 || CDO.ResourceItem.PingColor != FColor(0,0,0,0))
+	{
+		const auto Objx = MakeShared<FJsonObject>();
+
+		if (CDO.ResourceItem.PingColor != FColor(0, 0, 0, 0))
+		{
+			auto Color = MakeShared<FJsonObject>();
+			const auto PingColor_R = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.R);
+			const auto PingColor_G = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.G);
+			const auto PingColor_B = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.B);
+			const auto PingColor_A = MakeShared<FJsonValueNumber>(CDO.ResourceItem.PingColor.A);
+			Color->Values.Add("r", PingColor_R);
+			Color->Values.Add("g", PingColor_G);
+			Color->Values.Add("b", PingColor_B);
+			Color->Values.Add("a", PingColor_A);
+			Objx->Values.Add("PingColor", MakeShared<FJsonValueObject>(Color));
+
+		}
+		if (CDO.ResourceItem.CollectSpeedMultiplier != -1)
+		{
+			const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(CDO.ResourceItem.CollectSpeedMultiplier);
+			Objx->Values.Add("CollectSpeedMultiplier", CollectSpeedMultiplier);
+
+		}
+
+		Obj->Values.Add("ResourceItem", MakeShared<FJsonValueObject>(Objx));
+	}
+
+	if (CDO.FuelWasteItem.SpentFuelClass != "" || CDO.FuelWasteItem.AmountOfWaste != -1)
+	{
+		const auto Objx = MakeShared<FJsonObject>();
+
+		if (CDO.FuelWasteItem.SpentFuelClass != "")
+		{
+			const auto SpentFuelClass = MakeShared<FJsonValueString>(CDO.FuelWasteItem.SpentFuelClass);
+			Objx->Values.Add("SpentFuelClass", SpentFuelClass);
+		}
+		if (CDO.FuelWasteItem.AmountOfWaste != -1)
+		{
+			const auto AmountOfWaste = MakeShared<FJsonValueNumber>(CDO.FuelWasteItem.AmountOfWaste);
+			Obj->Values.Add("AmountOfWaste", AmountOfWaste);
+
+		}
+		Obj->Values.Add("FuelWasteItem", MakeShared<FJsonValueObject>(Objx));
+	}
+
+	FString Write;
+	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
+		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	FJsonSerializer::Serialize(Obj, JsonWriter);
+	return Write;
+}
 
 FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item)
 {
-if (!Item)
+	if (!Item)
 		return "";
 
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
-	FString FormString = "Invalid";
+
+	// TODO remove code duplication here
+	FString FormString = "Unknown";
 	if (CDO->mForm == EResourceForm::RF_SOLID)
 	{
 		FormString = "Solid";
@@ -152,8 +332,17 @@ if (!Item)
 	{
 		FormString = "Heat";
 	}
-	FString SizeString = "Invalid";
+	else if (CDO->mForm == EResourceForm::RF_INVALID)
+	{
+		FormString = "Invalid";
+	}
+	else if (CDO->mForm == EResourceForm::RF_LAST_ENUM)
+	{
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
+		FormString = "Unknown";
+	}
 
+	FString SizeString = "Unknown";
 	if (CDO->mStackSize == EStackSize::SS_ONE)
 	{
 		SizeString = "One";
@@ -180,34 +369,69 @@ if (!Item)
 	}
 	else if (CDO->mStackSize == EStackSize::SS_LAST_ENUM)
 	{
-		SizeString = "Invalid";
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
+		SizeString = "Unknown";
 	}
 	
 	const auto Form = MakeShared<FJsonValueString>(FormString);
 	const auto Size = MakeShared<FJsonValueString>(SizeString);
-
-	const auto NameShort = MakeShared<FJsonValueString>(CDO->mAbbreviatedDisplayName.ToString());
-	const auto Description = MakeShared<FJsonValueString>(CDO->mDescription.ToString());
-	const auto ItemCategory = MakeShared<FJsonValueString>(CDO->mItemCategory->GetPathName());
-
-	const auto VisualKit = MakeShared<FJsonValueObject>(FContentLib_VisualKit::GetAsJsonObject(Item));
-	const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO->mEnergyValue);
-	const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO->mRadioactiveDecay);
-	const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(CDO->mCanBeDiscarded);
-	const auto RememberPickUp = MakeShared<FJsonValueBoolean>(CDO->mRememberPickUp);
-	const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO->mResourceSinkPoints);
 	Obj->Values.Add("Form", Form);
 	Obj->Values.Add("StackSize", Size);
-	Obj->Values.Add("Name", Name);
-	Obj->Values.Add("NameShort", NameShort);
-	Obj->Values.Add("Description", Description);
-	Obj->Values.Add("Category", ItemCategory);
+
+	if (CDO->mDisplayName.ToString() != "")
+	{
+		const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
+		Obj->Values.Add("Name", Name);
+	}
+
+	if (CDO->mAbbreviatedDisplayName.ToString() != "")
+	{
+		const auto NameShort = MakeShared<FJsonValueString>(CDO->mAbbreviatedDisplayName.ToString());
+		Obj->Values.Add("NameShort", NameShort);
+	}
+
+	if (CDO->mDescription.ToString() != "")
+	{
+		const auto Description = MakeShared<FJsonValueString>(CDO->mDescription.ToString());
+		Obj->Values.Add("Description", Description);
+	}
+	if (CDO->mItemCategory)
+	{
+		const auto ItemCategory = MakeShared<FJsonValueString>(CDO->mItemCategory->GetPathName());
+		Obj->Values.Add("Category", ItemCategory);
+	}
+
+	const auto VisualKit = MakeShared<FJsonValueObject>(FContentLib_VisualKit::GetAsJsonObject(Item));
 	Obj->Values.Add("VisualKit", VisualKit);
-	Obj->Values.Add("EnergyValue", EnergyValue);
-	Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
-	Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
-	Obj->Values.Add("RememberPickUp", RememberPickUp);
-	Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+
+	if (CDO->mEnergyValue != 0)
+	{
+		const auto EnergyValue = MakeShared<FJsonValueNumber>(CDO->mEnergyValue);
+		Obj->Values.Add("EnergyValue", EnergyValue);
+	}
+
+	if (CDO->mRadioactiveDecay != 0)
+	{
+		const auto RadioactiveDecay = MakeShared<FJsonValueNumber>(CDO->mRadioactiveDecay);
+		Obj->Values.Add("RadioactiveDecay", RadioactiveDecay);
+	}
+
+	if (CDO->mCanBeDiscarded)
+	{
+		const auto CanBeDiscarded = MakeShared<FJsonValueBoolean>(CDO->mCanBeDiscarded);
+		Obj->Values.Add("CanBeDiscarded", CanBeDiscarded);
+	}
+	if (CDO->mRememberPickUp)
+	{
+		const auto RememberPickUp = MakeShared<FJsonValueBoolean>(CDO->mRememberPickUp);
+		Obj->Values.Add("RememberPickUp", RememberPickUp);
+	}
+
+	if (CDO->mResourceSinkPoints != 0)
+	{
+		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO->mResourceSinkPoints);
+		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+	}
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{
@@ -227,14 +451,15 @@ if (!Item)
 	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
 		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
-	return Write;}
+	return Write;
+}
 
-FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString String)
+FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 {
-if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
+	if (jsonString == "" || !jsonString.StartsWith("{") || !jsonString.EndsWith("}"))
 		return FContentLib_Item();
 
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*String);
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*jsonString);
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
@@ -260,6 +485,13 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		else if (CS.Equals("Heat", ESearchCase::IgnoreCase))
 		{
 			Item.Form = EResourceForm::RF_HEAT;
+		}
+		else if (CS.Equals("Invalid", ESearchCase::IgnoreCase))
+		{
+			Item.Form = EResourceForm::RF_INVALID;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized Form: '%s', falling back to default"), *CS);
 		}
 	}
 
@@ -287,9 +519,17 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		{
 			Item.StackSize = EStackSize::SS_HUGE;
 		}
-		else if (CS.Equals("Liquid", ESearchCase::IgnoreCase))
+		else if (CS.Equals("Fluid", ESearchCase::IgnoreCase))
 		{
 			Item.StackSize = EStackSize::SS_FLUID;
+		}
+		else if (CS.Equals("Liquid", ESearchCase::IgnoreCase))
+		{
+			UE_LOG(LogContentLib, Error, TEXT("Tried to register an Item with the StackSize of 'Liquid', this is not a real stack size, but treating it as 'Fluid' to avoid in-game weirdness. Please change it to 'Fluid' in your code. Encountered while processing json: %s"), *jsonString);
+			Item.StackSize = EStackSize::SS_FLUID;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized StackSize: '%s', falling back to default. Encountered while processing json: %s"), *CS, *jsonString);
 		}
 	}
 	UBPFContentLib::SetStringFieldWithLog(Item.Name, "Name", Result);
@@ -317,18 +557,19 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		UBPFContentLib::SetStringFieldWithLog(Item.FuelWasteItem.SpentFuelClass, "SpentFuelClass", Result);
 		UBPFContentLib::SetIntegerFieldWithLog(Item.FuelWasteItem.AmountOfWaste, "AmountOfWaste", Result);
 	}
-	return Item;}
+	return Item;
+}
 
 FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 {
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String)
 
 		return FContentLib_VisualKit();
 	}
@@ -339,7 +580,7 @@ FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 	Serializer.Deserialize(Reader, Result);
 	if (!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_VisualKit();
 	}
 
@@ -410,7 +651,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		return;
 	UFGItemDescriptor* CDO = Item.GetDefaultObject();
 
-	if (ItemStruct.Form != EResourceForm::RF_INVALID)
+	if (ItemStruct.Form != EResourceForm::RF_LAST_ENUM)
 	{
 		CDO->mForm = ItemStruct.Form;
 	}
@@ -439,6 +680,9 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		if (Out)
 		{
 			CDO->mItemCategory = Out;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized ItemCategory: '%s' that failed to be created via SetCategoryWithLoad"), *ItemStruct.Category)
 		}
 	}
 	if (ItemStruct.VisualKit != "")
@@ -498,8 +742,13 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 			if (ItemStruct.FuelWasteItem.SpentFuelClass.Contains("/"))
 			{
 				UClass* Loaded = LoadObject<UClass>(nullptr, *ItemStruct.FuelWasteItem.SpentFuelClass);
-				if (Loaded && Loaded->IsChildOf(UFGItemCategory::StaticClass()))
-					Cast<UFGItemDescriptorNuclearFuel>(CDO)->mSpentFuelClass = Loaded;
+				if (Loaded && Loaded->IsChildOf(UFGItemCategory::StaticClass())) {
+					// TODOU5 this was changed
+					// Cast<UFGItemDescriptorNuclearFuel>(CDO)->mSpentFuelClass = Loaded;
+					//UFGItemDescriptorNuclearFuel::GetSpentFuelClass(Item) = dynamic_cast<UFGItemDescriptor>(Loaded);
+					// Item->SetSpentFuelClass(dynamic_cast<UFGItemDescriptor>(Loaded));
+					Cast<UFGItemDescriptorNuclearFuel>(CDO)->SetSpentFuelClass(Loaded);
+				}
 			}
 			else
 			{
@@ -507,7 +756,11 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 				{
 					if (UBPFContentLib::StringCompareItem(e->GetName(),ItemStruct.FuelWasteItem.SpentFuelClass,"Desc","_C"))
 					{
-						Cast<UFGItemDescriptorNuclearFuel>(CDO)->mSpentFuelClass = e;
+						// TODOU5 this was changed
+						//UFGItemDescriptorNuclearFuel::GetSpentFuelClass(Item) = e;
+						// Item->SetSpentFuelClass(e);
+						// Cast<UFGItemDescriptorNuclearFuel>(CDO)->mSpentFuelClass = e;
+						Cast<UFGItemDescriptorNuclearFuel>(CDO)->SetSpentFuelClass(e);
 						break;
 					}
 				}
@@ -515,7 +768,11 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		}
 		if (ItemStruct.FuelWasteItem.AmountOfWaste != -1)
 		{
-			Cast<UFGItemDescriptorNuclearFuel>(CDO)->mAmountOfWaste = ItemStruct.FuelWasteItem.AmountOfWaste;
+			// TODOU5 this was changed
+			//UFGItemDescriptorNuclearFuel::GetAmountWasteCreated(ItemStruct) = ItemStruct.FuelWasteItem.AmountOfWaste;
+			// Item->SetAmountWasteCreated(ItemStruct.FuelWasteItem.AmountOfWaste);
+			// Cast<UFGItemDescriptorNuclearFuel>(CDO)->mAmountOfWaste = ItemStruct.FuelWasteItem.AmountOfWaste;
+			Cast<UFGItemDescriptorNuclearFuel>(CDO)->SetAmountOfWaste(ItemStruct.FuelWasteItem.AmountOfWaste);
 		}
 	}
 }
