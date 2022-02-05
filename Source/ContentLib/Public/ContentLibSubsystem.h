@@ -276,5 +276,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	TMap<FString, UTexture2D* > Icons;
-	
+
+	UPROPERTY(BlueprintReadOnly)
+	TMap<FString, FString> DumpItems;
+	UPROPERTY(BlueprintReadOnly)
+	TArray<UObjectRedirector *> Redirectors;
 };
