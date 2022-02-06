@@ -34,24 +34,24 @@ TSharedRef<FJsonObject> FContentLib_VisualKit::GetAsJsonObject(const TSubclassOf
 {
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	const auto Mesh = MakeShared<FJsonValueString>(CDO->mConveyorMesh->GetPathName());
-	const auto BigIcon = MakeShared<FJsonValueString>(CDO->mPersistentBigIcon->GetPathName());
-	const auto SmallIcon = MakeShared<FJsonValueString>(CDO->mSmallIcon->GetPathName());
+	const auto Mesh = MakeShared<FJsonValueString>(CDO->GetConveyorMesh()->GetPathName());
+	const auto BigIcon = MakeShared<FJsonValueString>(CDO->GetBigIcon(Item)->GetPathName());
+	const auto SmallIcon = MakeShared<FJsonValueString>(CDO->GetSmallIcon(Item)->GetPathName());
 	auto Color = MakeShared<FJsonObject>();
-	const auto FluidColor_R = MakeShared<FJsonValueNumber>(CDO->mFluidColor.R);
-	const auto FluidColor_G = MakeShared<FJsonValueNumber>(CDO->mFluidColor.G);
-	const auto FluidColor_B = MakeShared<FJsonValueNumber>(CDO->mFluidColor.B);
-	const auto FluidColor_A = MakeShared<FJsonValueNumber>(CDO->mFluidColor.A);
+	const auto FluidColor_R = MakeShared<FJsonValueNumber>(CDO->GetFluidColor(Item).R);
+	const auto FluidColor_G = MakeShared<FJsonValueNumber>(CDO->GetFluidColor(Item).G);
+	const auto FluidColor_B = MakeShared<FJsonValueNumber>(CDO->GetFluidColor(Item).B);
+	const auto FluidColor_A = MakeShared<FJsonValueNumber>(CDO->GetFluidColor(Item).A);
 	Color->Values.Add("r", FluidColor_R);
 	Color->Values.Add("g", FluidColor_G);
 	Color->Values.Add("b", FluidColor_B);
 	Color->Values.Add("a", FluidColor_A);
 
 	auto ColorGas = MakeShared<FJsonObject>();
-	const auto GasColor_R = MakeShared<FJsonValueNumber>(CDO->mGasColor.R);
-	const auto GasColor_G = MakeShared<FJsonValueNumber>(CDO->mGasColor.G);
-	const auto GasColor_B = MakeShared<FJsonValueNumber>(CDO->mGasColor.B);
-	const auto GasColor_A = MakeShared<FJsonValueNumber>(CDO->mGasColor.A);
+	const auto GasColor_R = MakeShared<FJsonValueNumber>(CDO->GetGasColor(Item).R);
+	const auto GasColor_G = MakeShared<FJsonValueNumber>(CDO->GetGasColor(Item).G);
+	const auto GasColor_B = MakeShared<FJsonValueNumber>(CDO->GetGasColor(Item).B);
+	const auto GasColor_A = MakeShared<FJsonValueNumber>(CDO->GetGasColor(Item).A);
 	ColorGas->Values.Add("r", GasColor_R);
 	ColorGas->Values.Add("g", GasColor_G);
 	ColorGas->Values.Add("b", GasColor_B);
@@ -77,18 +77,22 @@ FContentLib_ResourceItem::FContentLib_ResourceItem(): CollectSpeedMultiplier(-1)
 
 TSharedRef<FJsonObject> FContentLib_ResourceItem::GetResourceAsJsonObject(TSubclassOf<UFGResourceDescriptor> Item)
 {
-	const auto CDO = Cast<UFGResourceDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
+
+	if (!Item)
+		return Obj;
+
+	const auto CDO = Cast<UFGResourceDescriptor>(Item->GetDefaultObject());
 	auto Color = MakeShared<FJsonObject>();
-	const auto PingColor_R = MakeShared<FJsonValueNumber>(CDO->mPingColor.R);
-	const auto PingColor_G = MakeShared<FJsonValueNumber>(CDO->mPingColor.G);
-	const auto PingColor_B = MakeShared<FJsonValueNumber>(CDO->mPingColor.B);
-	const auto PingColor_A = MakeShared<FJsonValueNumber>(CDO->mPingColor.A);
+	const auto PingColor_R = MakeShared<FJsonValueNumber>(CDO->GetPingColor(Item).R);
+	const auto PingColor_G = MakeShared<FJsonValueNumber>(CDO->GetPingColor(Item).G);
+	const auto PingColor_B = MakeShared<FJsonValueNumber>(CDO->GetPingColor(Item).B);
+	const auto PingColor_A = MakeShared<FJsonValueNumber>(CDO->GetPingColor(Item).A);
 	Color->Values.Add("r", PingColor_R);
 	Color->Values.Add("g", PingColor_G);
 	Color->Values.Add("b", PingColor_B);
 	Color->Values.Add("a", PingColor_A);
-	const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(CDO->mCollectSpeedMultiplier);
+	const auto CollectSpeedMultiplier = MakeShared<FJsonValueNumber>(CDO->GetCollectSpeedMultiplier(Item));
 
 	Obj->Values.Add("PingColor", MakeShared<FJsonValueObject>(Color));
 	Obj->Values.Add("CollectSpeedMultiplier", CollectSpeedMultiplier);
