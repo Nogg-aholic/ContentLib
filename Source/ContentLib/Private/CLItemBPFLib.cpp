@@ -4,6 +4,7 @@
 #include "CLItemBPFLib.h"
 #include "BPFContentLib.h"
 #include "FGWorldSettings.h"
+#include "Contentlib.h"
 #include "Serialization/JsonSerializer.h"
 
 
@@ -34,7 +35,7 @@ TSharedRef<FJsonObject> FContentLib_VisualKit::GetAsJsonObject(const TSubclassOf
 {
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	const auto Mesh = MakeShared<FJsonValueString>(CDO->GetConveyorMesh()->GetPathName());
+	const auto Mesh = MakeShared<FJsonValueString>(CDO->GetItemMesh(Item)->GetPathName());
 	const auto BigIcon = MakeShared<FJsonValueString>(CDO->GetBigIcon(Item)->GetPathName());
 	const auto SmallIcon = MakeShared<FJsonValueString>(CDO->GetSmallIcon(Item)->GetPathName());
 	auto Color = MakeShared<FJsonObject>();
@@ -321,6 +322,15 @@ if (!Item)
 	{
 		FormString = "Heat";
 	}
+	else if (CDO->mForm == EResourceForm::RF_INVALID)
+	{
+		FormString = "Invalid";
+	}
+	else if (CDO->mForm == EResourceForm::RF_LAST_ENUM)
+	{
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
+		FormString = "Unknown";
+	}
 	FString SizeString = "Invalid";
 
 	if (CDO->mStackSize == EStackSize::SS_ONE)
@@ -349,7 +359,8 @@ if (!Item)
 	}
 	else if (CDO->mStackSize == EStackSize::SS_LAST_ENUM)
 	{
-		SizeString = "Invalid";
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
+		SizeString = "Unknown";
 	}
 	
 	const auto Form = MakeShared<FJsonValueString>(FormString);
@@ -432,12 +443,12 @@ if (!Item)
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;}
 
-FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString String)
+FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(const FString JsonString)
 {
-if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
+if (JsonString == "" || !JsonString.StartsWith("{") || !JsonString.EndsWith("}"))
 		return FContentLib_Item();
 
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*String);
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*JsonString);
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
@@ -463,6 +474,13 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		else if (CS.Equals("Heat", ESearchCase::IgnoreCase))
 		{
 			Item.Form = EResourceForm::RF_HEAT;
+		}
+		else if (CS.Equals("Invalid", ESearchCase::IgnoreCase))
+		{
+			Item.Form = EResourceForm::RF_INVALID;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized Form: '%s', falling back to default"), *CS);
 		}
 	}
 
@@ -490,8 +508,13 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		{
 			Item.StackSize = EStackSize::SS_HUGE;
 		}
+		else if (CS.Equals("Fluid", ESearchCase::IgnoreCase))
+		{
+			Item.StackSize = EStackSize::SS_FLUID;
+		}
 		else if (CS.Equals("Liquid", ESearchCase::IgnoreCase))
 		{
+			UE_LOG(LogContentLib, Error, TEXT("Tried to register an Item with the StackSize of 'Liquid', this is not a real stack size, but treating it as 'Fluid' to avoid in-game weirdness. Please change it to 'Fluid' in your code. Encountered while processing json: %s"), *JsonString);
 			Item.StackSize = EStackSize::SS_FLUID;
 		}
 	}
@@ -520,18 +543,19 @@ if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 		UBPFContentLib::SetStringFieldWithLog(Item.FuelWasteItem.SpentFuelClass, "SpentFuelClass", Result);
 		UBPFContentLib::SetIntegerFieldWithLog(Item.FuelWasteItem.AmountOfWaste, "AmountOfWaste", Result);
 	}
-	return Item;}
+	return Item;
+}
 
 FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 {
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
 
 		return FContentLib_VisualKit();
 	}
@@ -542,7 +566,7 @@ FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 	Serializer.Deserialize(Reader, Result);
 	if (!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_VisualKit();
 	}
 
@@ -613,7 +637,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		return;
 	UFGItemDescriptor* CDO = Item.GetDefaultObject();
 
-	if (ItemStruct.Form != EResourceForm::RF_INVALID)
+	if (ItemStruct.Form != EResourceForm::RF_LAST_ENUM)
 	{
 		CDO->mForm = ItemStruct.Form;
 	}
@@ -642,6 +666,9 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		if (Out)
 		{
 			CDO->mItemCategory = Out;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized ItemCategory: '%s' that failed to be created via SetCategoryWithLoad"), *ItemStruct.Category)
 		}
 	}
 	if (ItemStruct.VisualKit != "")
@@ -732,7 +759,7 @@ FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescripto
 
 	if (Item->IsChildOf(UFGItemDescriptorNuclearFuel::StaticClass()))
 	{
-		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
+		const TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
@@ -753,7 +780,7 @@ FString UCLItemBPFLib::GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> 
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{
-		TSubclassOf<UFGResourceDescriptor> Resource = Item;
+		const TSubclassOf<UFGResourceDescriptor> Resource = Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory

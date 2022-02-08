@@ -6,16 +6,9 @@
 
 DEFINE_LOG_CATEGORY(LogContentLib);
 
-void FContentLibModule::StartupModule()
-{
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-}
+void FContentLibModule::StartupModule() {}
 
-void FContentLibModule::ShutdownModule()
-{
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-}
+void FContentLibModule::ShutdownModule() {}
 
 #undef LOCTEXT_NAMESPACE
 	

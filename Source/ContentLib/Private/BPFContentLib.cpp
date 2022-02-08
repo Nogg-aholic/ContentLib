@@ -50,11 +50,9 @@ void UBPFContentLib::BindOnBPFunction(const TSubclassOf<UObject> Class, FObjectF
 	UFunction* ConstructFunction = Class->FindFunctionByName(*FunctionName);
 	if (!ConstructFunction || ConstructFunction->IsNative())
 	{
-		if (!ConstructFunction)
-		{
+		if (!ConstructFunction) {
 			UE_LOG(LogContentLib, Error, TEXT("Was not able to Bind on Function : %s Function was not Found. Function Dump:"), *FunctionName);
-			for (auto i : Class->*get(grab_FuncTable()))
-			{
+			for (auto i : Class->*get(grab_FuncTable())) {
 				UE_LOG(LogContentLib, Error, TEXT("FunctionName : %s"), *i.Key.ToString())
 			}
 		}
@@ -77,8 +75,8 @@ UTexture2D* UBPFContentLib::GetIconForBuilding(UContentLibSubsystem* System, TSu
 		const TSubclassOf<class UFGBuildingDescriptor> Desc = *System->BuildGunBuildings.Find(Buildable);
 		if(Big)
 			return Desc.GetDefaultObject()->GetBigIcon(Desc);
-		else
-			return Desc.GetDefaultObject()->GetSmallIcon(Desc);
+		
+		return Desc.GetDefaultObject()->GetSmallIcon(Desc);
 	}
 	return nullptr;
 }
@@ -100,35 +98,31 @@ bool UBPFContentLib::SetStringIntMapFieldWithLog(TMap<FString,int32>& Field, FSt
 			const auto Obj = i->AsObject();
 			const bool HasItem = Obj->HasField("Item");
 			const bool HasAmount = Obj->HasField("Amount");
-			if (HasItem && HasAmount)
-			{
+			if (HasItem && HasAmount) {
 				const TSharedPtr<FJsonValue> Item = Obj->TryGetField("Item");
 				const TSharedPtr<FJsonValue> Amount = Obj->TryGetField("Amount");
 
-				if (Item->Type == EJson::String && Amount->Type == EJson::Number)
-				{
+				if (Item->Type == EJson::String && Amount->Type == EJson::Number) {
 					Field.Add(Item->AsString(), Amount->AsNumber());
 				}
-				else
-				{
-					if (Item->Type != EJson::String)
-					{
+				else {
+					if (Item->Type != EJson::String) {
 						UE_LOG(LogContentLib, Error, TEXT("Invalid Type on Ingredient. Expected String"));
 					}
-					else
-					{
+					else {
 						UE_LOG(LogContentLib, Error, TEXT("Invalid Type on Amount! Expected Number"));
 					}
 				}
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("No Item or Amount In Json"));
 			}
 		}
 	}
 	return true;
 }
+
+
 bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result)
 {
 	if (Result->HasField(FieldName) && Result->TryGetField(FieldName)->Type == EJson::Object)
@@ -136,39 +130,30 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 		const auto Obj = Result->TryGetField(FieldName)->AsObject();
 		if (Obj->HasField("r") && Obj->HasField("g") && Obj->HasField("b") && Obj->HasField("a"))
 		{
-			if (Obj->TryGetField("r")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("r")->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.R, "r", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
-			if (Obj->TryGetField("g")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("g")->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.G, "g", Obj);
-
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("b")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("b")->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.B, "b", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("a")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("a")->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.A, "a", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("A value in Color is not of type Number !"));
 			}
 		}
@@ -176,47 +161,39 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 	}
 	return false;
 }
+
+
 bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result)
 {
 
 	if (Result->HasField(FieldName) && Result->TryGetField(FieldName)->Type == EJson::Object)
 	{
 		const auto Obj = Result->TryGetField(FieldName)->AsObject();
-		if (Obj->HasField("r") && Obj->HasField("g") && Obj->HasField("b") && Obj->HasField("a"))
-		{
-			if (Obj->TryGetField("r")->Type == EJson::Number)
-			{
+		if (Obj->HasField("r") && Obj->HasField("g") && Obj->HasField("b") && Obj->HasField("a")) {
+			if (Obj->TryGetField("r")->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.R, "r", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
-			if (Obj->TryGetField("g")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("g")->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.G, "g", Obj);
-
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("b")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("b")->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.B, "b", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("a")->Type == EJson::Number)
-			{
+			if (Obj->TryGetField("a")->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.A, "a", Obj);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib, Error, TEXT("A value in Color is not of type Number !"));
 			}
 		}
@@ -228,10 +205,9 @@ bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString Fie
 void UBPFContentLib::SetBooleanFieldWithLog(bool& Field, const FString FieldName, TSharedPtr<FJsonObject> Result)
 {
 	if(!Result->HasField(FieldName))
-	return;
+		return;
 
-	if(Result->TryGetField(FieldName)->Type != EJson::Boolean)
-	{
+	if(Result->TryGetField(FieldName)->Type != EJson::Boolean) {
 		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Boolean"), *FieldName)
 		return;
 	}
@@ -244,8 +220,7 @@ void UBPFContentLib::SetFloatFieldWithLog(float& Field, const FString FieldName,
 	if(!Result->HasField(FieldName))
 		return;
 
-	if(Result->TryGetField(FieldName)->Type != EJson::Number)
-	{
+	if(Result->TryGetField(FieldName)->Type != EJson::Number) {
 		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Number"), *FieldName)
 		return;
 	}
@@ -257,13 +232,12 @@ void UBPFContentLib::SetIntegerFieldWithLog(int32 & Field, const FString FieldNa
 	if(!Result->HasField(FieldName))
 		return;
 
-	if(Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean)
-	{
+	if(Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean) {
 		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
 		return;
 	}
-	else if (Result->TryGetField(FieldName)->Type == EJson::Boolean)
-	{
+
+	if (Result->TryGetField(FieldName)->Type == EJson::Boolean) {
 		Field = static_cast<int32>(Result->TryGetField(FieldName)->AsBool());
 		return;
 	}
@@ -275,13 +249,12 @@ void UBPFContentLib::SetSmallIntegerFieldWithLog(uint8& Field, const FString Fie
 	if (!Result->HasField(FieldName))
 		return;
 
-	if (Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean)
-	{
+	if (Result->TryGetField(FieldName)->Type != EJson::Number && Result->TryGetField(FieldName)->Type != EJson::Boolean) {
 		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean"), *FieldName)
-			return;
+		return;
 	}
-	else if (Result->TryGetField(FieldName)->Type == EJson::Boolean)
-	{
+
+	if (Result->TryGetField(FieldName)->Type == EJson::Boolean) {
 		Field = static_cast<uint8>(Result->TryGetField(FieldName)->AsBool());
 		return;
 	}
@@ -292,8 +265,7 @@ void UBPFContentLib::SetStringFieldWithLog(FString & Field, const FString FieldN
 	if(!Result->HasField(FieldName))
 		return;
 
-	if(Result->TryGetField(FieldName)->Type != EJson::String)
-	{
+	if(Result->TryGetField(FieldName)->Type != EJson::String) {
 		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type String"), *FieldName)
 		return;
 	}
@@ -306,24 +278,19 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 	if(!Result->HasField(FieldName))
 		return false;
 
-	if(Result->TryGetField(FieldName)->Type != EJson::Array)
-	{
+	if(Result->TryGetField(FieldName)->Type != EJson::Array) {
 		UE_LOG(LogContentLib,Error,TEXT("Field %s is not of Type Array"), *FieldName)
 		return false;
 	}
-	for(auto i : Result->TryGetField(FieldName)->AsArray())
-    {
-    	if(i->Type == EJson::String)
-    	{
+	for(const auto i : Result->TryGetField(FieldName)->AsArray()) {
+    	if(i->Type == EJson::String) {
     		FString Item = i->AsString();
-    		if(Item != "")
-    		{
+    		if(Item != "") {
     			if(!Field.Contains((Item)))
     				Field.Add(Item);
     		}
     	}
-		else
-		{
+		else {
 			UE_LOG(LogContentLib,Error,TEXT("Field %s contains Elements of invalid Type"), *FieldName)
 		}
     }
@@ -331,18 +298,16 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 }
 
 void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool Relative) {
+	
 #if WITH_EDITOR 
 	FFileHelper::SaveStringToFile(resultString, Relative ? *(FPaths::ProjectDir() + Path) : *Path);
-
 #else
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	const FString AbsolutePath = AbsoluteRootPath + TEXT("Mods/") + Path;
-	if (!AbsolutePath.Contains(TEXT("..")))
-	{
+	if (!AbsolutePath.Contains(TEXT(".."))) {
 		FFileHelper::SaveStringToFile(resultString, *AbsolutePath);
 	}
-	else
-	{
+	else {
 		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
 	}
 #endif
@@ -350,16 +315,15 @@ void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool 
 UTexture2D* UBPFContentLib::LoadTextureFromFile(FString& String, FString Path, bool Relative) {
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	const FString AbsolutePath = FPaths::ConvertRelativePathToFull(Path);
-	if (AbsolutePath.StartsWith(AbsoluteRootPath))
-	{
+	if (AbsolutePath.StartsWith(AbsoluteRootPath)) {
 		FString OutErrorMessage;
 		UTexture2D* LoadedModIcon = FImageLoadingUtil::LoadImageFromFile(*AbsolutePath, OutErrorMessage);
-		return LoadedModIcon;	}
-	else
-	{
-		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
-		return nullptr;
+		return LoadedModIcon;
 	}
+	
+	UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
+	return nullptr;
+	
 }
 
 
@@ -370,52 +334,40 @@ bool UBPFContentLib::LoadStringFromFile(FString& String, FString Path, bool Rela
 #else
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	const FString AbsolutePath = FPaths::ConvertRelativePathToFull(Path);
-	if (AbsolutePath.StartsWith(AbsoluteRootPath))
-	{
+	if (AbsolutePath.StartsWith(AbsoluteRootPath)) {
 		return FFileHelper::LoadFileToString(String, *AbsolutePath);
 	}
-	else
-	{
-		return false;
-		UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
-	}
+
+	UE_LOG(LogContentLib, Error, TEXT("Absolute or escaping Paths are not allowed in Runtime"));
+	return false;
 #endif
 }
 
 bool UBPFContentLib::GetDirectoriesInPath(const FString& FullPathOfBaseDir, TArray<FString>& DirsOut, const FString& NotContainsStr, bool Recursive, const FString& ContainsStr)
 {
 	FString Str;
-
-	auto FilenamesVisitor = MakeDirectoryVisitor(
-		[&](const TCHAR* FilenameOrDirectory, bool bIsDirectory)
-		{
-			if (bIsDirectory)
-			{
+	auto FilenamesVisitor = MakeDirectoryVisitor([&](const TCHAR* FilenameOrDirectory, bool bIsDirectory) {
+			if (bIsDirectory) {
 				//Using a Contains Filter?
-				if (ContainsStr != "")
-				{
+				if (ContainsStr != "") {
 					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
 					//Only if Directory Contains Str		
-					if (Str.Contains(ContainsStr))
-					{
+					if (Str.Contains(ContainsStr)) {
 						if (Recursive) DirsOut.Push(FilenameOrDirectory); //need whole path for recursive
 						else DirsOut.Push(Str);
 					}
 
 				}
 				else if (NotContainsStr != "") {
-					if (!Str.Contains(NotContainsStr))
-					{
+					if (!Str.Contains(NotContainsStr)) {
 						if (Recursive) DirsOut.Push(FilenameOrDirectory); //need whole path for recursive
 						else DirsOut.Push(Str);
 					}
 				}
 				//Get ALL Directories!
-				else
-				{
+				else {
 					//Just the Directory
 					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
-
 					if (Recursive) DirsOut.Push(FilenameOrDirectory); //need whole path for recursive
 					else DirsOut.Push(Str);
 				}
@@ -423,26 +375,19 @@ bool UBPFContentLib::GetDirectoriesInPath(const FString& FullPathOfBaseDir, TArr
 			return true;
 		}
 	);
+	
 	if (Recursive)
-	{
 		return FPlatformFileManager::Get().GetPlatformFile().IterateDirectoryRecursively(*FullPathOfBaseDir, FilenamesVisitor);
-	}
-	else
-	{
-		return FPlatformFileManager::Get().GetPlatformFile().IterateDirectory(*FullPathOfBaseDir, FilenamesVisitor);
-	}
+	
+	return FPlatformFileManager::Get().GetPlatformFile().IterateDirectory(*FullPathOfBaseDir, FilenamesVisitor);
 }
 
 void UBPFContentLib::String_Sort(UPARAM(ref) TArray <FString>& Array_To_Sort, bool Descending, bool FilterToUnique, TArray <FString>& Sorted_Array)
 {
-	if (FilterToUnique)
-	{
-		for (auto i : Array_To_Sort)
-		{
-			if (FilterToUnique)
-			{
-				if (!Sorted_Array.Contains(i))
-				{
+	if (FilterToUnique) {
+		for (auto i : Array_To_Sort) {
+			if (FilterToUnique) {
+				if (!Sorted_Array.Contains(i)) {
 					Sorted_Array.Add(i);
 				}
 			}
@@ -450,17 +395,13 @@ void UBPFContentLib::String_Sort(UPARAM(ref) TArray <FString>& Array_To_Sort, bo
 	}
 	Sorted_Array.Sort();               // Sort array using built in function (sorts A-Z)
 
-	if (Descending == true)
-	{
+	if (Descending == true) {
 		TArray <FString> NewArray;      // Define "temp" holding array
 		int x = Sorted_Array.Num() - 1;
-
-		while (x > -1)
-		{
+		while (x > -1) {
 			NewArray.Add(Sorted_Array[x]); // loop through A-Z sorted array and remove element from back and place it in beginning of "temp" array
 			--x;
 		}
-
 		Sorted_Array = NewArray;   // Set reference array to "temp" array order, array is now Z-A
 	}
 }
@@ -475,22 +416,17 @@ bool UBPFContentLib::GetFilesInPath(const FString& FullPathOfBaseDir, TArray<FSt
 		[&](const TCHAR* FilenameOrDirectory, bool bIsDirectory)
 		{
 			//Files
-			if (!bIsDirectory)
-			{
+			if (!bIsDirectory) {
 				//Filter by Extension
-				if (FileExt != "")
-				{
+				if (FileExt != "") {
 					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
 
 					//Filter by Extension
-					if (FPaths::GetExtension(Str).ToLower() == FileExt)
-					{
-						if (Recursive)
-						{
+					if (FPaths::GetExtension(Str).ToLower() == FileExt) {
+						if (Recursive) {
 							FilenamesOut.Push(FilenameOrDirectory); //need whole path for recursive
 						}
-						else
-						{
+						else {
 							FilenamesOut.Push(Str);
 						}
 					}
@@ -502,12 +438,10 @@ bool UBPFContentLib::GetFilesInPath(const FString& FullPathOfBaseDir, TArray<FSt
 					//Just the Directory
 					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
 
-					if (Recursive)
-					{
+					if (Recursive) {
 						FilenamesOut.Push(FilenameOrDirectory); //need whole path for recursive
 					}
-					else
-					{
+					else {
 						FilenamesOut.Push(Str);
 					}
 				}
@@ -515,14 +449,13 @@ bool UBPFContentLib::GetFilesInPath(const FString& FullPathOfBaseDir, TArray<FSt
 			return true;
 		}
 	);
-	if (Recursive)
-	{
+	
+	if (Recursive) {
 		return FPlatformFileManager::Get().GetPlatformFile().IterateDirectoryRecursively(*FullPathOfBaseDir, FilenamesVisitor);
 	}
-	else
-	{
-		return FPlatformFileManager::Get().GetPlatformFile().IterateDirectory(*FullPathOfBaseDir, FilenamesVisitor);
-	}
+	
+	return FPlatformFileManager::Get().GetPlatformFile().IterateDirectory(*FullPathOfBaseDir, FilenamesVisitor);
+	
 }
 
 
@@ -531,50 +464,36 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 	if (!ParentClass)
 		return nullptr;
 
-	if (Name == "")
-	{
+	if (Name == "") {
 		UE_LOG(LogContentLib, Error, TEXT("Finding %s by Name failed. Empty Path !"), *ParentClass->GetName());
 		return nullptr;
 	}
-	if (Name.Contains("/"))
-	{ 
+	if (Name.Contains("/")) { 
 	    UClass* Loaded = LoadObject<UClass>(nullptr, *Name);
 	    if (Loaded && Loaded->IsChildOf(ParentClass))
-	    {
-		    return Loaded;
-	    }
-		else
-		{
-			UE_LOG(LogContentLib, Warning, TEXT("Finding %s by Path %s failed, not necessarily an error"), *ParentClass->GetName(), *Name);
-		}
+		    return Loaded;		
 	}
-	else
-	{
-		if(Name.Contains(" "))
-		{
+	else {
+		if(Name.Contains(" ")) {
 			Name = Name.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
 		}
 		FString Prefix; FString Suffix = "_C"; TArray<UClass*> ClassArr;
-		if(ParentClass->IsChildOf(UFGItemDescriptor::StaticClass()))
-		{
+		if(ParentClass->IsChildOf(UFGItemDescriptor::StaticClass())) {
 			ClassArr = RootFolder->mItems;
 			TArray<TSubclassOf<UFGItemDescriptor>> Arr;
 			RootFolder->CreatedItems.GetKeys(Arr);
 			ClassArr.Append(Arr);
 			Prefix = "Desc_";
 		}
-		else if (ParentClass->IsChildOf(UFGItemCategory::StaticClass()))
-		{
+		else if (ParentClass->IsChildOf(UFGItemCategory::StaticClass())) {
 			ClassArr = RootFolder->mItemCategories;
 			Prefix = "Cat_";
 		}
-		else if (ParentClass->IsChildOf(UFGSchematicCategory::StaticClass()))
-		{
+		else if (ParentClass->IsChildOf(UFGSchematicCategory::StaticClass())) {
 			ClassArr = RootFolder->mSchematicCategories;
 			Prefix = "SC_";
 		}
-		else if(ParentClass->IsChildOf(UFGSchematic::StaticClass()))
-		{
+		else if(ParentClass->IsChildOf(UFGSchematic::StaticClass())) {
 			ClassArr = RootFolder->mSchematics;
 			TArray<TSubclassOf<UFGSchematic>> Arr;
 			RootFolder->CreatedSchematics.GetKeys(Arr);
@@ -582,26 +501,22 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 			Prefix= "";
 
 		}
-		else if(ParentClass->IsChildOf(UFGWorkBench::StaticClass()))
-		{
+		else if(ParentClass->IsChildOf(UFGWorkBench::StaticClass())) {
 			ClassArr = RootFolder->mCraftingComps;
 			Prefix= "";
 		}
-		else if (ParentClass->IsChildOf(UFGRecipe::StaticClass()))
-		{
+		else if (ParentClass->IsChildOf(UFGRecipe::StaticClass())) {
 			ClassArr = RootFolder->mRecipes;
 			TArray<TSubclassOf<UFGRecipe>> Arr;
 			RootFolder->CreatedRecipes.GetKeys(Arr);
 			ClassArr.Append(Arr);
 			Prefix = "Recipe_";
 		}
-		else if (ParentClass->IsChildOf(UFGResearchTree::StaticClass()))
-		{
+		else if (ParentClass->IsChildOf(UFGResearchTree::StaticClass())) {
 			ClassArr = RootFolder->mResearchTrees;
 			Prefix = "";
 		}
-		else if(ParentClass->IsChildOf(UObject::StaticClass()))
-		{
+		else if(ParentClass->IsChildOf(UObject::StaticClass())) {
 			ClassArr = RootFolder->mBuilders;
 
 			Prefix = "Build_";
@@ -609,32 +524,25 @@ TSubclassOf<UObject> UBPFContentLib::FindClassWithLog(FString Name, UClass* Pare
 		else
 			Prefix= "";
 
-		for(auto e : ClassArr)
-		{
+		for(auto e : ClassArr) {
 			FString S = e->GetName();
 			FString Tp = Name;
 			FString DescPre = FString(Prefix).Append(Name);
-			if (!Name.EndsWith(Suffix))
-			{
+			if (!Name.EndsWith(Suffix)) {
 				DescPre.Append(Suffix);
 			}
-			if(S.Equals(Name,ESearchCase::IgnoreCase) || S.Equals(Tp.Append(Suffix), ESearchCase::IgnoreCase) || S.Equals(DescPre, ESearchCase::IgnoreCase))
-			{
+			if(S.Equals(Name,ESearchCase::IgnoreCase) || S.Equals(Tp.Append(Suffix), ESearchCase::IgnoreCase) || S.Equals(DescPre, ESearchCase::IgnoreCase)) {
 				return e;
 			}
 		}
 	}
-
 	UE_LOG(LogContentLib, Warning, TEXT("Finding %s by Name %s failed, not necessarily an error"), *ParentClass->GetName(), *Name);
 	return nullptr;
-	
 }
 
 TSubclassOf<UObject> UBPFContentLib::CreateContentLibClass(FString Name, UClass* ParentClass)
 {
-	if (Name == "" || FindObject<UClass>(ANY_PACKAGE, *Name, false) || FindObject<UClass>(
-		ANY_PACKAGE, *Name.Append("_C"), false))
-	{
+	if (Name == "" || FindObject<UClass>(ANY_PACKAGE, *Name, false) || FindObject<UClass>(ANY_PACKAGE, *Name.Append("_C"), false)) {
 		if (Name == "")
 			UE_LOG(LogContentLib, Error, TEXT("Name was empty, can't create class"));
 		return nullptr;
@@ -688,12 +596,10 @@ bool UBPFContentLib::StringCompareItem(FString e, FString Name, FString Prefix, 
 	FString S = e;
 	FString A = Name;
 	FString DescPre = Prefix.Append(Name);
-	if (!DescPre.EndsWith(Suffix))
-	{
+	if (!DescPre.EndsWith(Suffix)) {
 		DescPre.Append(Suffix);
 	}
-	if (S.Equals(Name, ESearchCase::IgnoreCase) || S.Equals(A.Append(Suffix), ESearchCase::IgnoreCase) || S.Equals(DescPre, ESearchCase::IgnoreCase))
-	{
+	if (S.Equals(Name, ESearchCase::IgnoreCase) || S.Equals(A.Append(Suffix), ESearchCase::IgnoreCase) || S.Equals(DescPre, ESearchCase::IgnoreCase)) {
 		return true;
 	}
 	return false;
@@ -702,12 +608,10 @@ bool UBPFContentLib::StringCompareItem(FString e, FString Name, FString Prefix, 
 UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSubsystem* Subsystem, bool Schematic)
 {
 	UClass* CategoryClass = nullptr;
-	if(CategoryString.Contains(" "))
-	{
+	if(CategoryString.Contains(" ")) {
 		CategoryString = CategoryString.Replace(TEXT(" "),TEXT("-"),ESearchCase::CaseSensitive);
 	}
-	if (CategoryString.Contains("/"))
-	{
+	if (CategoryString.Contains("/")) {
 		// Interpret as full path
 
 		UClass* Loaded = LoadObject<UClass>(nullptr, *CategoryString);
@@ -722,21 +626,21 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSu
 			{
 				FString NewCategoryName = "Cat_";
 				NewCategoryName.Append(Right);
-				TSubclassOf<UObject> Cat = UBPFContentLib::CreateContentLibClass(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
-				if (Cat)
+				const TSubclassOf<UObject> Category = UBPFContentLib::CreateContentLibClass(CategoryString, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
+				if (Category)
 				{
-					UE_LOG(LogContentLib, Warning, TEXT("CL: (full path) Created Category %s"), *Cat->GetName())
+					UE_LOG(LogContentLib, Warning, TEXT("CL: (full path) Created Category %s"), *Category->GetName())
 					if(Schematic)
 					{
-						Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
-						Subsystem->mSchematicCategories.Add(Cat);
+						Cast<UFGSchematicCategory>(Category->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+						Subsystem->mSchematicCategories.Add(Category);
 					}
 					else
 					{
-						Subsystem->mItemCategories.Add(Cat);
-						Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+						Subsystem->mItemCategories.Add(Category);
+						Cast<UFGItemCategory>(Category->GetDefaultObject())->mDisplayName = FText::FromString(Right);
 					}	
-					CategoryClass = Cat;
+					CategoryClass = Category;
 				}
 				else
 				{
@@ -748,9 +652,9 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSu
 					if (Find && Find->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass()))
 					{
 						if(Schematic)
-							Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+							Cast<UFGSchematicCategory>(Category->GetDefaultObject())->mDisplayName = FText::FromString(Right);
 						else
-							Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(Right);
+							Cast<UFGItemCategory>(Category->GetDefaultObject())->mDisplayName = FText::FromString(Right);
 						CategoryClass = Find;
 					}
 					else
@@ -770,21 +674,16 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSu
 		// Look up by name since not a full path
 		FString CategoryNameWithPrefix = "Cat_";
 		CategoryNameWithPrefix.Append(CategoryString);
-
 		CategoryClass = UBPFContentLib::FindClassWithLog(CategoryNameWithPrefix, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass(), Subsystem);
-		if (!CategoryClass)
-		{
+		if (!CategoryClass) {
 			TSubclassOf<UObject> Cat =  UBPFContentLib::CreateContentLibClass(CategoryNameWithPrefix, Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass());
-			if (Cat)
-			{
+			if (Cat) {
 				UE_LOG(LogContentLib, Warning, TEXT("CL: (lookup) Created Category %s "), *Cat->GetName())
-				if(Schematic)
-				{
+				if(Schematic) {
 					Subsystem->mSchematicCategories.Add(Cat);
 					Cast<UFGSchematicCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
 				}
-				else
-				{
+				else {
 					Subsystem->mItemCategories.Add(Cat);
 					Cast<UFGItemCategory>(Cat->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
 				}
@@ -793,21 +692,18 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSu
 			else
 			{
 				UClass* Find = FindObject<UClass>(ANY_PACKAGE, *CategoryNameWithPrefix, false);
-				if (!Find)
-				{
+				if (!Find) {
 					FString TempS = CategoryNameWithPrefix;
 					Find = FindObject<UClass>(ANY_PACKAGE, *TempS.Append("_C"), false);
 				}
-				if (Find && Find->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass()))
-				{
+				if (Find && Find->IsChildOf(Schematic ? UFGSchematicCategory::StaticClass() : UFGItemCategory::StaticClass())) {
 					if(Schematic)
 						Cast<UFGSchematicCategory>(Find->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
 					else
 						Cast<UFGItemCategory>(Find->GetDefaultObject())->mDisplayName = FText::FromString(CategoryString);
 					CategoryClass = Find;
 				}
-				else
-				{
+				else {
 					UE_LOG(LogContentLib, Error, TEXT("CL: Creating Category Failed."))
 					return nullptr;
 				}
@@ -820,29 +716,21 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString,UContentLibSu
 
 void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FString,int32> Cost,TArray<UClass*> Items, const bool ClearFirst)
 {
-	if (ClearFirst)
-	{
+	if (ClearFirst) {
 		Array.Empty();
 	}
-	
-	for(auto i :Cost)
-	{
-		if (i.Key.Contains("/"))
-		{
+	for(auto i :Cost) {
+		if (i.Key.Contains("/")) {
 			UClass* Loaded = LoadObject<UClass>(nullptr, *i.Key);
-			if (Loaded && Loaded->IsChildOf(UFGItemDescriptor::StaticClass()))
-			{
+			if (Loaded && Loaded->IsChildOf(UFGItemDescriptor::StaticClass())) {
 				FItemAmount Amount;
 				Amount.Amount = i.Value;
 				Amount.ItemClass = Loaded;
 				bool Exists = false;
-				for(auto & l : Array)
-				{
-					if(l.ItemClass == Loaded)
-					{
+				for(auto & l : Array) {
+					if(l.ItemClass == Loaded) {
 						Exists = true;
-						if(l.Amount != Amount.Amount)
-						{
+						if(l.Amount != Amount.Amount) {
 							l.Amount = Amount.Amount;
 						}
 						break;
@@ -851,31 +739,24 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FStri
 				if(!Exists)
 					Array.Add(Amount);
 			}
-			else
-			{
+			else {
 				UE_LOG(LogContentLib,Error,TEXT("Finding Item by Path %s failed"), *i.Key);
 			}
 		}
 		else
 		{
 			bool Found = false;
-
-			for(auto e : Items)
-			{	
+			for(auto e : Items) {	
 				TSubclassOf<class UFGItemDescriptor> Desc = e;
-				if (UBPFContentLib::StringCompareItem(e->GetName(),i.Key,"Desc","_C"))
-				{
+				if (UBPFContentLib::StringCompareItem(e->GetName(),i.Key,"Desc","_C")) {
 					FItemAmount Amount;
 					Amount.Amount = i.Value;
 					Amount.ItemClass = Desc;
 					bool Exists = false;
-					for(auto & l : Array)
-					{
-						if(l.ItemClass == Desc)
-						{
+					for(auto & l : Array) {
+						if(l.ItemClass == Desc) {
 							Exists = true;
-							if(l.Amount != Amount.Amount)
-							{
+							if(l.Amount != Amount.Amount) {
 								l.Amount = Amount.Amount;
 							}
 							break;
@@ -887,25 +768,18 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FStri
 					break;
 				}
 			}
-
 			if (!Found)
 				UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *i.Key)
-
 		}
 	}
 }
 
 void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const TSubclassOf<class UFGRecipe> Recipe)
 {
-	AFGSchematicManager * Manager = AFGSchematicManager::Get(Subsystem->GetWorld());
-	AFGUnlockSubsystem * Unlock = AFGUnlockSubsystem::Get(Subsystem->GetWorld());
 	bool Added = false;
-	for(auto f : Schematic.GetDefaultObject()->mUnlocks)
-	{
-		if(Cast<UFGUnlockRecipe>(f))
-		{
-			if (!Cast<UFGUnlockRecipe>(f)->mRecipes.Contains(Recipe))
-			{
+	for(auto f : Schematic.GetDefaultObject()->mUnlocks) {
+		if(Cast<UFGUnlockRecipe>(f)) {
+			if (!Cast<UFGUnlockRecipe>(f)->mRecipes.Contains(Recipe)) {
 				Cast<UFGUnlockRecipe>(f)->mRecipes.Add(Recipe);
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe to %s in Schematic %s "), *Recipe->GetName(), *Schematic->GetName())
@@ -913,14 +787,11 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic , UCo
 			}
 		}
 	}
-	if (!Added)
-	{
+	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockRecipe_C"), false);
-		if (!Class)
-		{
+		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"));
-			if (!Class)
-			{
+			if (!Class) {
 				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
@@ -928,23 +799,16 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic , UCo
 		Object->mRecipes.Add(Recipe);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
-
 	}
-	
 }
 
 
 void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const TSubclassOf<class UFGSchematic> SchematicToAdd)
 {
-	AFGSchematicManager * Manager = AFGSchematicManager::Get(Subsystem->GetWorld());
-	AFGUnlockSubsystem * Unlock = AFGUnlockSubsystem::Get(Subsystem->GetWorld());
 	bool Added = false;
-	for(auto f : Schematic.GetDefaultObject()->mUnlocks)
-	{
-		if(Cast<UFGUnlockSchematic>(f))
-		{
-			if (!Cast<UFGUnlockSchematic>(f)->mSchematics.Contains(SchematicToAdd))
-			{
+	for(auto f : Schematic.GetDefaultObject()->mUnlocks) {
+		if(Cast<UFGUnlockSchematic>(f)) {
+			if (!Cast<UFGUnlockSchematic>(f)->mSchematics.Contains(SchematicToAdd)) {
 				Cast<UFGUnlockSchematic>(f)->mSchematics.Add(SchematicToAdd);
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic to %s in Schematic %s "), *SchematicToAdd->GetName(), *Schematic->GetName())
@@ -952,14 +816,11 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 			}
 		}
 	}
-	if (!Added)
-	{
+	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockSchematic_C"), false);
-		if (!Class)
-		{
+		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"));
-			if (!Class)
-			{
+			if (!Class) {
 				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
@@ -967,22 +828,15 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 		Object->mSchematics.Add(SchematicToAdd);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
-
 	}
-	
 }
 
 void UBPFContentLib::AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const int32 Slots)
 {
-	AFGSchematicManager * Manager = AFGSchematicManager::Get(Subsystem->GetWorld());
-	AFGUnlockSubsystem * Unlock = AFGUnlockSubsystem::Get(Subsystem->GetWorld());
 	bool Added = false;
-	for(auto f : Schematic.GetDefaultObject()->mUnlocks)
-	{
-		if(Cast<UFGUnlockInventorySlot>(f))
-		{
-			if (!Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock != Slots)
-			{
+	for(auto f : Schematic.GetDefaultObject()->mUnlocks) {
+		if(Cast<UFGUnlockInventorySlot>(f)) {
+			if (!Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock != Slots) {
 				Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock = Slots;
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
@@ -990,14 +844,11 @@ void UBPFContentLib::AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UCon
 			}
 		}
 	}
-	if (!Added)
-	{
+	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockInventorySlot_C"), false);
-		if (!Class)
-		{
+		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C"));
-			if (!Class)
-			{
+			if (!Class) {
 				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
@@ -1009,24 +860,19 @@ void UBPFContentLib::AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UCon
 	
 }
 
-
 void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const TMap<FString,int32> ItemsToGive, bool ClearFirst)
 {
-	for(auto f : Schematic.GetDefaultObject()->mUnlocks)
-	{
-		if(Cast<UFGUnlockGiveItem>(f))
-		{
+	for(auto f : Schematic.GetDefaultObject()->mUnlocks) {
+		if(Cast<UFGUnlockGiveItem>(f)) {
 			AddToItemAmountArray(Cast<UFGUnlockGiveItem>(f)->mItemsToGive,ItemsToGive,Subsystem->mItems,ClearFirst);
 			return;
 		}
 	}
 	
 	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockGiveItem_C"), false);
-	if (!Class)
-	{
+	if (!Class) {
 		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"));
-		if (!Class)
-		{
+		if (!Class) {
 			UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
 		}
 	}
@@ -1035,15 +881,13 @@ void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic , 
 	Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set for Items to Give in Schematic %s "), *Schematic->GetName())
 }
+
 void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const int32 Slots)
 {
 	bool Added = false;
-	for(auto f : Schematic.GetDefaultObject()->mUnlocks)
-	{
-		if(Cast<UFGUnlockArmEquipmentSlot>(f))
-		{
-			if (!Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock != Slots)
-			{
+	for(auto f : Schematic.GetDefaultObject()->mUnlocks) {
+		if(Cast<UFGUnlockArmEquipmentSlot>(f)) {
+			if (!Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock != Slots) {
 				Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock = Slots;
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
@@ -1051,14 +895,11 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , U
 			}
 		}
 	}
-	if (!Added)
-	{
+	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockArmEquipmentSlot_C"), false);
-		if (!Class)
-		{
+		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C"));
-			if (!Class)
-			{
+			if (!Class) {
 				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
@@ -1067,7 +908,6 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic , U
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
 	}
-	
 }
 
 
@@ -1076,14 +916,10 @@ void UBPFContentLib::UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem)
 	AFGUnlockSubsystem* Unlock = AFGUnlockSubsystem::Get(Subsystem->GetWorld());
 	AFGSchematicManager* Manager = AFGSchematicManager::Get(Subsystem->GetWorld());
 
-	for (auto nRecipe : Subsystem->Recipes)
-	{
-		if (Manager && Unlock && Unlock->HasAuthority())
-		{
-			for (auto i : nRecipe.Value.nUnlockedBy)
-			{
-				if (Manager->IsSchematicPurchased(i))
-				{
+	for (auto nRecipe : Subsystem->Recipes) {
+		if (Manager && Unlock && Unlock->HasAuthority()) {
+			for (auto i : nRecipe.Value.nUnlockedBy) {
+				if (Manager->IsSchematicPurchased(i)) {
 					Unlock->UnlockRecipe(nRecipe.Key);
 					UE_LOG(LogContentLib, Warning, TEXT("CL: Unlocked Recipe %s"), *nRecipe.Key->GetName())
 
@@ -1091,19 +927,14 @@ void UBPFContentLib::UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem)
 			}
 		}
 	}
-
-	
 }
 
 void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, TSubclassOf<UFGSchematic> SchematicDep)
 {
 	bool Added = false;
-	for(auto f : Schematic.GetDefaultObject()->mSchematicDependencies)
-	{
-		if(Cast<UFGSchematicPurchasedDependency>(f))
-		{
-			if (!Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Contains(SchematicDep))
-			{
+	for(auto f : Schematic.GetDefaultObject()->mSchematicDependencies) {
+		if(Cast<UFGSchematicPurchasedDependency>(f)) {
+			if (!Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Contains(SchematicDep)) {
 				Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Add(SchematicDep);
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL : Added SchematicDep to %s in Schematic %s "), *SchematicDep->GetName(), *Schematic->GetName())
@@ -1111,14 +942,11 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 			}
 		}
 	}
-	if (!Added)
-	{
+	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_SchematicPurchasedDependency_C"), false);
-		if (!Class)
-		{
+		if (!Class) {
 			Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
-			if (!Class)
-			{
+			if (!Class) {
 				UE_LOG(LogContentLib,Fatal,TEXT("CL: Couldnt find BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
@@ -1126,6 +954,5 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 		Object->mSchematics.Add(SchematicDep);
 		Schematic.GetDefaultObject()->mSchematicDependencies.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency. Added Schematic to %s in Schematic %s."), *SchematicDep->GetName(), *Schematic->GetName())
-
 	}
 }

@@ -68,26 +68,21 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 	if (ClearFirst)
 		Recipe.GetDefaultObject()->mProducedIn.Empty();
 
-	for(auto i : RecipeStruct.BuildIn)
-	{
+	for(auto i : RecipeStruct.BuildIn) {
 
-		if(i.Contains("/"))
-		{
+		if(i.Contains("/")) {
 			UClass* Loaded = LoadObject<UClass>(nullptr, *RecipeStruct.Category);
 			if (Loaded && Loaded->IsChildOf(UFGSchematic::StaticClass()) && !Recipe.GetDefaultObject()->mProducedIn.Contains((Loaded)))
 					Recipe.GetDefaultObject()->mProducedIn.Add(Loaded);
-			else if(!Recipe.GetDefaultObject()->mProducedIn.Contains(Loaded))
-			{
+			else if(!Recipe.GetDefaultObject()->mProducedIn.Contains(Loaded)) {
 				UE_LOG(LogContentLib,Error,TEXT("Finding Builder by Path %s failed"), *i);
 			}	
 		}
 		else
 		{
 			bool Found = false;
-			for(auto e : Builders)
-			{
-				if (UBPFContentLib::StringCompareItem(e->GetName(),i,"Build","_C"))
-				{
+			for(auto e : Builders) {
+				if (UBPFContentLib::StringCompareItem(e->GetName(),i,"Build","_C")) {
 					TSoftClassPtr< UObject > Insert = TSoftClassPtr< UObject > (e);
 					if(!Recipe.GetDefaultObject()->mProducedIn.Contains((Insert)))
 						Recipe.GetDefaultObject()->mProducedIn.Add(Insert);
@@ -95,11 +90,9 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 					break;
 				}
 			}
-			for(auto e : CraftingComps)
-			{
+			for(auto e : CraftingComps) {
 				TSubclassOf<class UFGWorkBench> Desc = e;
-				if(Desc.GetDefaultObject()->GetName().Equals(i, ESearchCase::IgnoreCase)|| i.Equals("manual", ESearchCase::IgnoreCase))
-				{
+				if(Desc.GetDefaultObject()->GetName().Equals(i, ESearchCase::IgnoreCase)|| i.Equals("manual", ESearchCase::IgnoreCase)) {
 					TSoftClassPtr< UObject > Insert = TSoftClassPtr< UObject > (e);
 					if(!Recipe.GetDefaultObject()->mProducedIn.Contains((Insert)))
 						Recipe.GetDefaultObject()->mProducedIn.Add(Insert);
@@ -107,8 +100,7 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 					break;
 				}
 			}
-			if (i.Contains("BP_BuildGun") || i.Contains("BuildGun") || i.Contains("FGBuildGun"))
-			{
+			if (i.Contains("BP_BuildGun") || i.Contains("BuildGun") || i.Contains("FGBuildGun")) {
 				UClass* Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/Equipment/BuildGun/BP_BuildGun.BP_BuildGun_C"));
 				if (!Recipe.GetDefaultObject()->mProducedIn.Contains((Class)))
 					Recipe.GetDefaultObject()->mProducedIn.Add(Class);
@@ -126,11 +118,9 @@ void UCLRecipeBPFLib::AddToSchematicUnlock(const TSubclassOf<class UFGRecipe> Re
 {
 	if (!Recipe)
 		return;
-	for (const FString SchematicToFind : RecipeStruct.UnlockedBy)
-	{
+	for (const FString SchematicToFind : RecipeStruct.UnlockedBy) {
 		UClass * SchematicClass = UBPFContentLib::FindClassWithLog(SchematicToFind,UFGSchematic::StaticClass(),Subsystem);
-		if (SchematicClass)
-		{
+		if (SchematicClass) {
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, Subsystem, Recipe);
 		}
 	}
@@ -141,8 +131,7 @@ void UCLRecipeBPFLib::AddToSchematicUnlock(const TSubclassOf<class UFGRecipe> Re
 
 FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 {
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
-	{
+	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}")) {
 		if (String == "")
 			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
@@ -157,8 +146,7 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
-	if(!Result.IsValid())
-	{
+	if(!Result.IsValid()) {
 		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_Recipe();
 	}
@@ -205,22 +193,19 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 	TArray< TSharedPtr<FJsonValue>> Ingredients;
 	TArray< TSharedPtr<FJsonValue>> Products;
 	TArray< TSharedPtr<FJsonValue>> ProducedIn; 
-	for(auto i : CDO->mIngredients)
-	{
+	for(auto i : CDO->mIngredients) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Amount));
 		Ingredients.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : CDO->mProduct)
-	{
+	for(auto i : CDO->mProduct) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Amount));
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : CDO->mProducedIn)
-	{
+	for(auto i : CDO->mProducedIn) {
 		auto IngObj = MakeShared<FJsonObject>();
 		ProducedIn.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
@@ -257,22 +242,19 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	TArray< TSharedPtr<FJsonValue>> Ingredients;
 	TArray< TSharedPtr<FJsonValue>> Products;
 	TArray< TSharedPtr<FJsonValue>> ProducedIn; 
-	for(auto i : Recipe.Ingredients)
-	{
+	for(auto i : Recipe.Ingredients) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.Key));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Value));
 		Ingredients.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : Recipe.Products)
-	{
+	for(auto i : Recipe.Products) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.Key));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Value));
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : Recipe.BuildIn)
-	{
+	for(auto i : Recipe.BuildIn) {
 		auto IngObj = MakeShared<FJsonObject>();
 		ProducedIn.Add(MakeShared<FJsonValueString>(i));
 	}

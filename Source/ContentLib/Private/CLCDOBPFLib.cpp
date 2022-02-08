@@ -3,6 +3,7 @@
 
 #include "CLCDOBPFLib.h"
 #include "BPFContentLib.h"
+#include "Contentlib.h"
 #include "Reflection/ReflectionHelper.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -10,15 +11,15 @@ void UCLCDOBPFLib::Log(FString LogString, int32 Level)
 {
 	if (Level == 0)
 	{
-		UE_LOG(LogTemp, Display, TEXT("%s"), *LogString);
+		UE_LOG(LogContentLib, Display, TEXT("%s"), *LogString);
 	}
 	else if (Level == 1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *LogString);
+		UE_LOG(LogContentLib, Warning, TEXT("%s"), *LogString);
 	}
 	else if (Level == 2)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s"), *LogString);
+		UE_LOG(LogContentLib, Error, TEXT("%s"), *LogString);
 	}
 
 }
@@ -28,11 +29,11 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
 	{
 		if (String == "")
-			UE_LOG(LogTemp, Error, TEXT("Empty String  %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogTemp, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
 
 		return false;
 	}
@@ -43,7 +44,7 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 	Serializer.Deserialize(Reader, Result);
 	if (!Result.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid Json ! %s"), *String);
+		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return false;
 	}
 	UClass* Class = nullptr;
@@ -69,7 +70,7 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 				{
 					if(i->Type != EJson::Object)
 					{
-						UE_LOG(LogTemp,Error,TEXT("Property Array Value Type not Object Value"));
+						UE_LOG(LogContentLib,Error,TEXT("Property Array Value Type not Object Value"));
 					}
 					else
 					{
@@ -92,7 +93,7 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Finding by Path %s failed"),  *ClassPath);
+			UE_LOG(LogContentLib, Error, TEXT("Finding by Path %s failed"),  *ClassPath);
 		}
 	}
 	

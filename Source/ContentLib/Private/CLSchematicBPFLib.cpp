@@ -31,12 +31,9 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 	UBPFContentLib::SetStringFieldWithLog(NodeStruct.ResearchTree,"ResearchTree",Result);
 
 	
-	for(auto i : Result->TryGetField("Parents")->AsArray())
-	{
-		if(i->Type == EJson::Object)
-		{
-			if(i->AsObject()->HasField("X") && i->AsObject()->HasField("Y"))
-			{
+	for(const auto i : Result->TryGetField("Parents")->AsArray()) {
+		if(i->Type == EJson::Object) {
+			if(i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 				FContentLib_Vector2D Vector2D;
 
 				UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X,"X",Result);
@@ -46,16 +43,12 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 		}
 	}
 
-	for(auto i : Result->TryGetField("Children")->AsArray())
-	{
-		if(i->Type == EJson::Object)
-		{
-			if(i->AsObject()->HasField("Child") && i->AsObject()->HasField("Roads"))
-			{
+	for(const auto i : Result->TryGetField("Children")->AsArray()) {
+		if(i->Type == EJson::Object) {
+			if(i->AsObject()->HasField("Child") && i->AsObject()->HasField("Roads")) {
 				FContentLib_ResearchNodeRoads Node;
 				FContentLib_Vector2D Key;
-				if(i->AsObject()->TryGetField("Child")->Type == EJson::Object)
-				{
+				if(i->AsObject()->TryGetField("Child")->Type == EJson::Object) {
 					if(i->AsObject()->TryGetField("Child")->AsObject()->HasField("X") && i->AsObject()->TryGetField("Child")->AsObject()->TryGetField("X")->Type == EJson::Number  &&
 					   i->AsObject()->TryGetField("Child")->AsObject()->HasField("Y") && i->AsObject()->TryGetField("Child")->AsObject()->TryGetField("Y")->Type == EJson::Number)
 					{
@@ -66,14 +59,10 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 				Node.ChildNode = Key;
 				
 				TArray<FContentLib_Vector2D> Values;
-				for(auto e : i->AsObject()->TryGetField("Roads")->AsArray())
-				{
-					if(e->Type == EJson::Object)
-					{
-						if(e->AsObject()->HasField("X") && e->AsObject()->HasField("Y"))
-						{
+				for(auto e : i->AsObject()->TryGetField("Roads")->AsArray()) {
+					if(e->Type == EJson::Object) {
+						if(e->AsObject()->HasField("X") && e->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
-
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X,"X",Result);
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.Y,"Y",Result);
 							Node.Roads.Add(Vector2D);
@@ -101,12 +90,9 @@ FContentLib_ResearchNodeRoads UCLSchematicBPFLib::GenerateResearchNodeRoadsFromS
 	FContentLib_ResearchNodeRoads Roads;
 
 	
-	for(auto i : Result->TryGetField("Roads")->AsArray())
-	{
-		if(i->Type == EJson::Object)
-		{
-			if(i->AsObject()->HasField("X") && i->AsObject()->HasField("Y"))
-			{
+	for(const auto i : Result->TryGetField("Roads")->AsArray()) {
+		if(i->Type == EJson::Object) {
+			if(i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 				FContentLib_Vector2D Vector2D;
 
 				UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X,"X", i->AsObject());
@@ -180,19 +166,15 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearItemsToGive,"ClearItemsToGive",Result);
 
 
-	if(Result->HasField("ResearchTree"))
-	{
+	if(Result->HasField("ResearchTree")) {
 		const auto TResult =Result->TryGetField("ResearchTree");
 		UBPFContentLib::SetStringFieldWithLog(Schematic.ResearchTree.ResearchTree,"ResearchTree",TResult->AsObject());
 
-		if(TResult->Type == EJson::Object)
-		{
+		if(TResult->Type == EJson::Object) {
 			const auto TTResult = TResult->AsObject()->TryGetField("Coords");
 
-			if (TTResult->Type == EJson::Object)
-			{
-				if (TTResult->AsObject()->HasField("X") && TTResult->AsObject()->HasField("Y"))
-				{
+			if (TTResult->Type == EJson::Object) {
+				if (TTResult->AsObject()->HasField("X") && TTResult->AsObject()->HasField("Y")) {
 					FContentLib_Vector2D Vector2D;
 
 					UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", TTResult->AsObject());
@@ -200,14 +182,11 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 					Schematic.ResearchTree.Coordinates = Vector2D;
 				}
 			}
-			if (TResult->AsObject()->HasField("Parents") && TResult->AsObject()->TryGetField("Parents")->Type == EJson::Array)
-			{
-				for (auto i : TResult->AsObject()->TryGetField("Parents")->AsArray())
+			if (TResult->AsObject()->HasField("Parents") && TResult->AsObject()->TryGetField("Parents")->Type == EJson::Array) {
+				for (const auto i : TResult->AsObject()->TryGetField("Parents")->AsArray())
 				{
-					if (i->Type == EJson::Object)
-					{
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y"))
-						{
+					if (i->Type == EJson::Object) {
+						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -219,12 +198,9 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 			}
 			if (TResult->AsObject()->HasField("UnHiddenBy") && TResult->AsObject()->TryGetField("UnHiddenBy")->Type == EJson::Array)
 			{
-				for (auto i : TResult->AsObject()->TryGetField("UnHiddenBy")->AsArray())
-				{
-					if (i->Type == EJson::Object)
-					{
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y"))
-						{
+				for (const auto i : TResult->AsObject()->TryGetField("UnHiddenBy")->AsArray()) {
+					if (i->Type == EJson::Object) {
+						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -235,14 +211,10 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 				}
 			}
 
-			if (TResult->AsObject()->HasField("NodesToUnHide") && TResult->AsObject()->TryGetField("NodesToUnHide")->Type == EJson::Array)
-			{
-				for (auto i : TResult->AsObject()->TryGetField("NodesToUnHide")->AsArray())
-				{
-					if (i->Type == EJson::Object)
-					{
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y"))
-						{
+			if (TResult->AsObject()->HasField("NodesToUnHide") && TResult->AsObject()->TryGetField("NodesToUnHide")->Type == EJson::Array) {
+				for (const auto i : TResult->AsObject()->TryGetField("NodesToUnHide")->AsArray()) {
+					if (i->Type == EJson::Object) {
+						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -252,33 +224,23 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 					}
 				}
 			}
-			if (TResult->AsObject()->HasField("Children") && TResult->AsObject()->TryGetField("Children")->Type == EJson::Array)
-			{
-				for (auto i : TResult->AsObject()->TryGetField("Children")->AsArray())
-				{
-					if (i->Type == EJson::Object)
-					{
-						if (i->AsObject()->HasField("ChildNode") && i->AsObject()->HasField("Roads"))
-						{
+			if (TResult->AsObject()->HasField("Children") && TResult->AsObject()->TryGetField("Children")->Type == EJson::Array) {
+				for (const auto i : TResult->AsObject()->TryGetField("Children")->AsArray()) {
+					if (i->Type == EJson::Object) {
+						if (i->AsObject()->HasField("ChildNode") && i->AsObject()->HasField("Roads")) {
 							FContentLib_Vector2D Key;
-							if (i->AsObject()->TryGetField("ChildNode")->Type == EJson::Object)
-							{
+							if (i->AsObject()->TryGetField("ChildNode")->Type == EJson::Object) {
 								UBPFContentLib::SetIntegerFieldWithLog(Key.X, "X", i->AsObject()->TryGetField("ChildNode")->AsObject());
 								UBPFContentLib::SetIntegerFieldWithLog(Key.Y, "Y", i->AsObject()->TryGetField("ChildNode")->AsObject());
 							}
 
 							TArray<FContentLib_Vector2D> Values;
-							for (auto e : i->AsObject()->TryGetField("Roads")->AsArray())
-							{
-								if (e->Type == EJson::Object)
-								{
-								
+							for (const auto e : i->AsObject()->TryGetField("Roads")->AsArray()) {
+								if (e->Type == EJson::Object) {
 									FContentLib_Vector2D Vector2D;
-
 									UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", e->AsObject());
 									UBPFContentLib::SetIntegerFieldWithLog(Vector2D.Y, "Y", e->AsObject());
 									Values.Add(Vector2D);
-									
 								}
 							}
 							FContentLib_ResearchNodeRoads Value;
@@ -291,7 +253,6 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 			}
 		}
 	}
-
 	return Schematic;
 }
 
@@ -299,8 +260,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 {
 	UFGSchematic * CDO = SchematicClass.GetDefaultObject();
 
-	if(Schematic.Type != "")
-	{
+	if(Schematic.Type != "") {
 		if(Schematic.Type.Equals("Custom",ESearchCase::IgnoreCase))
 			CDO->mType = ESchematicType::EST_Custom;
 		else if(Schematic.Type.Equals("Cheat",ESearchCase::IgnoreCase))
@@ -330,18 +290,15 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 	if(Schematic.Description != "")
 		CDO->mDescription = FText::FromString(Schematic.Description);
 	
-	if(Schematic.Cat != "")
-	{
-		TSubclassOf<UFGSchematicCategory> Out = UBPFContentLib::SetCategoryWithLoad(Schematic.Cat, SubSystem, true);
+	if(Schematic.Cat != "") {
+		const TSubclassOf<UFGSchematicCategory> Out = UBPFContentLib::SetCategoryWithLoad(Schematic.Cat, SubSystem, true);
 		if(Out)
 			CDO->mSchematicCategory = Out;
 	}
 
-	if(Schematic.SubCat.Num() > 0)
-	{
+	if(Schematic.SubCat.Num() > 0) {
 		CDO->mSubCategories.Empty();
-		for(auto i : Schematic.SubCat)
-		{
+		for(const auto i : Schematic.SubCat) {
 			TSubclassOf<UFGSchematicCategory> Out = UBPFContentLib::SetCategoryWithLoad(i, SubSystem, true);
 			if(Out)
 				CDO->mSubCategories.Add(Out);
@@ -359,70 +316,55 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 	if(Schematic.Time != -1)
 		CDO->mTimeToComplete = Schematic.Time;
 
-	if(Schematic.ClearRecipes)
-	{
+	if(Schematic.ClearRecipes) {
 		auto copy = CDO->mUnlocks;
-		for(auto i : copy)
-		{
-			if(Cast<UFGUnlockRecipe>(i))
-			{
+		for(auto i : copy) {
+			if(Cast<UFGUnlockRecipe>(i)) {
 				CDO->mUnlocks.Remove(i);
 			}
 		}
 	}
-	for(FString i : Schematic.Recipes)
-	{
+	for(const FString i : Schematic.Recipes) {
 		UClass * RecipesClass = UBPFContentLib::FindClassWithLog(i,UFGRecipe::StaticClass(),SubSystem);
-		if (RecipesClass)
-		{
+		if (RecipesClass) {
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, SubSystem, RecipesClass);
 		}
 	}
 
-	for(FString i : Schematic.Schematics)
-	{
+	for(const FString i : Schematic.Schematics) {
 		UClass * Class = UBPFContentLib::FindClassWithLog(i,UFGSchematic::StaticClass(),SubSystem);
-		if (Class)
-		{
+		if (Class) {
 			UBPFContentLib::AddSchematicToUnlock(SchematicClass, SubSystem, Class);
 		}
 	}
 
 	
-	if(Schematic.ItemsToGive.Num() || Schematic.ClearItemsToGive)
-	{
+	if(Schematic.ItemsToGive.Num() || Schematic.ClearItemsToGive) {
 		UBPFContentLib::AddGiveItemsToUnlock(SchematicClass, SubSystem, Schematic.ItemsToGive,Schematic.ClearItemsToGive);
 	}
 	
 
-	if (Schematic.SlotsToGive > -1)
-	{
+	if (Schematic.SlotsToGive > -1) {
 		UBPFContentLib::AddSlotsToUnlock(SchematicClass, SubSystem, Schematic.SlotsToGive);
 	}
 	
-	if (Schematic.ArmSlotsToGive > -1)
-	{
+	if (Schematic.ArmSlotsToGive > -1) {
 		UBPFContentLib::AddArmSlotsToUnlock(SchematicClass, SubSystem, Schematic.ArmSlotsToGive);
 	}
 	
-	for(FString i : Schematic.DependsOn)
-	{
+	for(const FString i : Schematic.DependsOn) {
 		UClass * SchematicDep = UBPFContentLib::FindClassWithLog(i,UFGSchematic::StaticClass(),SubSystem);
-		if (SchematicDep && SchematicDep->IsChildOf(UFGSchematic::StaticClass()))
-		{
+		if (SchematicDep && SchematicDep->IsChildOf(UFGSchematic::StaticClass())) {
 			UBPFContentLib::AddSchematicToPurchaseDep(SchematicClass,SubSystem,SchematicDep);
 		}
 	}
 
-	if(Schematic.VisualKit != "")
-	{
-		if (Schematic.VisualKit.Contains("{") && Schematic.VisualKit.Contains("}"))
-		{
+	if(Schematic.VisualKit != "") {
+		if (Schematic.VisualKit.Contains("{") && Schematic.VisualKit.Contains("}")) 	{
 			const FContentLib_VisualKit Kit = UCLItemBPFLib::GenerateKitFromString(Schematic.VisualKit);
 			ApplyVisualKitToSchematic(SubSystem, Kit, SchematicClass);
 		}
-		else
-		{
+		else {
 			if (SubSystem->ImportedVisualKits.Contains(Schematic.VisualKit))
 				ApplyVisualKitToSchematic(SubSystem, *SubSystem->ImportedVisualKits.Find(Schematic.VisualKit), SchematicClass);
 			else if (SubSystem->VisualKits.Contains(Schematic.VisualKit))
@@ -430,27 +372,23 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		}
 		
 	}
-	if (Schematic.ResearchTree.ResearchTree !=  "")
-	{
+	if (Schematic.ResearchTree.ResearchTree !=  "") {
 		UClass* SchematicDep = UBPFContentLib::FindClassWithLog(Schematic.ResearchTree.ResearchTree, UFGResearchTree::StaticClass(), SubSystem);
-		if(SchematicDep && SchematicDep->IsChildOf(UFGResearchTree::StaticClass()))
-		{
+		if(SchematicDep && SchematicDep->IsChildOf(UFGResearchTree::StaticClass())) {
 			static FStructProperty* NodeDataStructProperty = nullptr;
 			static FClassProperty* SchematicStructProperty = nullptr;
 			static UClass* ResearchTreeNodeClass = nullptr;
 
 			ResearchTreeNodeClass = LoadClass<UFGResearchTreeNode>(
 				nullptr, TEXT("/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"));
-			if (ResearchTreeNodeClass)
-			{
+			if (ResearchTreeNodeClass) {
 				NodeDataStructProperty = FReflectionHelper::FindPropertyChecked<FStructProperty>(
 					ResearchTreeNodeClass, TEXT("mNodeDataStruct"));
 				SchematicStructProperty = FReflectionHelper::FindPropertyByShortNameChecked<FClassProperty>(
 					NodeDataStructProperty->Struct, TEXT("Schematic"));
 				TArray<UFGResearchTreeNode*> & Nodes = Cast<UFGResearchTree>(SchematicDep->GetDefaultObject())->mNodes;
 				bool Found = false;
-				for (UFGResearchTreeNode* Node : Nodes)
-				{
+				for (UFGResearchTreeNode* Node : Nodes) {
 					if (!Node)
 						continue;
 					TSubclassOf<UFGSchematic> mSchematic = Cast<UClass>(
@@ -461,17 +399,12 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 					Found = true;
 					SubSystem->HandleResearchTreeNodeChange(Node, Schematic.ResearchTree, SchematicClass,SchematicDep);
 				}
-				if (!Found)
-				{
-					
-					
+				if (!Found) {	
 					UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BPD_ResearchTreeNode"), false);
-					if (!Class)
-					{
+					if (!Class) {
 						//Blueprint'/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode'
 						Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"));
-						if (!Class)
-						{
+						if (!Class) {
 							UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find /Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"))
 						}
 					}
@@ -479,17 +412,11 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 					Nodes.Add(Node);
 					UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Research Tree Node. Added Schematic to %s in ResearchTree %s."), *ResearchTreeNodeClass->GetName(), *SchematicDep->GetName());
 					SubSystem->HandleResearchTreeNodeChange(Node, Schematic.ResearchTree, SchematicClass,SchematicDep);
-
 				}
-
 			}
 		}
 	}
-
-	
 }
-
-
 
 void UCLSchematicBPFLib::ApplyVisualKitToSchematic(UContentLibSubsystem* Subsystem,FContentLib_VisualKit Kit, TSubclassOf<UFGSchematic> Item)
 {
@@ -497,38 +424,30 @@ void UCLSchematicBPFLib::ApplyVisualKitToSchematic(UContentLibSubsystem* Subsyst
 		return;
 	auto* Obj = Item.GetDefaultObject();
 	
-	if(Subsystem)
-	{
-		if(Subsystem->Icons.Contains(Kit.BigIcon))
-		{
+	if(Subsystem) {
+		if(Subsystem->Icons.Contains(Kit.BigIcon)) {
 			Obj->mSchematicIcon.SetResourceObject(*Subsystem->Icons.Find(Kit.BigIcon));
 		}
-		else
-		{
+		else {
 			if (Kit.GetBigIcon())
 				Obj->mSchematicIcon.SetResourceObject(Kit.GetBigIcon());
 		}
 	}
-	else
-	{
+	else {
 		if (Kit.GetBigIcon())
 			Obj->mSchematicIcon.SetResourceObject(Kit.GetBigIcon());
 	}
 	
-	if(Subsystem)
-	{
-		if(Subsystem->Icons.Contains(Kit.SmallIcon))
-		{
+	if(Subsystem) {
+		if(Subsystem->Icons.Contains(Kit.SmallIcon)) {
 			Obj->mSmallSchematicIcon = *Subsystem->Icons.Find(Kit.SmallIcon);
 		}
-		else
-		{
+		else {
 			if (Kit.GetSmallIcon())
 				Obj->mSmallSchematicIcon = Kit.GetSmallIcon();
 		}
 	}
-	else
-	{
+	else {
 		if (Kit.GetSmallIcon())
 			Obj->mSmallSchematicIcon = Kit.GetSmallIcon();
 	}
@@ -551,26 +470,21 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 
 	TArray< TSharedPtr<FJsonValue>> Cost;
 	TArray< TSharedPtr<FJsonValue>> SubCats; 
-	for(auto i : CDO->mCost)
-	{
+	for(auto i : CDO->mCost) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Amount));
 		Cost.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
 	
-	for(auto i : CDO->mSubCategories)
-	{
+	for(auto i : CDO->mSubCategories) {
 		auto IngObj = MakeShared<FJsonObject>();
 		SubCats.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
 	TArray< TSharedPtr<FJsonValue>> Recipes;
-	for(auto i : CDO->mUnlocks)
-	{
-		if(Cast<UFGUnlockRecipe>(i))
-		{
-			for(auto e: Cast<UFGUnlockRecipe>(i)->mRecipes)
-			{
+	for(auto i : CDO->mUnlocks) {
+		if(Cast<UFGUnlockRecipe>(i)) {
+			for(auto e: Cast<UFGUnlockRecipe>(i)->mRecipes) {
 				auto IngObj = MakeShared<FJsonObject>();
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
@@ -578,21 +492,17 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	}
 	TArray< TSharedPtr<FJsonValue>> Deps;
 
-	for(auto i : CDO->mSchematicDependencies)
-	{
-		if(Cast<UFGSchematicPurchasedDependency>(i))
-		{
-			for(auto e: Cast<UFGSchematicPurchasedDependency>(i)->mSchematics)
-			{
+	for(auto i : CDO->mSchematicDependencies) {
+		if(Cast<UFGSchematicPurchasedDependency>(i)) {
+			for(auto e: Cast<UFGSchematicPurchasedDependency>(i)->mSchematics) {
 				auto IngObj = MakeShared<FJsonObject>();
 				Deps.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
 	}
+	
 	const auto DepArray = MakeShared<FJsonValueArray>(Deps);
-
 	const auto RecipesArray = MakeShared<FJsonValueArray>(Recipes);
-
 	const auto CostArray = MakeShared<FJsonValueArray>(Cost);
 	const auto SubCatArray = MakeShared<FJsonValueArray>(SubCats);
 
@@ -617,6 +527,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 
 FString UCLSchematicBPFLib::SerializeCLSchematic(FContentLib_Schematic Schematic)
 {
+	//TODO:: wörk wörk
 	return "";
 };
 

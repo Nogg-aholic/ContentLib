@@ -44,8 +44,7 @@ FContentLib_ItemCategory UCLCategoryBPFLib::CLItemCategoryFromString(FString Str
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
-	if(!Result.IsValid())
-	{
+	if(!Result.IsValid()) {
 		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_ItemCategory();
 	}
@@ -80,8 +79,7 @@ FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(F
 {
 
 	
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
-	{
+	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}")) {
 		if (String == "")
 			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
@@ -96,8 +94,7 @@ FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(F
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
-	if(!Result.IsValid())
-	{
+	if(!Result.IsValid()) {
 		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_SchematicCategory();
 	}
@@ -117,8 +114,7 @@ void UCLCategoryBPFLib::InitItemCategoryFromStruct(FContentLib_ItemCategory Sche
 	if(SchematicCategory.Name != "")
 		CDO->mDisplayName = FText::FromString(SchematicCategory.Name);
 
-	if(SchematicCategory.MenuPriority != -1)
-	{
+	if(SchematicCategory.MenuPriority != -1) {
 		CDO->mMenuPriority = SchematicCategory.MenuPriority;
 	}
 }
@@ -130,8 +126,7 @@ void UCLCategoryBPFLib::InitSchematicCategoryFromStruct(FContentLib_SchematicCat
 	if(SchematicCategory.Name != "")
 		CDO->mDisplayName = FText::FromString(SchematicCategory.Name);
 
-	if(SchematicCategory.Icon != "")
-	{
+	if(SchematicCategory.Icon != "") {
 		if (Subsystem->ImportedVisualKits.Contains(SchematicCategory.Icon))
 			ApplyVisualKitToSchematicCategory(Subsystem,*Subsystem->ImportedVisualKits.Find(SchematicCategory.Icon),SchematicCategoryClass);
 		else if (Subsystem->VisualKits.Contains(SchematicCategory.Icon))
@@ -146,8 +141,7 @@ void UCLCategoryBPFLib::InitBuildCategoryFromStruct(FContentLib_SchematicCategor
 	if(SchematicCategory.Name != "")
 		CDO->mDisplayName = FText::FromString(SchematicCategory.Name);
 
-	if(SchematicCategory.Icon != "")
-	{
+	if(SchematicCategory.Icon != "") {
 		if (Subsystem->ImportedVisualKits.Contains(SchematicCategory.Icon))
 			ApplyVisualKitToPurchaseCategory(Subsystem,*Subsystem->ImportedVisualKits.Find(SchematicCategory.Icon),BuildCategoryClass);
 		else if (Subsystem->VisualKits.Contains(SchematicCategory.Icon))
@@ -162,20 +156,16 @@ void UCLCategoryBPFLib::ApplyVisualKitToPurchaseCategory(UContentLibSubsystem* S
 		return;
 	auto* Obj = Item.GetDefaultObject();
 	
-	if(Subsystem)
-	{
-		if(Subsystem->Icons.Contains(Kit.SmallIcon))
-		{
+	if(Subsystem) {
+		if(Subsystem->Icons.Contains(Kit.SmallIcon)) {
 			Obj->mCategoryIcon.SetResourceObject(*Subsystem->Icons.Find(Kit.SmallIcon));
 		}
-		else
-		{
+		else {
 			if (Kit.GetSmallIcon())
 				Obj->mCategoryIcon.SetResourceObject(Kit.GetBigIcon());
 		}
 	}
-	else
-	{
+	else {
 		if (Kit.GetSmallIcon())
 			Obj->mCategoryIcon.SetResourceObject(Kit.GetBigIcon());
 	}
@@ -187,20 +177,16 @@ void UCLCategoryBPFLib::ApplyVisualKitToSchematicCategory(UContentLibSubsystem* 
 		return;
 	auto* Obj = Item.GetDefaultObject();
 	
-	if(Subsystem)
-	{
-		if(Subsystem->Icons.Contains(Kit.SmallIcon))
-		{
+	if(Subsystem) {
+		if(Subsystem->Icons.Contains(Kit.SmallIcon)) {
 			Obj->mCategoryIcon.SetResourceObject(*Subsystem->Icons.Find(Kit.SmallIcon));
 		}
-		else
-		{
+		else {
 			if (Kit.GetSmallIcon())
 				Obj->mCategoryIcon.SetResourceObject(Kit.GetBigIcon());
 		}
 	}
-	else
-	{
+	else {
 		if (Kit.GetSmallIcon())
 			Obj->mCategoryIcon.SetResourceObject(Kit.GetBigIcon());
 	}
