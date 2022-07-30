@@ -142,7 +142,6 @@ Check out the [docs](https://docs.ficsit.app/contentlib/latest/index.html) to ge
 
 ## Class Default Object Edits
 
-**NOTE- These are not working in the current version of the mod.**
 You can also use ContentLib to perform (Class Default Object) CDO edits.
 
 This is an advanced feature that is not easily summarized.

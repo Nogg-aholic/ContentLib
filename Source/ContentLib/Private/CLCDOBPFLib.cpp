@@ -31,9 +31,9 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 		if (String == "")
 			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
 		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
+			UE_LOG(LogContentLib, Error, TEXT("String doesn't start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesn't end with '}'  %s"), *String);
 
 		return false;
 	}

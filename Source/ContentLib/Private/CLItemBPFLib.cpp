@@ -133,9 +133,11 @@ FContentLib_Item::FContentLib_Item(): Form(EResourceForm::RF_INVALID), StackSize
 
 FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 {
+	// TODO remove code duplication here
 	const auto CDO = Item;
 	const auto Obj = MakeShared<FJsonObject>();
-	FString FormString = "Invalid";
+
+	FString FormString = "Unknown";
 	if (CDO.Form == EResourceForm::RF_SOLID)
 	{
 		FormString = "Solid";
@@ -152,8 +154,17 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	{
 		FormString = "Heat";
 	}
-	FString SizeString = "Invalid";
+	else if (CDO.Form == EResourceForm::RF_INVALID)
+	{
+		FormString = "Invalid";
+	}
+	else if (CDO.Form == EResourceForm::RF_LAST_ENUM)
+	{
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
+			FormString = "Unknown";
+	}
 
+	FString SizeString = "Unknown";
 	if (CDO.StackSize == EStackSize::SS_ONE)
 	{
 		SizeString = "One";
@@ -176,11 +187,12 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	}
 	else if (CDO.StackSize == EStackSize::SS_FLUID)
 	{
-		SizeString = "Liquid";
+		SizeString = "Fluid";
 	}
 	else if (CDO.StackSize == EStackSize::SS_LAST_ENUM)
 	{
-		SizeString = "Invalid";
+		UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
+		SizeString = "Unknown";
 	}
 
 	const auto Form = MakeShared<FJsonValueString>(FormString);
@@ -300,12 +312,14 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 
 FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item)
 {
-if (!Item)
+	if (!Item)
 		return "";
 
 	const auto CDO = Cast<UFGItemDescriptor>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
-	FString FormString = "Invalid";
+
+	// TODO remove code duplication here
+	FString FormString = "Unknown";
 	if (CDO->mForm == EResourceForm::RF_SOLID)
 	{
 		FormString = "Solid";
@@ -331,8 +345,8 @@ if (!Item)
 		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
 		FormString = "Unknown";
 	}
-	FString SizeString = "Invalid";
 
+	FString SizeString = "Unknown";
 	if (CDO->mStackSize == EStackSize::SS_ONE)
 	{
 		SizeString = "One";
@@ -355,7 +369,7 @@ if (!Item)
 	}
 	else if (CDO->mStackSize == EStackSize::SS_FLUID)
 	{
-		SizeString = "Liquid";
+		SizeString = "Fluid";
 	}
 	else if (CDO->mStackSize == EStackSize::SS_LAST_ENUM)
 	{
@@ -441,14 +455,15 @@ if (!Item)
 	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
 		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
-	return Write;}
+	return Write;
+}
 
-FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(const FString JsonString)
+FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 {
-if (JsonString == "" || !JsonString.StartsWith("{") || !JsonString.EndsWith("}"))
+	if (jsonString == "" || !jsonString.StartsWith("{") || !jsonString.EndsWith("}"))
 		return FContentLib_Item();
 
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*JsonString);
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*jsonString);
 	FJsonSerializer Serializer;
 	TSharedPtr<FJsonObject> Result;
 	Serializer.Deserialize(Reader, Result);
@@ -514,8 +529,11 @@ if (JsonString == "" || !JsonString.StartsWith("{") || !JsonString.EndsWith("}")
 		}
 		else if (CS.Equals("Liquid", ESearchCase::IgnoreCase))
 		{
-			UE_LOG(LogContentLib, Error, TEXT("Tried to register an Item with the StackSize of 'Liquid', this is not a real stack size, but treating it as 'Fluid' to avoid in-game weirdness. Please change it to 'Fluid' in your code. Encountered while processing json: %s"), *JsonString);
+			UE_LOG(LogContentLib, Error, TEXT("Tried to register an Item with the StackSize of 'Liquid', this is not a real stack size, but treating it as 'Fluid' to avoid in-game weirdness. Please change it to 'Fluid' in your code. Encountered while processing json: %s"), *jsonString);
 			Item.StackSize = EStackSize::SS_FLUID;
+		}
+		else {
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized StackSize: '%s', falling back to default. Encountered while processing json: %s"), *CS, *jsonString);
 		}
 	}
 	UBPFContentLib::SetStringFieldWithLog(Item.Name, "Name", Result);
@@ -555,7 +573,7 @@ FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 		else if (!String.StartsWith("{"))
 			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
 		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
+			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String)
 
 		return FContentLib_VisualKit();
 	}
@@ -759,7 +777,7 @@ FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescripto
 
 	if (Item->IsChildOf(UFGItemDescriptorNuclearFuel::StaticClass()))
 	{
-		const TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
+		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
@@ -780,7 +798,7 @@ FString UCLItemBPFLib::GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> 
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{
-		const TSubclassOf<UFGResourceDescriptor> Resource = Item;
+		TSubclassOf<UFGResourceDescriptor> Resource = Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
