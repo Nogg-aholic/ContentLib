@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 
-
-
 #include "CLItemBPFLib.h"
 #include "FGSchematic.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
@@ -15,111 +13,117 @@ class UContentLibSubsystem;
 
 
 USTRUCT(BlueprintType)
-struct  CONTENTLIB_API  FContentLib_Vector2D
+struct CONTENTLIB_API FContentLib_Vector2D
 {
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite)
-		int32 X =0;	
+		int32 X = 0;
 	UPROPERTY(BlueprintReadWrite)
-		int32 Y =0;
+		int32 Y = 0;
 };
 
 
 USTRUCT(BlueprintType)
-struct  CONTENTLIB_API  FContentLib_ResearchNodeRoads
+struct CONTENTLIB_API FContentLib_ResearchNodeRoads
 {
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite)
-	FContentLib_Vector2D ChildNode;
+		FContentLib_Vector2D ChildNode;
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FContentLib_Vector2D> Roads;
+		TArray<FContentLib_Vector2D> Roads;
 };
 
 USTRUCT(BlueprintType)
-struct  CONTENTLIB_API  FContentLib_ResearchNode
+struct CONTENTLIB_API FContentLib_ResearchNode
 {
 	GENERATED_BODY()
-	
-	UPROPERTY(BlueprintReadWrite)
-	FString ResearchTree;
 
 	UPROPERTY(BlueprintReadWrite)
-	FContentLib_Vector2D Coordinates;
+		FString ResearchTree;
 
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FContentLib_Vector2D> Parents;
-	
-	UPROPERTY(BlueprintReadWrite)
-	TArray<FContentLib_Vector2D> UnHiddenBy;
+		FContentLib_Vector2D Coordinates;
 
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FContentLib_Vector2D> NodesToUnHide;
+		TArray<FContentLib_Vector2D> Parents;
 
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FContentLib_ResearchNodeRoads> Children;
+		TArray<FContentLib_Vector2D> UnHiddenBy;
+
+	UPROPERTY(BlueprintReadWrite)
+		TArray<FContentLib_Vector2D> NodesToUnHide;
+
+	UPROPERTY(BlueprintReadWrite)
+		TArray<FContentLib_ResearchNodeRoads> Children;
 
 };
 
 USTRUCT(BlueprintType)
-struct  CONTENTLIB_API  FContentLib_Schematic
+struct CONTENTLIB_API FContentLib_Schematic
 {
 	GENERATED_BODY()
-	FContentLib_Schematic(): MenuPriority(-1), Tier(-1), Time(-1), SlotsToGive(-1), ArmSlotsToGive(-1), ClearCats(false),
-	                         ClearCost(false),
-	                         ClearRecipes(false),
-	                         ClearDeps(false), ClearItemsToGive(false)
+		FContentLib_Schematic() :
+		MenuPriority(-1),
+		Tier(-1),
+		Time(-1),
+		InventorySlotsToGive(-1),
+		ArmSlotsToGive(-1),
+		ClearSubCategories(false),
+		ClearCost(false),
+		ClearRecipes(false),
+		ClearDeps(false),
+		ClearItemsToGive(false)
 	{
 	}
-	;
 
-	
+
 	UPROPERTY(BlueprintReadWrite)
-	FString Type;
+		FString Type;
 	UPROPERTY(BlueprintReadWrite)
-	FString Name;
+		FString Name;
 	UPROPERTY(BlueprintReadWrite)
-	FString Description;
+		FString Description;
 	UPROPERTY(BlueprintReadWrite)
-	FString Cat;
+		FString Category;
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FString> SubCat;
+		TArray<FString> SubCategories;
 	UPROPERTY(BlueprintReadWrite)
-	float MenuPriority;
+		float MenuPriority;
 	UPROPERTY(BlueprintReadWrite)
-	int32 Tier;
+		int32 Tier;
 	UPROPERTY(BlueprintReadWrite)
-	TMap< FString,int32 > Cost;
+		TMap< FString, int32 > Cost;
 	UPROPERTY(BlueprintReadWrite)
-	float Time;
+		float Time;
 	UPROPERTY(BlueprintReadWrite)
-	TArray< FString > Recipes;
+		TArray< FString > Recipes;
 	UPROPERTY(BlueprintReadWrite)
-	TArray< FString > Schematics;
+		TArray< FString > Schematics;
 	UPROPERTY(BlueprintReadWrite)
-	int32 SlotsToGive;
+		int32 InventorySlotsToGive;
 	UPROPERTY(BlueprintReadWrite)
-	int32 ArmSlotsToGive;
+		int32 ArmSlotsToGive;
 	UPROPERTY(BlueprintReadWrite)
-	TMap< FString,int32 > ItemsToGive;
+		TMap< FString, int32 > ItemsToGive;
 	UPROPERTY(BlueprintReadWrite)
-	FString VisualKit;
+		FString VisualKit;
 	UPROPERTY(BlueprintReadWrite)
-	TArray< FString > DependsOn;
+		TArray< FString > DependsOn;
 	UPROPERTY(BlueprintReadWrite)
-	FContentLib_ResearchNode ResearchTree;
-	
+		FContentLib_ResearchNode ResearchTree;
+
 	UPROPERTY(BlueprintReadWrite)
-	bool ClearCats;
+		bool ClearSubCategories;
 	UPROPERTY(BlueprintReadWrite)
-	bool ClearCost;
+		bool ClearCost;
 	UPROPERTY(BlueprintReadWrite)
-	bool ClearRecipes;
+		bool ClearRecipes;
 	UPROPERTY(BlueprintReadWrite)
-	bool ClearDeps;
+		bool ClearDeps;
 	UPROPERTY(BlueprintReadWrite)
-	bool ClearItemsToGive;
+		bool ClearItemsToGive;
 };
 
 
@@ -127,24 +131,24 @@ UCLASS()
 class CONTENTLIB_API UCLSchematicBPFLib : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
-	public:
+public:
 
 	UFUNCTION(BlueprintCallable)
-	static FContentLib_ResearchNode GenerateResearchStructFromString(FString String);
+		static FContentLib_ResearchNode GenerateResearchStructFromString(FString String);
 	UFUNCTION(BlueprintCallable)
-	static FContentLib_ResearchNodeRoads GenerateResearchNodeRoadsFromString(FString String);
+		static FContentLib_ResearchNodeRoads GenerateResearchNodeRoadsFromString(FString String);
 	UFUNCTION(BlueprintCallable)
-	static FContentLib_Vector2D GenerateVector2DFromString(FString String);
+		static FContentLib_Vector2D GenerateVector2DFromString(FString String);
 	UFUNCTION(BlueprintCallable)
-    static FContentLib_Schematic GenerateCLSchematicFromString(FString String);
+		static FContentLib_Schematic GenerateCLSchematicFromString(FString String);
 	UFUNCTION(BlueprintCallable)
-	static void InitSchematicFromStruct(FContentLib_Schematic Schematic, TSubclassOf<UFGSchematic> SchematicClass, UContentLibSubsystem* SubSystem);
+		static void InitSchematicFromStruct(FContentLib_Schematic Schematic, TSubclassOf<UFGSchematic> SchematicClass, UContentLibSubsystem* SubSystem);
 
 	UFUNCTION(BlueprintCallable)
-    static FString SerializeSchematic(TSubclassOf<UFGSchematic> Schematic);
+		static FString SerializeSchematic(TSubclassOf<UFGSchematic> Schematic);
 	UFUNCTION(BlueprintCallable)
-    static FString SerializeCLSchematic(FContentLib_Schematic Schematic);
+		static FString SerializeCLSchematic(FContentLib_Schematic Schematic);
 
 	UFUNCTION(BlueprintCallable)
-    static void ApplyVisualKitToSchematic(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit, TSubclassOf<UFGSchematic> Item);
+		static void ApplyVisualKitToSchematic(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit, TSubclassOf<UFGSchematic> Item);
 };

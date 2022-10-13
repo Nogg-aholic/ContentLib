@@ -110,7 +110,7 @@ public:
 	static void AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
 	                          TSubclassOf<UFGSchematic> SchematicToAdd);
 	UFUNCTION(BlueprintCallable)
-	static void AddSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, int32 Slots);
+	static void AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, int32 Slots);
 
 	UFUNCTION(BlueprintCallable)
 	static void AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic , UContentLibSubsystem* Subsystem, const TMap<FString,int32> ItemsToGive, bool ClearFirst);
@@ -132,14 +132,13 @@ public:
     static UObject* Conv_ClassToObject(UClass* Class);
 
 	UFUNCTION(BlueprintCallable)
-    static void BindOnBPFunction(TSubclassOf<UObject> Class, FObjectFunctionBind Binding, FString FunctionName);
-
-	UFUNCTION(BlueprintCallable)
     static UTexture2D* GetIconForBuilding(UContentLibSubsystem* System, TSubclassOf<AFGBuildable> Buildable, bool Big, const UObject* WorldContext);
 
 	UFUNCTION(BlueprintPure)
     static TArray<FString> GetBlueprintFunctionNames(UClass * BlueprintClass);
 
+	// Returns true and logs error messages if passed string doesn't pass some basic json validation logic
+	UFUNCTION(BlueprintCallable)
+		static bool FailsBasicJsonFormCheck(FString jsonString);
 
-	static FObjectFunctionBind WidgetBind;
 };

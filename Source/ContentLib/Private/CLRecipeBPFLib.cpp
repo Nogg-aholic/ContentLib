@@ -12,35 +12,37 @@
 #include "FGUnlockSubsystem.h"
 #include "FGWorkBench.h"
 #include "ContentLibSubsystem.h"
-#include "FGItemCategory.h"
 #include "Buildables/FGBuildableFactory.h"
 #include "Registry/ModContentRegistry.h"
 
 void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe,bool ClearIngredients,bool ClearProducts,bool ClearBuilders)
 {
-	if (!Recipe)
+	if (!Recipe) {
 		return;
-	UFGRecipe *  CDO = Recipe.GetDefaultObject();
+	}
+	UFGRecipe* CDO = Recipe.GetDefaultObject();
 
-	if (RecipeStruct.Name != "")
-	{
+	// If a Name is specified, it will also turn on override
+	if (RecipeStruct.Name != "") {
 		CDO->mDisplayName = FText::FromString(RecipeStruct.Name);
 		CDO->mDisplayNameOverride = true;
-
 	}
-
-	if (RecipeStruct.OverrideName == 1)
-	{
+	// You can also turn override on/off manually. It defaults to -1 which won't trip either of these
+	if (RecipeStruct.OverrideName == 1) {
 		CDO->mDisplayNameOverride = true;
-	}
-	else if (RecipeStruct.OverrideName == 0)
-	{
+	} else if (RecipeStruct.OverrideName == 0) {
 		CDO->mDisplayNameOverride = false;
 	}
 
 	if (RecipeStruct.Category != "")
 	{
-		CDO->mOverriddenCategory = UBPFContentLib::SetCategoryWithLoad(RecipeStruct.Category,Subsystem,false);
+		const TSubclassOf<UFGItemCategory> Out = UBPFContentLib::SetCategoryWithLoad(RecipeStruct.Category, Subsystem, false);
+		if (Out) {
+			CDO->mOverriddenCategory = Out;
+		}
+		if (!CDO->mOverriddenCategory) {
+			UE_LOG(LogContentLib, Error, TEXT("Recipe Category Override probably failed; a category was specified in the struct but was still nullptr after apply"));
+		}
 	}
 	UBPFContentLib::AddToItemAmountArray(Recipe.GetDefaultObject()->mIngredients,RecipeStruct.Ingredients,Subsystem->mItems,ClearIngredients);
 	UBPFContentLib::AddToItemAmountArray(Recipe.GetDefaultObject()->mProduct,RecipeStruct.Products,Subsystem->mItems,ClearProducts);
@@ -107,8 +109,9 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 				Found = true;
 			}
 
-			if(!Found)
-				UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Builder %s for Recipe %s"), *i, *Recipe->GetName())
+			if (!Found) {
+				UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Builder %s for Recipe %s"), *i, *Recipe->GetName());
+			}
 
 		}
 	}
@@ -116,63 +119,62 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 
 void UCLRecipeBPFLib::AddToSchematicUnlock(const TSubclassOf<class UFGRecipe> Recipe,FContentLib_Recipe RecipeStruct, UContentLibSubsystem* Subsystem)
 {
-	if (!Recipe)
+	if (!Recipe) {
 		return;
+	}
 	for (const FString SchematicToFind : RecipeStruct.UnlockedBy) {
 		UClass * SchematicClass = UBPFContentLib::FindClassWithLog(SchematicToFind,UFGSchematic::StaticClass(),Subsystem);
 		if (SchematicClass) {
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, Subsystem, Recipe);
+		} else {
+			UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Schematic for UnlockedBy with name %s for Recipe %s"), *SchematicToFind, *Recipe->GetName());
 		}
 	}
 };
 
 
-
-
 FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 {
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}")) {
-		if (String == "")
-			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
-		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
-		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
-
+	if (UBPFContentLib::FailsBasicJsonFormCheck(String)) {
 		return FContentLib_Recipe();
 	}
 	
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*String);
 	FJsonSerializer Serializer;
-	TSharedPtr<FJsonObject> Result;
-	Serializer.Deserialize(Reader, Result);
-	if(!Result.IsValid()) {
+	TSharedPtr<FJsonObject> ParsedJson;
+	Serializer.Deserialize(Reader, ParsedJson);
+	if(!ParsedJson.IsValid()) {
 		UE_LOG(LogContentLib, Error, TEXT("Invalid Json ! %s"), *String);
 		return FContentLib_Recipe();
 	}
 
+	if (ParsedJson->HasField("Category")) {
+		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Recipe field 'Category'! It has been renamed to 'OverrideCategory'. This will be a real error soon, but for now it still works."), *String);
+		ParsedJson->SetStringField("OverrideCategory", ParsedJson->TryGetField("Category")->AsString());
+	}
+
 	FContentLib_Recipe Recipe;
 
-	UBPFContentLib::SetStringFieldWithLog(Recipe.Name, "Name", Result);
-	UBPFContentLib::SetIntegerFieldWithLog(Recipe.OverrideName, "OverrideName", Result);
-	UBPFContentLib::SetStringFieldWithLog(Recipe.Category, "Category", Result);
-	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManufacturingDuration, "ManufacturingDuration", Result);
-	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManualManufacturingMultiplier, "ManualManufacturingMultiplier", Result);
-	UBPFContentLib::SetFloatFieldWithLog(Recipe.VariablePowerConsumptionFactor, "VariablePowerConsumptionFactor", Result);
-	UBPFContentLib::SetFloatFieldWithLog(Recipe.VariablePowerConsumptionConstant, "VariablePowerConsumptionConstant", Result);
-	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManufacturingMenuPriority, "ManufacturingMenuPriority", Result);	
-	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Recipe.Ingredients, "Ingredients", Result))
+	UBPFContentLib::SetStringFieldWithLog(Recipe.Name, "Name", ParsedJson);
+	UBPFContentLib::SetIntegerFieldWithLog(Recipe.OverrideName, "OverrideName", ParsedJson);
+	UBPFContentLib::SetStringFieldWithLog(Recipe.Category, "OverrideCategory", ParsedJson);
+	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManufacturingDuration, "ManufacturingDuration", ParsedJson);
+	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManualManufacturingMultiplier, "ManualManufacturingMultiplier", ParsedJson);
+	UBPFContentLib::SetFloatFieldWithLog(Recipe.VariablePowerConsumptionFactor, "VariablePowerConsumptionFactor", ParsedJson);
+	UBPFContentLib::SetFloatFieldWithLog(Recipe.VariablePowerConsumptionConstant, "VariablePowerConsumptionConstant", ParsedJson);
+	UBPFContentLib::SetFloatFieldWithLog(Recipe.ManufacturingMenuPriority, "ManufacturingMenuPriority", ParsedJson);
+	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Recipe.Ingredients, "Ingredients", ParsedJson))
 		Recipe.ClearIngredients = false;
-	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Recipe.Products, "Products", Result))
+	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Recipe.Products, "Products", ParsedJson))
 		Recipe.ClearProducts = false;
 
-	if (!UBPFContentLib::SetStringArrayFieldWithLog(Recipe.BuildIn, "ProducedIn", Result))
+	if (!UBPFContentLib::SetStringArrayFieldWithLog(Recipe.BuildIn, "ProducedIn", ParsedJson))
 		Recipe.ClearBuilders = false;
 	
-	UBPFContentLib::SetStringArrayFieldWithLog(Recipe.UnlockedBy, "UnlockedBy", Result);
-	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearIngredients, "ClearIngredients", Result);
-	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearProducts, "ClearProducts", Result);
-	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearBuilders, "ClearBuilders", Result);
+	UBPFContentLib::SetStringArrayFieldWithLog(Recipe.UnlockedBy, "UnlockedBy", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearIngredients, "ClearIngredients", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearProducts, "ClearProducts", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearBuilders, "ClearBuilders", ParsedJson);
 	
 	return Recipe;
 }
@@ -286,7 +288,3 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 };
-
-
-
-

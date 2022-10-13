@@ -23,18 +23,10 @@ void UCLCDOBPFLib::Log(FString LogString, int32 Level)
 	}
 
 }
+
 bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 {
-
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
-	{
-		if (String == "")
-			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
-		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesn't start with '{' %s"), *String)
-		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesn't end with '}'  %s"), *String);
-
+	if (UBPFContentLib::FailsBasicJsonFormCheck(String)) {
 		return false;
 	}
 
@@ -373,9 +365,7 @@ void UCLCDOBPFLib::EditCDO(FProperty * Prop, TSharedPtr<FJsonValue> json,bool Do
 		}
 	}
 }
-/*
 
-*/
 
 UClass* UCLCDOBPFLib::FindClassByName(const FString ClassNameInput) {
   	// prevent crash from wrong user Input

@@ -236,22 +236,28 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Info")
 	TMap< TSubclassOf<class UFGSchematic>, TSubclassOf<class UFGResearchTree>> SchematicResearchTreeParents;
 
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mItems;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mSchematics;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mRecipes;
+
 	UPROPERTY(BlueprintReadOnly)
-	TArray<UClass*> mItemCategories;
-	UPROPERTY(BlueprintReadOnly)
-	TArray<UClass*> mSchematicCategories;
+	TArray<UClass*> mCategories;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mBuilders;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mCraftingComps;
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<UClass*> mResearchTrees;
+
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FString, FContentLib_VisualKit> VisualKits;

@@ -123,11 +123,15 @@ TSharedRef<FJsonObject> FContentLib_NuclearFuelItem::GetNuclearFuelAsJsonObject(
 }
 
 
-FContentLib_Item::FContentLib_Item(): Form(EResourceForm::RF_INVALID), StackSize(EStackSize::SS_LAST_ENUM), EnergyValue(-1),
-                                      RadioactiveDecay(-1),
-                                      CanBeDiscarded(-1), RememberPickUp(-1),
-                                      ResourceSinkPoints(-1),
-                                      FuelWasteItem()
+FContentLib_Item::FContentLib_Item():
+	Form(EResourceForm::RF_LAST_ENUM),
+	StackSize(EStackSize::SS_LAST_ENUM),
+	EnergyValue(-1),
+	RadioactiveDecay(-1),
+	CanBeDiscarded(-1),
+	RememberPickUp(-1),
+	ResourceSinkPoints(-1),
+	FuelWasteItem()
 {
 }
 
@@ -160,8 +164,9 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	}
 	else if (CDO.Form == EResourceForm::RF_LAST_ENUM)
 	{
-		UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
-			FormString = "Unknown";
+		// This is used to specify no form change in patches so it's okay now
+		// UE_LOG(LogContentLib, Error, TEXT("Encountered EResourceForm::RF_LAST_ENUM, should be impossible"));
+		FormString = "Unknown";
 	}
 
 	FString SizeString = "Unknown";
@@ -191,14 +196,20 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	}
 	else if (CDO.StackSize == EStackSize::SS_LAST_ENUM)
 	{
-		UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
+		// This is used to specify no stack size change in patches so it's okay now
+		// UE_LOG(LogContentLib, Error, TEXT("Encountered EStackSize::SS_LAST_ENUM, should be impossible"));
 		SizeString = "Unknown";
 	}
 
-	const auto Form = MakeShared<FJsonValueString>(FormString);
-	const auto Size = MakeShared<FJsonValueString>(SizeString);
-	Obj->Values.Add("Form", Form);
-	Obj->Values.Add("StackSize", Size);
+	if (FormString != "Unknown") {
+		const auto Form = MakeShared<FJsonValueString>(FormString);
+		Obj->Values.Add("Form", Form);
+	}
+
+	if (SizeString != "Unknown") {
+		const auto Size = MakeShared<FJsonValueString>(SizeString);
+		Obj->Values.Add("StackSize", Size);
+	}
 
 	if (CDO.Name != "")
 	{
@@ -219,8 +230,8 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	}
 	if (CDO.Category != "")
 	{
-		const auto ItemCategory = MakeShared<FJsonValueString>(CDO.Category);
-		Obj->Values.Add("Category", ItemCategory);
+		const auto Category = MakeShared<FJsonValueString>(CDO.Category);
+		Obj->Values.Add("Category", Category);
 	}
 	if (CDO.VisualKit != "")
 	{
@@ -399,10 +410,10 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 		const auto Description = MakeShared<FJsonValueString>(CDO->mDescription.ToString());
 		Obj->Values.Add("Description", Description);
 	}
-	if (CDO->mItemCategory)
+	if (CDO->mCategory)
 	{
-		const auto ItemCategory = MakeShared<FJsonValueString>(CDO->mItemCategory->GetPathName());
-		Obj->Values.Add("Category", ItemCategory);
+		const auto Category = MakeShared<FJsonValueString>(CDO->mCategory->GetPathName());
+		Obj->Values.Add("Category", Category);
 	}
 
 	const auto VisualKit = MakeShared<FJsonValueObject>(FContentLib_VisualKit::GetAsJsonObject(Item));
@@ -460,8 +471,9 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 
 FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 {
-	if (jsonString == "" || !jsonString.StartsWith("{") || !jsonString.EndsWith("}"))
+	if (UBPFContentLib::FailsBasicJsonFormCheck(jsonString)) {
 		return FContentLib_Item();
+	}
 
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*jsonString);
 	FJsonSerializer Serializer;
@@ -654,6 +666,9 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	if(!Item)
 		return;
 	UFGItemDescriptor* CDO = Item.GetDefaultObject();
+	
+	// Must set this to -1 or it will default to 0, causing the item to have a stack size of 0
+	CDO->mCachedStackSize = -1;
 
 	if (ItemStruct.Form != EResourceForm::RF_LAST_ENUM)
 	{
@@ -679,16 +694,22 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	}
 	if (ItemStruct.Category != "")
 	{
-		TSubclassOf<UFGItemCategory> Out = UBPFContentLib::SetCategoryWithLoad(*ItemStruct.Category, Subsystem, false);
-
+		TSubclassOf<UFGCategory> Out = UBPFContentLib::SetCategoryWithLoad(*ItemStruct.Category, Subsystem, false);
 		if (Out)
 		{
-			CDO->mItemCategory = Out;
+			CDO->mCategory = Out;
 		}
 		else {
-			UE_LOG(LogContentLib, Error, TEXT("Unrecognized ItemCategory: '%s' that failed to be created via SetCategoryWithLoad"), *ItemStruct.Category)
+			UE_LOG(LogContentLib, Error, TEXT("Unrecognized Category: '%s' that failed to be created via SetCategoryWithLoad"), *ItemStruct.Category)
+		}
+		if (!CDO->mCategory) {
+			UE_LOG(LogContentLib, Error, TEXT("Item Category probably failed; a category was specified in the struct but was still nullptr after apply"));
 		}
 	}
+	if (!CDO->mCategory) {
+		UE_LOG(LogContentLib, Warning, TEXT("Item Category is blank, this means recipes for it won't show up unless searched for, or they have a category override"));
+	}
+
 	if (ItemStruct.VisualKit != "")
 	{
 		if (ItemStruct.VisualKit.Contains("{") && ItemStruct.VisualKit.Contains("}"))
@@ -705,6 +726,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 		}
 	}
 
+	// TODO negative energy values may have use in the future (coolant?) so maybe don't do this
 	if (ItemStruct.EnergyValue != -1)
 	{
 		CDO->mEnergyValue = ItemStruct.EnergyValue;

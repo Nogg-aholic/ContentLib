@@ -15,6 +15,9 @@ To get an idea of what ContentLib is capable of, check out a few existing mods t
 - [RePan - Oil](https://ficsit.app/mod/RePan_Petroleum) by McGalleon
 - [Recipe Maker](https://ficsit.app/mod/RecipeMaker), [Auto Packing](https://ficsit.app/mod/AutoPacking), [Building Kits](https://ficsit.app/mod/BuildingKits), [Hide Researched Milestones](https://ficsit.app/mod/HideSchematic), [Recipe Randomizer](https://ficsit.app/mod/RecipeRandomizer), and more by Andre Aquilla
 - [ContentInfo](https://ficsit.app/mod/ContentInfo) by Nog
+- [Useful Liquid Biofuel](https://ficsit.app/mod/UsefulLiquidBiofuel) by Jarno458
+- [No Package For Fluid](https://ficsit.app/mod/Jimmon_NoPackageFluid) by jimmon89
+- [Ethical Power Slug Treatment](https://ficsit.app/mod/EthicalPowerSlugTreatment) by LordOcram
 
 If you'd like to do this, check out the [docs](https://docs.ficsit.app/contentlib/latest/index.html) to get started.
 
@@ -117,13 +120,13 @@ Below is an example modification of the base game's Biofuel recipe. The recipe d
   "Name": "BioFuel Override",
   "Ingredients": [
     {
-      "Item": "Coal",
+      "Item": "Desc_Coal",
       "Amount": 1
     }
   ],
   "Products": [
     {
-      "Item": "Biofuel",
+      "Item": "Desc_Biofuel",
       "Amount": 10
     }
   ]

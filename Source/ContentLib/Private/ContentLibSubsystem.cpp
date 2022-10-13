@@ -32,27 +32,27 @@
 void UContentLibSubsystem::FillLoadedClasses()
 {
 	mItems.Empty();
-	mItemCategories.Empty();
+	mCategories.Empty();
 	mBuilders.Empty();
 	mCraftingComps.Empty();
 	mSchematics.Empty();
 	mRecipes.Empty();
 	mResearchTrees.Empty();
-	mSchematicCategories.Empty();
+
 	GetDerivedClasses(UFGItemDescriptor::StaticClass(), mItems, true);
-	GetDerivedClasses(UFGItemCategory::StaticClass(), mItemCategories, true);
+	GetDerivedClasses(UFGCategory::StaticClass(), mCategories, true);
 	GetDerivedClasses(AFGBuildableFactory::StaticClass(), mBuilders, true);
 	GetDerivedClasses(UFGWorkBench::StaticClass(), mCraftingComps, true);
 	GetDerivedClasses(UFGSchematic::StaticClass(), mSchematics, true);
 	GetDerivedClasses(UFGRecipe::StaticClass(), mRecipes, true);
 	GetDerivedClasses(UFGResearchTree::StaticClass(), mResearchTrees, true);
-	GetDerivedClasses(UFGSchematicCategory::StaticClass(), mSchematicCategories, true);
-	GetDerivedClasses(UFGBuildCategory::StaticClass(), mItemCategories, true); // TODOU5 is this supposed to go to the same place (mItemCategories) even though it's build?
+	
+	// Since build categories inherit from category, pretty sure this isn't needed
+	// GetDerivedClasses(UFGBuildCategory::StaticClass(), mCategories, true);
 }
 
 void UContentLibSubsystem::CollectVisualKits()
 {
-	
 	for (const auto ItemPair : Items) {
 		UFGItemDescriptor* Item = Cast<UFGItemDescriptor>(ItemPair.Key->GetDefaultObject());;
 		FContentLib_VisualKit Kit;
@@ -64,8 +64,6 @@ void UContentLibSubsystem::CollectVisualKits()
 		VisualKits.Add(ItemPair.Key->GetName(), Kit);
 	}
 }
-
-
 
 
 FFactoryGame_ProductBuildingCost::FFactoryGame_ProductBuildingCost() {}
@@ -104,7 +102,7 @@ int32 FFactoryGame_RecipeMJ::GetItemAmount(const TSubclassOf<UFGItemDescriptor> 
 		Out.Add(i.ItemClass);
 	}
 	if (!Out.Contains(Item)) {
-		UE_LOG(LogContentLib, Error, TEXT("Item not part of this Recipe ! "));
+		UE_LOG(LogContentLib, Error, TEXT("GetItemAmount - Item not part of this Recipe ! "));
 		return 0.f;
 	}
 	return Arr[Out.Find(Item)].Amount;
@@ -245,6 +243,7 @@ float FFactoryGame_Descriptor::GetMj(FFactoryGame_Recipe Recipe,TSubclassOf<UObj
 
 void FFactoryGame_Descriptor::AssignResourceValue()
 {
+	// I think Nog pulled these from the wiki or something? Maybe max miner production rate?
 	auto& ProcessedItemStruct = *this;
 	if (ItemClass->IsChildOf(UFGResourceDescriptor::StaticClass())) {
 		if (ItemClass.GetDefaultObject()->GetName().Contains("Desc_OreIron")) {
@@ -292,6 +291,7 @@ void FFactoryGame_Descriptor::AssignResourceValue()
 		ProcessedItemStruct.SetMj(10.f);
 	}
 	else if(ItemClass->IsChildOf(UFGItemDescriptorNuclearFuel::StaticClass())) {
+		// TODO not sure why this was here, it's a no op?
 		//Cast<UFGItemDescriptorNuclearFuel>(ItemClass.GetDefaultObject())->GetSpentFuelClass()
 	}
 }
@@ -383,7 +383,6 @@ void UContentLibSubsystem::FullRecipeCalculation()
 
 void UContentLibSubsystem::ClientInit()
 {
-
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray< FString> Paths;
 	UE_LOG(LogContentLib, Warning, TEXT("ContentLib loading relevant Mod Assets..."));
@@ -395,7 +394,7 @@ void UContentLibSubsystem::ClientInit()
 			&& !i.Equals("/Paper2D", ESearchCase::IgnoreCase)
 			&& !i.Equals("/Niagara", ESearchCase::IgnoreCase))
 		{
-			UE_LOG(LogContentLib, Warning, TEXT("ContentLib Loading Mod Assets : %s"), *i);
+			UE_LOG(LogContentLib, Warning, TEXT("ContentLib Loading Assets of Mod: %s"), *i);
 			TArray<FAssetData> AssetsData;
 			FARFilter Filter;
 			Filter.TagsAndValues.Add(TEXT("NativeParentClass"));
@@ -412,10 +411,8 @@ void UContentLibSubsystem::ClientInit()
 						Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
 						|| Parent->IsChildOf(UFGResearchTree::StaticClass()) 
-						|| Parent->IsChildOf(UFGItemCategory::StaticClass())
+						|| Parent->IsChildOf(UFGCategory::StaticClass())
 						|| Parent->IsChildOf(UFGRecipe::StaticClass())
-						|| Parent->IsChildOf(UFGSchematicCategory::StaticClass())
-						|| Parent->IsChildOf(UFGBuildCategory::StaticClass())
 						)
 					{
 						if(Parent == UFGItemDescriptor::StaticClass()) {

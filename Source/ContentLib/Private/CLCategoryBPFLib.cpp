@@ -9,9 +9,10 @@
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonSerializer.h"
 
+// TODO do we still need variants instead of just using UFGCategory?
+
 FString UCLCategoryBPFLib::GenerateFromItemCategory(TSubclassOf<UFGItemCategory> Item)
 {
-
 	const auto CDO = Cast<UFGItemCategory>(Item->GetDefaultObject());
 	const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
 	const auto MenuPriority = MakeShared<FJsonValueNumber>(CDO->mMenuPriority);
@@ -23,7 +24,6 @@ FString UCLCategoryBPFLib::GenerateFromItemCategory(TSubclassOf<UFGItemCategory>
 	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
-	
 }
 
 FContentLib_ItemCategory UCLCategoryBPFLib::CLItemCategoryFromString(FString String)

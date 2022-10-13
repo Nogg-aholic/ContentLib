@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
-	"Version": 0,
-	"VersionName": "0.3.0",
-	"SemVersion": "0.3.0",
+	"Version": 1,
+	"VersionName": "1.0.1",
+	"SemVersion": "1.0.1",
 	"FriendlyName": "ContentLib",
 	"Description": "Easily create or modify Items, Recipes, and more via JSON for any machine and any mod!",
 	"Category": "Modding",
@@ -26,7 +26,7 @@
 		{
 			"Name": "SML",
 			"Enabled": true,
-			"SemVersion": "^3.3.0"
+			"SemVersion": "^3.3.2"
 		}
 	]
 }
