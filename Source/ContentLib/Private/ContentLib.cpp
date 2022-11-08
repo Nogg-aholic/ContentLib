@@ -6,6 +6,8 @@
 
 DEFINE_LOG_CATEGORY(LogContentLib);
 
+DEFINE_LOG_CATEGORY(LogContentLibAssetParsing);
+
 void FContentLibModule::StartupModule() {}
 
 void FContentLibModule::ShutdownModule() {}

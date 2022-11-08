@@ -7,6 +7,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogContentLib, Log, All);
 
+DECLARE_LOG_CATEGORY_EXTERN(LogContentLibAssetParsing, Warning, All);
+
 class FContentLibModule : public IModuleInterface
 {
 public:

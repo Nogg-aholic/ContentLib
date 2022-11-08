@@ -54,7 +54,18 @@ void UContentLibSubsystem::FillLoadedClasses()
 void UContentLibSubsystem::CollectVisualKits()
 {
 	for (const auto ItemPair : Items) {
-		UFGItemDescriptor* Item = Cast<UFGItemDescriptor>(ItemPair.Key->GetDefaultObject());;
+		const auto key = ItemPair.Key;
+		if (!key) {
+			continue;
+		}
+		const auto cdo = key->GetDefaultObject();
+		if (!cdo) {
+			continue;
+		}
+		UFGItemDescriptor* Item = Cast<UFGItemDescriptor>(cdo); // TODO why is this done when the field is unused? is it trying to load data that otherwise isn't loaded?
+		if (!Item) {
+			continue;
+		}
 		FContentLib_VisualKit Kit;
 		Kit.Mesh = UFGItemDescriptor::GetItemMesh(ItemPair.Key)->GetPathName();
 		Kit.BigIcon = UFGItemDescriptor::GetBigIcon(ItemPair.Key)->GetPathName();
@@ -233,8 +244,9 @@ FFactoryGame_Descriptor::FFactoryGame_Descriptor(TSubclassOf<UFGItemDescriptor> 
 
 float FFactoryGame_Descriptor::GetMj(FFactoryGame_Recipe Recipe,TSubclassOf<UObject> Buildable) const
 {
-	if (!ItemClass)
+	if (!ItemClass) {
 		return 0.f;
+	}
 	if(Recipe.nRecipeClass) {
 		return Recipe.MJ.GetProductMjValue(ItemClass,true,Buildable);
 	}
@@ -244,6 +256,9 @@ float FFactoryGame_Descriptor::GetMj(FFactoryGame_Recipe Recipe,TSubclassOf<UObj
 void FFactoryGame_Descriptor::AssignResourceValue()
 {
 	// I think Nog pulled these from the wiki or something? Maybe max miner production rate?
+	if (!ItemClass) {
+		return;
+	}
 	auto& ProcessedItemStruct = *this;
 	if (ItemClass->IsChildOf(UFGResourceDescriptor::StaticClass())) {
 		if (ItemClass.GetDefaultObject()->GetName().Contains("Desc_OreIron")) {
@@ -304,15 +319,17 @@ void FFactoryGame_Descriptor::SetMj(const float Value, bool Override)
 
 bool FFactoryGame_Descriptor::HasMj() const
 {
-	if (!ItemClass)
+	if (!ItemClass) {
 		return false;
-
+	}
 	return MJValue != -1;
 }
 
 float FFactoryGame_Descriptor::AssignAverageMj(UContentLibSubsystem* System, const TArray<TSubclassOf<UFGRecipe>> Exclude, const TArray<TSubclassOf<UObject>> ExcludeBuilding)
 {
-
+	if (!ItemClass) {
+		return 0.f;
+	}
 	if (ItemClass->IsChildOf(UFGResourceDescriptor::StaticClass())) {
 		AssignResourceValue();
 		return MJValue;
@@ -407,14 +424,20 @@ void UContentLibSubsystem::ClientInit()
 				if (!e.IsAssetLoaded()) {
 					FString NativeParentPath = *e.TagsAndValues.Find("NativeParentClass");
 					UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
-					if (Parent &&
-						Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
+					FString TempPackageName = e.PackageName.ToString();
+					if (!Parent) {
+						UE_LOG(LogContentLib, Error, TEXT("Somehow the parent of asset %s is None, report this to that mod's author"), *TempPackageName);
+						continue;
+					}
+					FString TempParentName = Parent->GetPathName();
+					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Parsing asset %s with parent %s"), *TempPackageName, *TempParentName);
+					if (
+						   Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
 						|| Parent->IsChildOf(UFGResearchTree::StaticClass()) 
 						|| Parent->IsChildOf(UFGCategory::StaticClass())
 						|| Parent->IsChildOf(UFGRecipe::StaticClass())
-						)
-					{
+					) {
 						if(Parent == UFGItemDescriptor::StaticClass()) {
 							if(DumpItems.Contains(*e.ObjectPath.ToString().Append("_C"))) {
 								// replace Load
@@ -431,9 +454,10 @@ void UContentLibSubsystem::ClientInit()
 								TArray<FCoreRedirect> Redirects;
 								Redirects.Add(FCoreRedirect(Flags, *e.AssetName.ToString(), Obj->GetPathName()));
 								FCoreRedirects::AddRedirectList(Redirects,Obj->GetName());
-								auto * I = LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
+								FString ObjectPath = e.ObjectPath.ToString().Append("_C");
+								auto * I = LoadObject<UClass>(NULL, *ObjectPath);
 								if(I != Obj) {
-									UE_LOG(LogTemp,Fatal,TEXT("Redirect Failed"));
+									UE_LOG(LogContentLib,Fatal,TEXT("Redirect Failed for %s"), *ObjectPath); // was LogTemp?
 								}
 								
 							}
@@ -442,8 +466,9 @@ void UContentLibSubsystem::ClientInit()
 								DumpItems.Add(*e.ObjectPath.ToString().Append("_C"),UCLItemBPFLib::GenerateFromDescriptorClass(LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"))));
 							}
 						}
-						else
+						else {
 							LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
+						}
 					}
 				}
 			}
@@ -635,14 +660,18 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 
 bool FFactoryGame_Recipe::IsManualOnly() const
 {
-	if(!IsManual())
+	// TODO why did Nog call this, doesn't it mean two loops through the same thing?
+	if (!IsManual()) {
 		return false;
+	}
 	
 	TArray<TSubclassOf<UObject>> Producers;
 	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for(const auto Producer : Producers)
-		if(Producer && !Producer->IsChildOf(UFGWorkBench::StaticClass()))
+	for (const auto Producer : Producers) {
+		if (Producer && !Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return false;
+		}
+	}
 	return true;
 }
 
@@ -650,20 +679,24 @@ bool FFactoryGame_Recipe::IsManual() const
 {
 	TArray<TSubclassOf<UObject>> Producers;
 	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for(const auto Producer : Producers)
-		if(Producer->IsChildOf(UFGWorkBench::StaticClass()))
+	for (const auto Producer : Producers) {
+		if (Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return true;
-
+		}
+	}
 	return false;
 }
+
 bool FFactoryGame_Recipe::UnlockedFromAlternate()
 {
-	for(const auto Schematic : nUnlockedBy)
-		if(UFGSchematic::GetType(Schematic) == ESchematicType::EST_Alternate)
+	for (const auto Schematic : nUnlockedBy) {
+		if (UFGSchematic::GetType(Schematic) == ESchematicType::EST_Alternate) {
 			return true;
-
+		}
+	}
 	return false;
 }
+
 bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 {
 	TArray<TSubclassOf<UObject>> Producers;
