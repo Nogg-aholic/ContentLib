@@ -5,7 +5,7 @@
 #include "ContentLib.h"
 
 
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "BPFContentLib.h"
 #include "CLUtilBPFLib.h"
 #include "FGBuildCategory.h"
@@ -420,17 +420,18 @@ void UContentLibSubsystem::ClientInit()
 			Filter.PackagePaths.Add(*i);
 			Filter.bIncludeOnlyOnDiskAssets = true;
 			AssetRegistryModule.Get().GetAssets(Filter, AssetsData);
-			for (auto e : AssetsData) {
-				if (!e.IsAssetLoaded()) {
-					FString NativeParentPath = *e.TagsAndValues.Find("NativeParentClass");
+			for (auto asset : AssetsData) {
+				if (!asset.IsAssetLoaded()) {
+					FString NativeParentPath = *asset.TagsAndValues.FindTag("NativeParentClass").AsString();
 					UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
-					FString TempPackageName = e.PackageName.ToString();
+					FString TempPackageName = asset.PackageName.ToString();
 					if (!Parent) {
 						UE_LOG(LogContentLib, Error, TEXT("Somehow the parent of asset %s is None, report this to that mod's author"), *TempPackageName);
 						continue;
 					}
 					FString TempParentName = Parent->GetPathName();
 					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Parsing asset %s with parent %s"), *TempPackageName, *TempParentName);
+					auto assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
 					if (
 						   Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
@@ -439,12 +440,12 @@ void UContentLibSubsystem::ClientInit()
 						|| Parent->IsChildOf(UFGRecipe::StaticClass())
 					) {
 						if(Parent == UFGItemDescriptor::StaticClass()) {
-							if(DumpItems.Contains(*e.ObjectPath.ToString().Append("_C"))) {
+							if (DumpItems.Contains(*assetPathString)) {
 								// replace Load
-								const FString JsonString = *DumpItems.Find(*e.ObjectPath.ToString().Append("_C"));
+								const FString JsonString = *DumpItems.Find(*assetPathString);
 								FContentLib_Item Item = UCLItemBPFLib::GenerateCLItemFromString(JsonString);
 								FString Left; FString Right; 
-								e.ObjectPath.ToString().Split("_C", &Left, &Right,ESearchCase::IgnoreCase,ESearchDir::FromEnd);
+								assetPathString.Split("_C", &Left, &Right,ESearchCase::IgnoreCase,ESearchDir::FromEnd);
 								Left.Split(".", &Left, &Right, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 								TSubclassOf<UObject>  Obj =  UBPFContentLib::CreateContentLibClass(Right,  UFGItemDescriptor::StaticClass());
 								// If consolidating blueprints, make sure redirectors are created for the consolidated blueprint class and CDO
@@ -452,22 +453,21 @@ void UContentLibSubsystem::ClientInit()
 								// One redirector for the class
 								const ECoreRedirectFlags Flags = ECoreRedirectFlags::Type_Package | ECoreRedirectFlags::Option_MatchSubstring;
 								TArray<FCoreRedirect> Redirects;
-								Redirects.Add(FCoreRedirect(Flags, *e.AssetName.ToString(), Obj->GetPathName()));
+								Redirects.Add(FCoreRedirect(Flags, *asset.AssetName.ToString(), Obj->GetPathName()));
 								FCoreRedirects::AddRedirectList(Redirects,Obj->GetName());
-								FString ObjectPath = e.ObjectPath.ToString().Append("_C");
-								auto * I = LoadObject<UClass>(NULL, *ObjectPath);
+								auto * I = LoadObject<UClass>(NULL, *assetPathString);
 								if(I != Obj) {
-									UE_LOG(LogContentLib,Fatal,TEXT("Redirect Failed for %s"), *ObjectPath); // was LogTemp?
+									UE_LOG(LogContentLib,Fatal,TEXT("Redirect Failed for %s"), *assetPathString);
 								}
 								
 							}
 							else
 							{
-								DumpItems.Add(*e.ObjectPath.ToString().Append("_C"),UCLItemBPFLib::GenerateFromDescriptorClass(LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"))));
+								DumpItems.Add(*assetPathString,UCLItemBPFLib::GenerateFromDescriptorClass(LoadObject<UClass>(NULL, *assetPathString)));
 							}
 						}
 						else {
-							LoadObject<UClass>(NULL, *e.ObjectPath.ToString().Append("_C"));
+							LoadObject<UClass>(NULL, *assetPathString);
 						}
 					}
 				}
@@ -487,9 +487,9 @@ void UContentLibSubsystem::ClientInit()
 	Filter.bRecursivePaths = true;
 	Filter.bIncludeOnlyOnDiskAssets = true;
 	AssetRegistryModule.Get().GetAssets(Filter, AssetsData);
-	for(auto i : AssetsData) {
-		if (!i.IsAssetLoaded()) {
-			FString NativeParentPath = *i.TagsAndValues.Find("NativeParentClass");
+	for(auto asset : AssetsData) {
+		if (!asset.IsAssetLoaded()) {
+			FString NativeParentPath = *asset.TagsAndValues.FindTag("NativeParentClass").AsString();
 			UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
 			if (Parent &&
 				Parent->IsChildOf(UFGItemDescriptor::StaticClass())
@@ -499,7 +499,8 @@ void UContentLibSubsystem::ClientInit()
 				|| Parent->IsChildOf(UFGRecipe::StaticClass())
 				)
 			{
-				LoadObject<UClass>(NULL, *i.ObjectPath.ToString().Append("_C"));
+				auto assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
+				LoadObject<UClass>(NULL, *assetPathString);
 			}
 		}
 	}
@@ -610,23 +611,26 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverMachines ----------------------"));
 		return;
 	}
-	TArray<TSubclassOf<UObject>> BuildClasses;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(BuildClasses);
-	BuildClasses.Remove(nullptr);
+	TArray<TSubclassOf<UObject>> ProducedIn;
+	nRecipeClass.GetDefaultObject()->GetProducedIn(ProducedIn);
+	ProducedIn.Remove(nullptr);
 	if (Products().IsValidIndex(0)) {
-		for (auto j : BuildClasses) {
-			TArray<UClass*> Arr;
-			GetDerivedClasses(j, Arr,true);
-			if(!Arr.Contains(j) && !j->IsNative()) {
-				Arr.Add(j);
+		for (auto Builder : ProducedIn) {
+			TArray<UClass*> BuilderSubclasses;
+			GetDerivedClasses(Builder, BuilderSubclasses, true);
+			if(!BuilderSubclasses.Contains(Builder) && !Builder->IsNative()) {
+				BuilderSubclasses.Add(Builder);
 			}
-			for(auto h : Arr) {
-				if (h->IsChildOf(AFGBuildGun::StaticClass()) && Products()[0]->IsChildOf(UFGBuildDescriptor::StaticClass())) {
-					TSubclassOf<UFGBuildDescriptor> Desc = *Products()[0];
+			for(auto Subclass : BuilderSubclasses) {
+				if (!Subclass) {
+					UE_LOG(LogContentLib, Warning, TEXT("When processing derived classes of %s, encountered null subclass, this is a problem with another mod"), *UKismetSystemLibrary::GetClassDisplayName(Builder.Get()));
+				}
+				if (Subclass->IsChildOf(AFGBuildGun::StaticClass()) && Products()[0]->IsChildOf(UFGBuildDescriptor::StaticClass())) {
+					TSubclassOf<UFGBuildDescriptor> BuildingDescriptor = *Products()[0];
 					TSubclassOf<AFGBuildable> Buildable;
-					Buildable = Desc.GetDefaultObject()->GetBuildClass(Desc);
-					if (!System->BuildGunBuildings.Contains(*Desc))
-						System->BuildGunBuildings.Add(Buildable, *Desc);
+					Buildable = BuildingDescriptor.GetDefaultObject()->GetBuildClass(BuildingDescriptor);
+					if (!System->BuildGunBuildings.Contains(*BuildingDescriptor))
+						System->BuildGunBuildings.Add(Buildable, *BuildingDescriptor);
 				}
 			}
 		}
@@ -734,7 +738,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 	for (auto ProductStruct : ProductStructs) {
 		auto Cat = ProductStruct.ItemClass.GetDefaultObject()->GetCategory(ProductStruct.ItemClass);
 		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
-			TSubclassOf<class UFGItemCategory> ItemCat = Cat;
+			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
 		}
@@ -750,7 +754,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats() const
 	for (auto Ingredient : IngredientStructs) {
 		auto Cat = Ingredient.ItemClass.GetDefaultObject()->GetCategory(Ingredient.ItemClass);
 		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
-			TSubclassOf<class UFGItemCategory> ItemCat = Cat;
+			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
 		}

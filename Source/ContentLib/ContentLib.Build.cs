@@ -2,7 +2,11 @@
 
 using UnrealBuildTool;
 using System.IO;
-using Tools.DotNETCommon;
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+using EpicGames.Core;
+
 public class ContentLib : ModuleRules
 {
 	public ContentLib(ReadOnlyTargetRules Target) : base(Target)
@@ -19,8 +23,7 @@ public class ContentLib : ModuleRules
 				"Engine",
 				"InputCore","UMG","SlateCore","ImageWrapper", "RenderCore",
 				"FactoryGame", "SML", "Json"
-				// ... add other public dependencies that you statically link with here ...
 			}
-		);
+			);
 	}
 }

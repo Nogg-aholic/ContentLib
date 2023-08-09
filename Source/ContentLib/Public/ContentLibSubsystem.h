@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 
-
 #include "CLRecipeBPFLib.h"
 #include "CLItemBPFLib.h"
 #include "CLSchematicBPFLib.h"
@@ -285,6 +284,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FString, FString> DumpItems;
-	UPROPERTY(BlueprintReadOnly)
-	TArray<UObjectRedirector *> Redirectors;
+
+	// TODO U8 is this needed still?
+	//UPROPERTY(BlueprintReadOnly)
+	//TArray<UObjectRedirector *> Redirectors;
 };

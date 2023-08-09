@@ -450,14 +450,14 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{
-		TSubclassOf<UFGResourceDescriptor> Resource = Item;
+		TSubclassOf<UFGResourceDescriptor> Resource = *Item;
 		const auto ResourceItem = MakeShared<FJsonValueObject>(FContentLib_ResourceItem::GetResourceAsJsonObject(Resource));
 		Obj->Values.Add("ResourceItem", ResourceItem);
 	}
 
 	if (Item->IsChildOf(UFGItemDescriptorNuclearFuel::StaticClass()))
 	{
-		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
+		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = *Item;
 		const auto FuelWasteItem = MakeShared<FJsonValueObject>(FContentLib_NuclearFuelItem::GetNuclearFuelAsJsonObject(Resource));
 		Obj->Values.Add("FuelWasteItem", FuelWasteItem);
 	}
@@ -749,6 +749,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 
 	if (ItemStruct.ResourceSinkPoints != -1)
 	{
+		// TODO this writes to a cache field, to actually overwrite points we need to talk to the subsystem
 		CDO->mResourceSinkPoints = ItemStruct.ResourceSinkPoints;
 	}
 
@@ -799,7 +800,7 @@ FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescripto
 
 	if (Item->IsChildOf(UFGItemDescriptorNuclearFuel::StaticClass()))
 	{
-		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = Item;
+		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = *Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
@@ -820,7 +821,7 @@ FString UCLItemBPFLib::GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> 
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
 	{
-		TSubclassOf<UFGResourceDescriptor> Resource = Item;
+		TSubclassOf<UFGResourceDescriptor> Resource = *Item;
 		FString Write;
 		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
             wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory

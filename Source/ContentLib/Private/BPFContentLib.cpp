@@ -19,6 +19,7 @@
 #include "Unlocks/FGUnlockRecipe.h"
 #include "UObject/UObjectAllocator.h"
 #include "Util/ImageLoadingUtil.h"
+#include "Reflection/ClassGenerator.h"
 
 
 TArray<FString> UBPFContentLib::GetBlueprintFunctionNames(UClass* BlueprintClass) {
@@ -540,46 +541,7 @@ TSubclassOf<UObject> UBPFContentLib::CreateContentLibClass(FString Name, UClass*
 		return nullptr;
 	}
 
-	const EClassFlags ParamsClassFlags = CLASS_Native | CLASS_MatchedSerializers;
-	//Code below is taken from GetPrivateStaticClassBody
-	//Allocate memory from ObjectAllocator for class object and call class constructor directly
-	UClass* ConstructedClassObject = (UClass*)GUObjectAllocator.AllocateUObject(
-		sizeof(UDynamicClass), alignof(UDynamicClass), true);
-	::new(ConstructedClassObject)UDynamicClass(
-		EC_StaticConstructor,
-		*Name,
-		ParentClass->GetStructureSize(),
-		ParentClass->GetMinAlignment(),
-		CLASS_Intrinsic,
-		CASTCLASS_None,
-		UObject::StaticConfigName(),
-		EObjectFlags(RF_Public | RF_Standalone | RF_Transient | RF_MarkAsNative | RF_MarkAsRootSet),
-		ParentClass->ClassConstructor,
-		ParentClass->ClassVTableHelperCtorCaller,
-		ParentClass->ClassAddReferencedObjects, nullptr);
-
-	//Set super structure and ClassWithin (they are required prior to registering)
-	FCppClassTypeInfoStatic TypeInfoStatic = { false };
-	ConstructedClassObject->SetSuperStruct(ParentClass);
-	ConstructedClassObject->ClassWithin = UObject::StaticClass();
-	ConstructedClassObject->SetCppTypeInfoStatic(&TypeInfoStatic);
-#if WITH_EDITOR
-	//Field with cpp type info only exists in editor, in shipping SetCppTypeInfoStatic is empty
-	ConstructedClassObject->SetCppTypeInfoStatic(&TypeInfoStatic);
-#endif
-	//Register pending object, apply class flags, set static type info and link it
-	ConstructedClassObject->RegisterDependencies();
-
-	ConstructedClassObject->DeferredRegister(UDynamicClass::StaticClass(), TEXT("/ContentLib/"), *Name);
-
-	//Mark class as Constructed and perform linking
-	ConstructedClassObject->ClassFlags |= (EClassFlags)(ParamsClassFlags | CLASS_Constructed);
-	ConstructedClassObject->AssembleReferenceTokenStream(true);
-	ConstructedClassObject->StaticLink();
-
-	//Make sure default class object is initialized
-	ConstructedClassObject->GetDefaultObject();
-	return ConstructedClassObject;
+	return FClassGenerator::GenerateSimpleClass(TEXT("/ContentLib/"), *Name, ParentClass);
 }
 
 
