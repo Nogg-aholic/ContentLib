@@ -311,7 +311,6 @@ void FFactoryGame_Descriptor::AssignResourceValue()
 	}
 }
 
-
 void FFactoryGame_Descriptor::SetMj(const float Value, bool Override)
 {
 	MJValue = Value;

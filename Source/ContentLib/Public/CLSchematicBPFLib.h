@@ -61,6 +61,26 @@ struct CONTENTLIB_API FContentLib_ResearchNode
 };
 
 USTRUCT(BlueprintType)
+struct CONTENTLIB_API FContentLib_UnlockInfoOnly {
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+		FText mUnlockName;
+
+	UPROPERTY(BlueprintReadWrite, meta = (Multiline = true))
+		FText mUnlockDescription;
+
+	UPROPERTY(BlueprintReadWrite)
+		FString BigIcon;
+
+	UPROPERTY(BlueprintReadWrite)
+		FString SmallIcon;
+
+	UPROPERTY(BlueprintReadWrite)
+		FString CategoryIcon;
+};
+
+USTRUCT(BlueprintType)
 struct CONTENTLIB_API FContentLib_Schematic
 {
 	GENERATED_BODY()
@@ -101,6 +121,8 @@ struct CONTENTLIB_API FContentLib_Schematic
 		TArray< FString > Recipes;
 	UPROPERTY(BlueprintReadWrite)
 		TArray< FString > Schematics;
+	UPROPERTY(BlueprintReadWrite)
+		TArray< FContentLib_UnlockInfoOnly > InfoCards;
 	UPROPERTY(BlueprintReadWrite)
 		int32 InventorySlotsToGive;
 	UPROPERTY(BlueprintReadWrite)

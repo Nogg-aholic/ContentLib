@@ -379,6 +379,10 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		}
 	}
 
+	for (const auto& entry : Schematic.InfoCards) {
+		UBPFContentLib::AddInfoOnlyToUnlock(SchematicClass, SubSystem, entry);
+	}
+
 	for (const FString i : Schematic.Schematics) { // TODO what sets this field?
 		UClass* Class = UBPFContentLib::FindClassWithLog(i, UFGSchematic::StaticClass(), SubSystem);
 		if (Class) {
@@ -542,6 +546,9 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
+		// TODO schematic unlocks
+		// TODO arm slot, inventory slot unlocks
+		// TODO info only unlocks
 	}
 	TArray< TSharedPtr<FJsonValue>> Deps;
 

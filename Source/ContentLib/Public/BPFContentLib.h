@@ -106,9 +106,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static void AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
 	                       TSubclassOf<UFGRecipe> Recipe);
+
 	UFUNCTION(BlueprintCallable)
 	static void AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
 	                          TSubclassOf<UFGSchematic> SchematicToAdd);
+
+	UFUNCTION(BlueprintCallable)
+		static void AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, 
+			FContentLib_UnlockInfoOnly InfoOnlyToAdd);
+
 	UFUNCTION(BlueprintCallable)
 	static void AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, int32 Slots);
 

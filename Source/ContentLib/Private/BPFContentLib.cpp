@@ -732,7 +732,6 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 	}
 }
 
-
 void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const TSubclassOf<class UFGSchematic> SchematicToAdd)
 {
 	bool Added = false;
@@ -759,6 +758,48 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 	}
+}
+
+void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockInfoOnly_C"), false);
+	if (!Class) {
+		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"));
+		if (!Class) {
+			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockInfoOnly_C wanting to Add to %s"), *Schematic->GetName())
+		}
+	}
+	UFGUnlockInfoOnly* NewEntry = NewObject<UFGUnlockInfoOnly>(Schematic.GetDefaultObject(), Class);
+	NewEntry->mUnlockName = InfoCardToAdd.mUnlockName;
+	NewEntry->mUnlockDescription = InfoCardToAdd.mUnlockDescription;
+
+	// TODO consider switching to subsystem find 
+	//auto big = Subsystem->Icons.Find(InfoCardToAdd.BigIcon);
+	auto big = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.BigIcon);
+	if (!big) {
+		UE_LOG(LogContentLib, Warning, TEXT("Failed to find BigIcon %s"), *InfoCardToAdd.BigIcon);
+	} else {
+		UE_LOG(LogContentLib, Warning, TEXT("Found BigIcon %s"), *InfoCardToAdd.BigIcon);
+		NewEntry->mUnlockIconBig = big;
+	}
+
+	auto small = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.SmallIcon);
+	if (!small) {
+		UE_LOG(LogContentLib, Warning, TEXT("Failed to find SmallIcon %s"), *InfoCardToAdd.SmallIcon);
+	} else {
+		UE_LOG(LogContentLib, Warning, TEXT("Found SmallIcon %s"), *InfoCardToAdd.SmallIcon);
+		NewEntry->mUnlockIconBig = small;
+	}
+
+	auto category = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.CategoryIcon);
+	if (!category) {
+		UE_LOG(LogContentLib, Warning, TEXT("Failed to find BigIcon %s"), *InfoCardToAdd.CategoryIcon);
+	} else {
+		UE_LOG(LogContentLib, Warning, TEXT("Found BigIcon %s"), *InfoCardToAdd.CategoryIcon);
+		NewEntry->mUnlockIconCategory = category;
+	}
+
+	Schematic.GetDefaultObject()->mUnlocks.Add(NewEntry);
+	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added InfoCard %s in Schematic %s."), *InfoCardToAdd.mUnlockName.ToString(), *Schematic->GetName())
 }
 
 void UBPFContentLib::AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const int32 Slots)
