@@ -255,7 +255,12 @@ float FFactoryGame_Descriptor::GetMj(FFactoryGame_Recipe Recipe,TSubclassOf<UObj
 
 void FFactoryGame_Descriptor::AssignResourceValue()
 {
-	// I think Nog pulled these from the wiki or something? Maybe max miner production rate?
+	// if i recall correctly, this was just the MJ cost (power usage / miner output ) for producing one unit of that by miner yea,
+	// when i came up with going upwards instead of downwards from a recipe to calculate the cost , i needed initial values 
+	// it would be better to grab that of the miners that exist
+	// but i think there were some other issues in getting a useful value, considering all miners and so on
+	// - Nog
+	// https://discord.com/channels/@me/677971486400577556/1166779976541012050
 	if (!ItemClass) {
 		return;
 	}
@@ -663,7 +668,13 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 
 bool FFactoryGame_Recipe::IsManualOnly() const
 {
-	// TODO why did Nog call this, doesn't it mean two loops through the same thing?
+	// if there is no producer at all 
+	// its not manual and not manual only, however the way i wrote it,
+	// it would return true if no producer which is not a workbench is found , exists as a producer 
+	// so no producer provided would return true , which is undesired
+	// so if there is no workbench at all, it cant be manual only and we dont have to possibly iterate all producers and can exit early 
+	// - Nog
+	// https://discord.com/channels/@me/677971486400577556/1166782537817931807
 	if (!IsManual()) {
 		return false;
 	}

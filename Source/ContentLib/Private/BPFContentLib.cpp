@@ -748,9 +748,9 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 	if (!Added) {
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockSchematic_C"), false);
 		if (!Class) {
-			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"));
+			Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"));
 			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(Schematic.GetDefaultObject(), Class);
@@ -761,7 +761,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 }
 
 void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
-	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockInfoOnly_C"), false);
+	UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockInfoOnly_C"), false);
 	if (!Class) {
 		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"));
 		if (!Class) {
@@ -816,11 +816,11 @@ void UBPFContentLib::AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schemat
 		}
 	}
 	if (!Added) {
-		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockInventorySlot_C"), false);
+		UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockInventorySlot_C"), false);
 		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C"));
 			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockInventorySlot* Object = NewObject<UFGUnlockInventorySlot>(Schematic.GetDefaultObject(), Class);
@@ -839,11 +839,11 @@ void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 		}
 	}
 
-	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockGiveItem_C"), false);
+	UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockGiveItem_C"), false);
 	if (!Class) {
 		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"));
 		if (!Class) {
-			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
+			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
 		}
 	}
 	UFGUnlockGiveItem* Object = NewObject<UFGUnlockGiveItem>(Schematic.GetDefaultObject(), Class);
@@ -866,11 +866,11 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 		}
 	}
 	if (!Added) {
-		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockArmEquipmentSlot_C"), false);
+		UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockArmEquipmentSlot_C"), false);
 		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C"));
 			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockArmEquipmentSlot* Object = NewObject<UFGUnlockArmEquipmentSlot>(Schematic.GetDefaultObject(), Class);

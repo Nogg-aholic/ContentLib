@@ -455,7 +455,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 					SubSystem->HandleResearchTreeNodeChange(Node, Schematic.ResearchTree, SchematicClass, SchematicDep);
 				}
 				if (!Found) {
-					UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BPD_ResearchTreeNode"), false);
+					UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BPD_ResearchTreeNode"), false);
 					if (!Class) {
 						//Blueprint'/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode'
 						Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Schematics/Research/BPD_ResearchTreeNode.BPD_ResearchTreeNode_C"));
