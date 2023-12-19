@@ -628,6 +628,7 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 			for(auto Subclass : BuilderSubclasses) {
 				if (!Subclass) {
 					UE_LOG(LogContentLib, Warning, TEXT("When processing derived classes of %s, encountered null subclass, this is a problem with another mod"), *UKismetSystemLibrary::GetClassDisplayName(Builder.Get()));
+					continue;
 				}
 				if (Subclass->IsChildOf(AFGBuildGun::StaticClass()) && Products()[0]->IsChildOf(UFGBuildDescriptor::StaticClass())) {
 					TSubclassOf<UFGBuildDescriptor> BuildingDescriptor = *Products()[0];
@@ -682,7 +683,7 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 	TArray<TSubclassOf<UObject>> Producers;
 	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
 	for (const auto Producer : Producers) {
-		if (Producer && !Producer->IsChildOf(UFGWorkBench::StaticClass())) {
+		if (!Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return false;
 		}
 	}
@@ -715,9 +716,10 @@ bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 {
 	TArray<TSubclassOf<UObject>> Producers;
 	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for(const auto Producer : Producers)
-		if(Producer->IsChildOf(AFGBuildGun::StaticClass()))
+	for (const auto Producer : Producers) {
+		if (Producer->IsChildOf(AFGBuildGun::StaticClass()))
 			return true;
+	}
 
 	return false;
 }
@@ -726,7 +728,8 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
 	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
 	for (auto ProductStruct : ProductStructs) {
-		out.Add(ProductStruct.ItemClass);
+		if (ProductStruct.ItemClass)
+			out.Add(ProductStruct.ItemClass);
 	}
 	return out;
 }
@@ -736,7 +739,8 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients() const
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
 	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
 	for (auto IngredientStruct : IngredientStructs) {
-		out.Add(IngredientStruct.ItemClass);
+		if (IngredientStruct.ItemClass)
+			out.Add(IngredientStruct.ItemClass);
 	}
 	return out;
 }
@@ -747,7 +751,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
 	for (auto ProductStruct : ProductStructs) {
 		auto Cat = ProductStruct.ItemClass.GetDefaultObject()->GetCategory(ProductStruct.ItemClass);
-		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
+		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
@@ -763,7 +767,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats() const
 	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
 	for (auto Ingredient : IngredientStructs) {
 		auto Cat = Ingredient.ItemClass.GetDefaultObject()->GetCategory(Ingredient.ItemClass);
-		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
+		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
