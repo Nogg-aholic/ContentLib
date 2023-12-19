@@ -578,7 +578,7 @@ TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(const TSubclass
 		if(i.ItemClass != Item)
 			continue;
 		for (const auto e : Products) {
-			Array.Add(e.Amount / i.Amount);
+			Array.Add((float)e.Amount / i.Amount);
 		}
 	}
 	return Array;
