@@ -211,7 +211,7 @@ float FFactoryGame_RecipeMJ::GetProductMjValue(TSubclassOf<UFGItemDescriptor> It
 	}
 	else {
 		if (!Producers.Contains(Buildable)) {
-			UE_LOG(LogContentLib, Error, TEXT("Building cannot Craft this !"));
+			UE_LOG(LogContentLib, Error, TEXT("Can't calculate GetProductMjValue: Buildable %s can't produce %s !"), *UKismetSystemLibrary::GetDisplayName(Buildable), *UKismetSystemLibrary::GetDisplayName(nRecipe));
 		}
 		else {
 			const FFactoryGame_ProductBuildingCost Prod = FFactoryGame_ProductBuildingCost(nRecipe,Buildable);
@@ -571,10 +571,10 @@ TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(const TSubclass
 	const auto Ingredients = UFGRecipe::GetIngredients(nRecipeClass);
 	const auto Products = UFGRecipe::GetProducts(nRecipeClass);
 	TArray<float> Array;
-	for (const auto i : Ingredients) {
+	for (auto& i : Ingredients) {
 		if(i.ItemClass != Item)
 			continue;
-		for (const auto e : Products) {
+		for (auto& e : Products) {
 			Array.Add((float)e.Amount / i.Amount);
 		}
 	}
@@ -591,7 +591,7 @@ float FFactoryGame_Recipe::GetItemToTotalProductRatio(TSubclassOf<UFGItemDescrip
 	const auto Products = UFGRecipe::GetProducts(nRecipeClass);
 	if(Products.Num() > 1) {
 		if(MJ.HasAssignedMJ()) {
-			for (const auto Product : Products) {
+			for (auto& Product : Products) {
 				if(Product.ItemClass != Item)
 					continue;
 				const FFactoryGame_Descriptor & ProductStruct = *System->Items.Find(Product.ItemClass);
@@ -613,7 +613,7 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 		return;
 	}
 	if (Products().IsValidIndex(0)) {
-		for (auto Builder : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		for (auto& Builder : UFGRecipe::GetProducedIn(nRecipeClass)) {
 			TArray<UClass*> BuilderSubclasses;
 			GetDerivedClasses(Builder, BuilderSubclasses, true);
 			if(!BuilderSubclasses.Contains(Builder) && !Builder->IsNative()) {
@@ -621,13 +621,13 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 			}
 			for(auto Subclass : BuilderSubclasses) {
 				if (!Subclass) {
-					UE_LOG(LogContentLib, Warning, TEXT("When processing derived classes of %s, encountered null subclass, this is a problem with another mod"), *UKismetSystemLibrary::GetClassDisplayName(Builder.Get()));
+					UE_LOG(LogContentLib, Error, TEXT("When processing derived classes of %s, encountered null subclass, this is a problem with another mod"), *UKismetSystemLibrary::GetClassDisplayName(Builder.Get()));
 					continue;
 				}
 				if (Subclass->IsChildOf(AFGBuildGun::StaticClass()) && Products()[0]->IsChildOf(UFGBuildDescriptor::StaticClass())) {
 					TSubclassOf<UFGBuildDescriptor> BuildingDescriptor = *Products()[0];
 					TSubclassOf<AFGBuildable> Buildable;
-					Buildable = BuildingDescriptor.GetDefaultObject()->GetBuildClass(BuildingDescriptor);
+					Buildable = UFGBuildDescriptor::GetBuildClass(BuildingDescriptor);
 					if (!System->BuildGunBuildings.Contains(*BuildingDescriptor))
 						System->BuildGunBuildings.Add(Buildable, *BuildingDescriptor);
 				}
@@ -642,7 +642,7 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverItem ----------------------"));
 		return;
 	}
-	for (auto Ingredient : Ingredients()) {
+	for (auto& Ingredient : Ingredients()) {
 		FFactoryGame_Descriptor Item = FFactoryGame_Descriptor(Ingredient, nRecipeClass);
 		if (System->Items.Contains(Ingredient))
 			System->Items.Find(Ingredient)->IngredientInRecipe.Add(nRecipeClass);
@@ -650,7 +650,7 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 			System->Items.Add(Ingredient, Item);
 	}
 
-	for (auto Product : Products()) {
+	for (auto& Product : Products()) {
 		FFactoryGame_Descriptor Item = FFactoryGame_Descriptor(Product);
 		if (System->Items.Contains(Product))
 			System->Items.Find(Product)->ProductInRecipe.Add(nRecipeClass);
@@ -674,8 +674,11 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 		return false;
 	}
 	
-	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
-		if (!Producer->IsChildOf(UFGWorkBench::StaticClass())) {
+	for (auto& Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		if (!Producer) {
+			UE_LOG(LogContentLib, Warning, TEXT("When processing producers of %s, encountered null producer, this is a problem with another mod"), *UKismetSystemLibrary::GetDisplayName(nRecipeClass));
+		}
+		if (Producer && !Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return false;
 		}
 	}
@@ -684,8 +687,11 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 
 bool FFactoryGame_Recipe::IsManual() const
 {
-	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
-		if (Producer->IsChildOf(UFGWorkBench::StaticClass())) {
+	for (auto& Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		if (!Producer) {
+			UE_LOG(LogContentLib, Warning, TEXT("When processing producers of %s, encountered null producer, this is a problem with another mod"), *UKismetSystemLibrary::GetDisplayName(nRecipeClass));
+		}
+		if (Producer && Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return true;
 		}
 	}
@@ -694,8 +700,11 @@ bool FFactoryGame_Recipe::IsManual() const
 
 bool FFactoryGame_Recipe::UnlockedFromAlternate()
 {
-	for (const auto Schematic : nUnlockedBy) {
-		if (UFGSchematic::GetType(Schematic) == ESchematicType::EST_Alternate) {
+	for (auto& Schematic : nUnlockedBy) {
+		if (!Schematic) {
+			UE_LOG(LogContentLib, Warning, TEXT("When processing nUnlockedBy of %s, encountered null schematic, this is a problem with another mod"), *UKismetSystemLibrary::GetDisplayName(Schematic));
+		}
+		if (Schematic && UFGSchematic::GetType(Schematic) == ESchematicType::EST_Alternate) {
 			return true;
 		}
 	}
@@ -704,8 +713,11 @@ bool FFactoryGame_Recipe::UnlockedFromAlternate()
 
 bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 {
-	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
-		if (Producer->IsChildOf(AFGBuildGun::StaticClass()))
+	for (auto& Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		if (!Producer) {
+			UE_LOG(LogContentLib, Warning, TEXT("When processing producers of %s, encountered null producer, this is a problem with another mod"), *UKismetSystemLibrary::GetDisplayName(nRecipeClass));
+		}
+		if (Producer && Producer->IsChildOf(AFGBuildGun::StaticClass()))
 			return true;
 	}
 
@@ -715,8 +727,8 @@ bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 {
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
-	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
-	for (auto ProductStruct : ProductStructs) {
+	TArray<FItemAmount> ProductStructs = UFGRecipe::GetProducts(nRecipeClass);
+	for (auto& ProductStruct : ProductStructs) {
 		if (ProductStruct.ItemClass)
 			out.Add(ProductStruct.ItemClass);
 	}
@@ -726,8 +738,8 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients() const
 {
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
-	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
-	for (auto IngredientStruct : IngredientStructs) {
+	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(nRecipeClass);
+	for (auto& IngredientStruct : IngredientStructs) {
 		if (IngredientStruct.ItemClass)
 			out.Add(IngredientStruct.ItemClass);
 	}
@@ -737,15 +749,14 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients() const
 TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 {
 	TArray<TSubclassOf<class UFGItemCategory>> Out;
-	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
-	for (auto ProductStruct : ProductStructs) {
-		auto Cat = ProductStruct.ItemClass.GetDefaultObject()->GetCategory(ProductStruct.ItemClass);
+	TArray<FItemAmount> ProductStructs = UFGRecipe::GetProducts(nRecipeClass);
+	for (auto& Product : ProductStructs) {
+		auto Cat = UFGItemDescriptor::GetCategory(Product.ItemClass);
 		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
 		}
-		
 	}
 	return Out;
 }
@@ -753,9 +764,9 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats() const
 {
 	TArray<TSubclassOf<class UFGItemCategory>> Out;
-	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
-	for (auto Ingredient : IngredientStructs) {
-		auto Cat = Ingredient.ItemClass.GetDefaultObject()->GetCategory(Ingredient.ItemClass);
+	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(nRecipeClass);
+	for (auto& Ingredient : IngredientStructs) {
+		auto Cat = UFGItemDescriptor::GetCategory(Ingredient.ItemClass);
 		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))

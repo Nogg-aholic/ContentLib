@@ -1,6 +1,4 @@
 #include "BPFContentLib.h"
-#include "ContentLib.h"
-
 
 #include "FGSchematic.h"
 #include "FGSchematicCategory.h"
@@ -938,4 +936,27 @@ bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
 		return true;
 	}
 	return false;
+}
+
+bool UBPFContentLib::CL_ExecuteArbitraryFunction(FName functionName, UObject* onObject) {
+	if (!onObject) {
+		UE_LOG(LogContentLib, Error, TEXT("CL_ExecuteArbitraryFunction Passed onObject is invalid"));
+		return false;
+	}
+	if (functionName.IsNone()) {
+		UE_LOG(LogContentLib, Error, TEXT("CL_ExecuteArbitraryFunction Passed functionName is invalid"));
+		return false;
+	}
+	UE_LOG(LogContentLib, Warning, TEXT("CL_ExecuteArbitraryFunction calling function '%s' on object '%s'"), *functionName.ToString(), *UKismetSystemLibrary::GetDisplayName(onObject));
+	auto function = onObject->GetClass()->FindFunctionByName(functionName);
+	auto valid = function->IsValidLowLevelFast();
+	if (valid) {
+		onObject->ProcessEvent(function, (void*) nullptr);
+	}
+	return valid;
+}
+
+FString UBPFContentLib::CL_GetExecutingPackage() {
+	UE_LOG(LogContentLib, Error, TEXT("CL_GetExecutingPackage underlying C++ function called, this function is blueprint only"));
+	return FString(TEXT("(C++ call stack)"));
 }

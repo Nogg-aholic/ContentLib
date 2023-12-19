@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "ContentLib.h"
 #include "ContentLibSubsystem.h"
 #include "FGItemCategory.h"
 #include "FGRecipe.h"
@@ -12,6 +13,8 @@
 #include "Dom/JsonObject.h"
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h" 
+#include "Kismet/BlueprintAssetHelperLibrary.h"
+
 #include "BPFContentLib.generated.h"
 
 
@@ -145,6 +148,44 @@ public:
 
 	// Returns true and logs error messages if passed string doesn't pass some basic json validation logic
 	UFUNCTION(BlueprintCallable)
-		static bool FailsBasicJsonFormCheck(FString jsonString);
+	static bool FailsBasicJsonFormCheck(FString jsonString);
 
+	/**
+	  * DANGEROUS!
+	  * If the object has a function of the given name with any signature, calls it with no arguments and returns true.
+	  * When called from Blueprint, this function will log a warning when called citing your mod for safety reasons.
+	  */
+	UFUNCTION(BlueprintCallable, Category = "Reflection|ContentLib", CustomThunk)
+	static bool CL_ExecuteArbitraryFunction(FName functionName, UObject* onObject);
+
+	DECLARE_FUNCTION(execCL_ExecuteArbitraryFunction) {
+		P_GET_PROPERTY(FNameProperty, functionName);
+		P_GET_OBJECT(UObject, onObject);
+		P_FINISH;
+
+		P_NATIVE_BEGIN;
+		UPackage* OutermostPackage = Stack.Node->GetOutermost();
+		const FString PackageOwner = UBlueprintAssetHelperLibrary::FindPluginNameByObjectPath(OutermostPackage->GetName());
+
+		UE_LOG(LogContentLib, Warning, TEXT("CL_ExecuteArbitraryFunction Mod '%s' is trying to call function '%s' on object '%s', this could cause a crash if used incorrectly"), *PackageOwner, *functionName.ToString(), *UKismetSystemLibrary::GetDisplayName(onObject));
+
+		*(bool*)RESULT_PARAM = CL_ExecuteArbitraryFunction(functionName, onObject);
+		P_NATIVE_END;
+	}
+
+	/**
+	  * Gets the name of the mod currently doing stuff in the call stack. Blueprint only.
+	  */
+	UFUNCTION(BlueprintPure, Category = "Reflection|ContentLib", CustomThunk)
+	static FString CL_GetExecutingPackage();
+
+	DECLARE_FUNCTION(execCL_GetExecutingPackage) {
+		P_FINISH;
+
+		P_NATIVE_BEGIN;
+		UPackage* OutermostPackage = Stack.Node->GetOutermost();
+		const FString PackageOwner = UBlueprintAssetHelperLibrary::FindPluginNameByObjectPath(OutermostPackage->GetName());
+		*(FString*)RESULT_PARAM = PackageOwner;
+		P_NATIVE_END;
+	}
 };
