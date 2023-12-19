@@ -174,9 +174,7 @@ float FFactoryGame_RecipeMJ::GetAverageBuildingCost(const TArray<TSubclassOf<UOb
 {
 	float CostSum = 0.f;
 	int32 CostSumDivider = 0;
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipe.GetDefaultObject()->GetProducedIn(Producers);
-	for(auto & Producer: Producers) {
+	for(auto & Producer: UFGRecipe::GetProducedIn(nRecipe)) {
 		if(Exclude.Contains(Producer))
 			continue;
 		FFactoryGame_ProductBuildingCost e = FFactoryGame_ProductBuildingCost(nRecipe,Producer);
@@ -200,8 +198,7 @@ float FFactoryGame_RecipeMJ::GetProductMjValue(TSubclassOf<UFGItemDescriptor> It
 	if (ItemAmount == 0 || Potential < 0 )
 		return 0.f;
 
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipe.GetDefaultObject()->GetProducedIn(Producers);
+	TArray<TSubclassOf<UObject>> Producers = UFGRecipe::GetProducedIn(nRecipe);
 	float BuildingCost = 0.f;
 	if(!Buildable) {
 		TArray<TSubclassOf<UObject>> Excludes;
@@ -615,11 +612,8 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverMachines ----------------------"));
 		return;
 	}
-	TArray<TSubclassOf<UObject>> ProducedIn;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(ProducedIn);
-	ProducedIn.Remove(nullptr);
 	if (Products().IsValidIndex(0)) {
-		for (auto Builder : ProducedIn) {
+		for (auto Builder : UFGRecipe::GetProducedIn(nRecipeClass)) {
 			TArray<UClass*> BuilderSubclasses;
 			GetDerivedClasses(Builder, BuilderSubclasses, true);
 			if(!BuilderSubclasses.Contains(Builder) && !Builder->IsNative()) {
@@ -680,9 +674,7 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 		return false;
 	}
 	
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for (const auto Producer : Producers) {
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
 		if (!Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return false;
 		}
@@ -692,9 +684,7 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 
 bool FFactoryGame_Recipe::IsManual() const
 {
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for (const auto Producer : Producers) {
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
 		if (Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return true;
 		}
@@ -714,15 +704,14 @@ bool FFactoryGame_Recipe::UnlockedFromAlternate()
 
 bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 {
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for (const auto Producer : Producers) {
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
 		if (Producer->IsChildOf(AFGBuildGun::StaticClass()))
 			return true;
 	}
 
 	return false;
 }
+
 TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 {
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
