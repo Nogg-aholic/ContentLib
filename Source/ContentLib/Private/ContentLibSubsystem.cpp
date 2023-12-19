@@ -174,9 +174,7 @@ float FFactoryGame_RecipeMJ::GetAverageBuildingCost(const TArray<TSubclassOf<UOb
 {
 	float CostSum = 0.f;
 	int32 CostSumDivider = 0;
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipe.GetDefaultObject()->GetProducedIn(Producers);
-	for(auto & Producer: Producers) {
+	for(auto & Producer: UFGRecipe::GetProducedIn(nRecipe)) {
 		if(Exclude.Contains(Producer))
 			continue;
 		FFactoryGame_ProductBuildingCost e = FFactoryGame_ProductBuildingCost(nRecipe,Producer);
@@ -200,8 +198,7 @@ float FFactoryGame_RecipeMJ::GetProductMjValue(TSubclassOf<UFGItemDescriptor> It
 	if (ItemAmount == 0 || Potential < 0 )
 		return 0.f;
 
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipe.GetDefaultObject()->GetProducedIn(Producers);
+	TArray<TSubclassOf<UObject>> Producers = UFGRecipe::GetProducedIn(nRecipe);
 	float BuildingCost = 0.f;
 	if(!Buildable) {
 		TArray<TSubclassOf<UObject>> Excludes;
@@ -578,7 +575,7 @@ TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(const TSubclass
 		if(i.ItemClass != Item)
 			continue;
 		for (const auto e : Products) {
-			Array.Add(e.Amount / i.Amount);
+			Array.Add((float)e.Amount / i.Amount);
 		}
 	}
 	return Array;
@@ -615,11 +612,8 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverMachines ----------------------"));
 		return;
 	}
-	TArray<TSubclassOf<UObject>> ProducedIn;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(ProducedIn);
-	ProducedIn.Remove(nullptr);
 	if (Products().IsValidIndex(0)) {
-		for (auto Builder : ProducedIn) {
+		for (auto Builder : UFGRecipe::GetProducedIn(nRecipeClass)) {
 			TArray<UClass*> BuilderSubclasses;
 			GetDerivedClasses(Builder, BuilderSubclasses, true);
 			if(!BuilderSubclasses.Contains(Builder) && !Builder->IsNative()) {
@@ -628,6 +622,7 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 			for(auto Subclass : BuilderSubclasses) {
 				if (!Subclass) {
 					UE_LOG(LogContentLib, Warning, TEXT("When processing derived classes of %s, encountered null subclass, this is a problem with another mod"), *UKismetSystemLibrary::GetClassDisplayName(Builder.Get()));
+					continue;
 				}
 				if (Subclass->IsChildOf(AFGBuildGun::StaticClass()) && Products()[0]->IsChildOf(UFGBuildDescriptor::StaticClass())) {
 					TSubclassOf<UFGBuildDescriptor> BuildingDescriptor = *Products()[0];
@@ -679,10 +674,8 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 		return false;
 	}
 	
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for (const auto Producer : Producers) {
-		if (Producer && !Producer->IsChildOf(UFGWorkBench::StaticClass())) {
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		if (!Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return false;
 		}
 	}
@@ -691,9 +684,7 @@ bool FFactoryGame_Recipe::IsManualOnly() const
 
 bool FFactoryGame_Recipe::IsManual() const
 {
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for (const auto Producer : Producers) {
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
 		if (Producer->IsChildOf(UFGWorkBench::StaticClass())) {
 			return true;
 		}
@@ -713,20 +704,21 @@ bool FFactoryGame_Recipe::UnlockedFromAlternate()
 
 bool FFactoryGame_Recipe::IsBuildGunRecipe() const
 {
-	TArray<TSubclassOf<UObject>> Producers;
-	nRecipeClass.GetDefaultObject()->GetProducedIn(Producers);
-	for(const auto Producer : Producers)
-		if(Producer->IsChildOf(AFGBuildGun::StaticClass()))
+	for (const auto Producer : UFGRecipe::GetProducedIn(nRecipeClass)) {
+		if (Producer->IsChildOf(AFGBuildGun::StaticClass()))
 			return true;
+	}
 
 	return false;
 }
+
 TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 {
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
 	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
 	for (auto ProductStruct : ProductStructs) {
-		out.Add(ProductStruct.ItemClass);
+		if (ProductStruct.ItemClass)
+			out.Add(ProductStruct.ItemClass);
 	}
 	return out;
 }
@@ -736,7 +728,8 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients() const
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
 	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
 	for (auto IngredientStruct : IngredientStructs) {
-		out.Add(IngredientStruct.ItemClass);
+		if (IngredientStruct.ItemClass)
+			out.Add(IngredientStruct.ItemClass);
 	}
 	return out;
 }
@@ -747,7 +740,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 	TArray<FItemAmount> ProductStructs = nRecipeClass.GetDefaultObject()->GetProducts();
 	for (auto ProductStruct : ProductStructs) {
 		auto Cat = ProductStruct.ItemClass.GetDefaultObject()->GetCategory(ProductStruct.ItemClass);
-		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
+		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
@@ -763,7 +756,7 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats() const
 	TArray<FItemAmount> IngredientStructs = nRecipeClass.GetDefaultObject()->GetIngredients();
 	for (auto Ingredient : IngredientStructs) {
 		auto Cat = Ingredient.ItemClass.GetDefaultObject()->GetCategory(Ingredient.ItemClass);
-		if(Cat->IsChildOf(UFGItemCategory::StaticClass())){
+		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
 			TSubclassOf<class UFGItemCategory> ItemCat = *Cat;
 			if (!Out.Contains(ItemCat))
 				Out.Add(ItemCat);
