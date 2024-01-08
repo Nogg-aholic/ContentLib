@@ -250,7 +250,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Array"), *FieldName);
 		return false;
 	}
-	for (const auto i : Result->TryGetField(FieldName)->AsArray()) {
+	for (const auto& i : Result->TryGetField(FieldName)->AsArray()) {
 		if (i->Type == EJson::String) {
 			FString Item = i->AsString();
 			if (Item != "") {

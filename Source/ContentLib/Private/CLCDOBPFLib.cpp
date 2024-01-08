@@ -3,7 +3,7 @@
 
 #include "CLCDOBPFLib.h"
 #include "BPFContentLib.h"
-#include "Contentlib.h"
+#include "ContentLib.h"
 #include "Reflection/ReflectionHelper.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -320,13 +320,12 @@ void UCLCDOBPFLib::EditCDO(FProperty * Prop, TSharedPtr<FJsonValue> json,bool Do
 	else if (FStructProperty* SProp = CastField<FStructProperty>(Prop)) {
 		if (json->Type == EJson::Object)
 		{
-			for (auto prop = TFieldIterator<FProperty>(SProp->Struct); prop; ++prop) {
-				FProperty* Prop = *prop;
-				FString FieldName = Prop->GetName();
+			for (FProperty* NProp : TFieldRange<FProperty>(SProp->Struct)) {
+				FString FieldName = NProp->GetName();
 				if (json->AsObject()->HasField(FieldName))
 				{
 					TSharedPtr<FJsonValue> Jval = *json->AsObject()->Values.Find(FieldName);
-					EditCDO(Prop, Jval, DoLog, Ptr);
+					EditCDO(NProp, Jval, DoLog, Ptr);
 				}
 			}
 		}

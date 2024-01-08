@@ -53,7 +53,7 @@ void UContentLibSubsystem::FillLoadedClasses()
 
 void UContentLibSubsystem::CollectVisualKits()
 {
-	for (const auto ItemPair : Items) {
+	for (const auto& ItemPair : Items) {
 		const auto key = ItemPair.Key;
 		if (!key) {
 			continue;
@@ -109,7 +109,7 @@ FFactoryGame_RecipeMJ::FFactoryGame_RecipeMJ(TSubclassOf<UFGRecipe> Outer): nRec
 int32 FFactoryGame_RecipeMJ::GetItemAmount(const TSubclassOf<UFGItemDescriptor> Item, bool Ingredient) {
 	TArray<TSubclassOf<class UFGItemDescriptor>> Out;
 	TArray<FItemAmount> Arr = Ingredient ? nRecipe.GetDefaultObject()->GetIngredients(): nRecipe.GetDefaultObject()->GetProducts();
-	for (auto i : Arr) {
+	for (auto& i : Arr) {
 		Out.Add(i.ItemClass);
 	}
 	if (!Out.Contains(Item)) {
@@ -124,7 +124,7 @@ bool FFactoryGame_RecipeMJ::CanCalculateMj(UContentLibSubsystem* System) const
 	if (!System || !nRecipe)
 		return false;
 	
-	for (auto i : UFGRecipe::GetIngredients(nRecipe)) {
+	for (auto& i : UFGRecipe::GetIngredients(nRecipe)) {
 		if (!System->Items.Find(i.ItemClass)->HasMj())
 			return false;
 	}
@@ -154,7 +154,7 @@ bool FFactoryGame_RecipeMJ::TryAssignMJ(UContentLibSubsystem* System)
 	FFactoryGame_Recipe & Recipe = *System->Recipes.Find(nRecipe);
 	const auto ingredients = UFGRecipe::GetIngredients(nRecipe);
 	float Sum = 0.f;
-	for (auto Ingredient : ingredients) {
+	for (auto& Ingredient : ingredients) {
 		System->Items.Find(Ingredient.ItemClass)->AssignAverageMj(System);
 		if (System->Items.Find(Ingredient.ItemClass)->HasMj()) {
 			Sum += System->Items.Find(Ingredient.ItemClass)->MJValue * Ingredient.Amount;
@@ -163,7 +163,7 @@ bool FFactoryGame_RecipeMJ::TryAssignMJ(UContentLibSubsystem* System)
 			return false;
 	}
 	Recipe.MJ.AddValue(Sum);
-	for (auto Product : Recipe.Products()) {
+	for (auto& Product : Recipe.Products()) {
 		System->Items.Find(Product)->AssignAverageMj(System);
 	}
 	return true;
@@ -174,7 +174,7 @@ float FFactoryGame_RecipeMJ::GetAverageBuildingCost(const TArray<TSubclassOf<UOb
 {
 	float CostSum = 0.f;
 	int32 CostSumDivider = 0;
-	for(auto & Producer: UFGRecipe::GetProducedIn(nRecipe)) {
+	for(auto& Producer: UFGRecipe::GetProducedIn(nRecipe)) {
 		if(Exclude.Contains(Producer))
 			continue;
 		FFactoryGame_ProductBuildingCost e = FFactoryGame_ProductBuildingCost(nRecipe,Producer);
@@ -203,7 +203,7 @@ float FFactoryGame_RecipeMJ::GetProductMjValue(TSubclassOf<UFGItemDescriptor> It
 	if(!Buildable) {
 		TArray<TSubclassOf<UObject>> Excludes;
 		if(ExcludeManual)
-			for(auto i : Producers)
+			for(auto& i : Producers)
 				if (i->IsChildOf(UFGWorkBench::StaticClass()) || i->IsChildOf(AFGBuildGun::StaticClass()))
 					Excludes.Add(i);
 	
@@ -339,7 +339,7 @@ float FFactoryGame_Descriptor::AssignAverageMj(UContentLibSubsystem* System, con
 	
 	float IngredientCost = 0.f;
 	int32 Count = 0;
-	for (auto Recipe : ProductInRecipe) {
+	for (auto& Recipe : ProductInRecipe) {
 		if(Exclude.Contains(Recipe))
 			continue;
 		
@@ -365,7 +365,7 @@ void UContentLibSubsystem::FullRecipeCalculation()
 	TArray<TSubclassOf<UFGRecipe>> BuildingRecipes;
 	TArray<TSubclassOf<UFGRecipe>> ManualOnly;
 
-	for(auto i : Recipes) {
+	for(auto& i : Recipes) {
 		if(i.Value.IsBuildGunRecipe())
 			BuildingRecipes.Add(i.Key);
 		else if(i.Value.IsManualOnly())
@@ -405,7 +405,7 @@ void UContentLibSubsystem::ClientInit()
 	TArray< FString> Paths;
 	UE_LOG(LogContentLib, Warning, TEXT("ContentLib loading relevant Mod Assets..."));
 	AssetRegistryModule.Get().GetSubPaths(TEXT("/"),Paths , false);
-	for (auto i : Paths) {
+	for (auto& i : Paths) {
 		if (!i.Equals("/Engine", ESearchCase::IgnoreCase)
 			&& !i.Equals("/Game", ESearchCase::IgnoreCase)
 			&& !i.Equals("/Wwise", ESearchCase::IgnoreCase)
@@ -421,7 +421,7 @@ void UContentLibSubsystem::ClientInit()
 			Filter.PackagePaths.Add(*i);
 			Filter.bIncludeOnlyOnDiskAssets = true;
 			AssetRegistryModule.Get().GetAssets(Filter, AssetsData);
-			for (auto asset : AssetsData) {
+			for (auto& asset : AssetsData) {
 				if (!asset.IsAssetLoaded()) {
 					FString NativeParentPath = *asset.TagsAndValues.FindTag("NativeParentClass").AsString();
 					UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
@@ -432,7 +432,7 @@ void UContentLibSubsystem::ClientInit()
 					}
 					FString TempParentName = Parent->GetPathName();
 					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Parsing asset %s with parent %s"), *TempPackageName, *TempParentName);
-					auto assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
+					auto& assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
 					if (
 						   Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
@@ -456,7 +456,7 @@ void UContentLibSubsystem::ClientInit()
 								TArray<FCoreRedirect> Redirects;
 								Redirects.Add(FCoreRedirect(Flags, *asset.AssetName.ToString(), Obj->GetPathName()));
 								FCoreRedirects::AddRedirectList(Redirects,Obj->GetName());
-								auto * I = LoadObject<UClass>(NULL, *assetPathString);
+								auto* I = LoadObject<UClass>(NULL, *assetPathString);
 								if(I != Obj) {
 									UE_LOG(LogContentLib,Fatal,TEXT("Redirect Failed for %s"), *assetPathString);
 								}
@@ -493,11 +493,11 @@ void UContentLibSubsystem::ClientInit()
 			FString NativeParentPath = *asset.TagsAndValues.FindTag("NativeParentClass").AsString();
 			UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
 			if (Parent &&
-				Parent->IsChildOf(UFGItemDescriptor::StaticClass())
+				(Parent->IsChildOf(UFGItemDescriptor::StaticClass())
 				|| Parent->IsChildOf(UFGSchematic::StaticClass())
 				|| Parent->IsChildOf(UFGResearchTree::StaticClass())
 				|| Parent->IsChildOf(UFGItemCategory::StaticClass())
-				|| Parent->IsChildOf(UFGRecipe::StaticClass())
+				|| Parent->IsChildOf(UFGRecipe::StaticClass()))
 				)
 			{
 				auto assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
