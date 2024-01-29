@@ -31,7 +31,7 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 	UBPFContentLib::SetStringFieldWithLog(NodeStruct.ResearchTree, "ResearchTree", Result);
 
 
-	for (const auto i : Result->TryGetField("Parents")->AsArray()) {
+	for (const auto& i : Result->TryGetField("Parents")->AsArray()) {
 		if (i->Type == EJson::Object) {
 			if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 				FContentLib_Vector2D Vector2D;
@@ -43,7 +43,7 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 		}
 	}
 
-	for (const auto i : Result->TryGetField("Children")->AsArray()) {
+	for (const auto& i : Result->TryGetField("Children")->AsArray()) {
 		if (i->Type == EJson::Object) {
 			if (i->AsObject()->HasField("Child") && i->AsObject()->HasField("Roads")) {
 				FContentLib_ResearchNodeRoads Node;
@@ -90,7 +90,7 @@ FContentLib_ResearchNodeRoads UCLSchematicBPFLib::GenerateResearchNodeRoadsFromS
 	FContentLib_ResearchNodeRoads Roads;
 
 
-	for (const auto i : Result->TryGetField("Roads")->AsArray()) {
+	for (const auto& i : Result->TryGetField("Roads")->AsArray()) {
 		if (i->Type == EJson::Object) {
 			if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 				FContentLib_Vector2D Vector2D;
@@ -210,7 +210,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 				}
 			}
 			if (TResult->AsObject()->HasField("Parents") && TResult->AsObject()->TryGetField("Parents")->Type == EJson::Array) {
-				for (const auto i : TResult->AsObject()->TryGetField("Parents")->AsArray())
+				for (const auto& i : TResult->AsObject()->TryGetField("Parents")->AsArray())
 				{
 					if (i->Type == EJson::Object) {
 						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
@@ -225,7 +225,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 			}
 			if (TResult->AsObject()->HasField("UnHiddenBy") && TResult->AsObject()->TryGetField("UnHiddenBy")->Type == EJson::Array)
 			{
-				for (const auto i : TResult->AsObject()->TryGetField("UnHiddenBy")->AsArray()) {
+				for (const auto& i : TResult->AsObject()->TryGetField("UnHiddenBy")->AsArray()) {
 					if (i->Type == EJson::Object) {
 						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
@@ -239,7 +239,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 			}
 
 			if (TResult->AsObject()->HasField("NodesToUnHide") && TResult->AsObject()->TryGetField("NodesToUnHide")->Type == EJson::Array) {
-				for (const auto i : TResult->AsObject()->TryGetField("NodesToUnHide")->AsArray()) {
+				for (const auto& i : TResult->AsObject()->TryGetField("NodesToUnHide")->AsArray()) {
 					if (i->Type == EJson::Object) {
 						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
 							FContentLib_Vector2D Vector2D;
@@ -252,7 +252,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 				}
 			}
 			if (TResult->AsObject()->HasField("Children") && TResult->AsObject()->TryGetField("Children")->Type == EJson::Array) {
-				for (const auto i : TResult->AsObject()->TryGetField("Children")->AsArray()) {
+				for (const auto& i : TResult->AsObject()->TryGetField("Children")->AsArray()) {
 					if (i->Type == EJson::Object) {
 						if (i->AsObject()->HasField("ChildNode") && i->AsObject()->HasField("Roads")) {
 							FContentLib_Vector2D Key;
@@ -262,7 +262,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 							}
 
 							TArray<FContentLib_Vector2D> Values;
-							for (const auto e : i->AsObject()->TryGetField("Roads")->AsArray()) {
+							for (const auto& e : i->AsObject()->TryGetField("Roads")->AsArray()) {
 								if (e->Type == EJson::Object) {
 									FContentLib_Vector2D Vector2D;
 									UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", e->AsObject());
@@ -335,7 +335,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		CDO->mSubCategories.Empty();
 	}
 	if (Schematic.SubCategories.Num() > 0) {
-		for (const auto categoryString : Schematic.SubCategories) {
+		for (const auto& categoryString : Schematic.SubCategories) {
 			TSubclassOf<UFGSchematicCategory> Out = UBPFContentLib::SetCategoryWithLoad(categoryString, SubSystem, true);
 			if (Out) {
 				CDO->mSubCategories.Add(Out);
@@ -372,7 +372,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 			}
 		}
 	}
-	for (const FString i : Schematic.Recipes) {
+	for (const FString& i : Schematic.Recipes) {
 		UClass* RecipesClass = UBPFContentLib::FindClassWithLog(i, UFGRecipe::StaticClass(), SubSystem);
 		if (RecipesClass) {
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, SubSystem, RecipesClass);
@@ -383,7 +383,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		UBPFContentLib::AddInfoOnlyToUnlock(SchematicClass, SubSystem, entry);
 	}
 
-	for (const FString i : Schematic.Schematics) { // TODO what sets this field?
+	for (const FString& i : Schematic.Schematics) { // TODO what sets this field?
 		UClass* Class = UBPFContentLib::FindClassWithLog(i, UFGSchematic::StaticClass(), SubSystem);
 		if (Class) {
 			UBPFContentLib::AddSchematicToUnlock(SchematicClass, SubSystem, Class);
@@ -405,7 +405,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 	if (Schematic.ClearDeps) {
 		CDO->mSchematicDependencies.Empty();
 	}
-	for (const FString i : Schematic.DependsOn) {
+	for (const FString& i : Schematic.DependsOn) {
 		UClass* SchematicDep = UBPFContentLib::FindClassWithLog(i, UFGSchematic::StaticClass(), SubSystem);
 		if (SchematicDep && SchematicDep->IsChildOf(UFGSchematic::StaticClass())) {
 			UBPFContentLib::AddSchematicToPurchaseDep(SchematicClass, SubSystem, SchematicDep);
@@ -527,21 +527,21 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 
 	TArray< TSharedPtr<FJsonValue>> Cost;
 	TArray< TSharedPtr<FJsonValue>> SubCats;
-	for (auto i : CDO->mCost) {
+	for (auto& i : CDO->mCost) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item", MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount", MakeShared<FJsonValueNumber>(i.Amount));
 		Cost.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
 
-	for (auto i : CDO->mSubCategories) {
+	for (auto& i : CDO->mSubCategories) {
 		auto IngObj = MakeShared<FJsonObject>();
 		SubCats.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
 	TArray< TSharedPtr<FJsonValue>> Recipes;
-	for (auto i : CDO->mUnlocks) {
+	for (auto& i : CDO->mUnlocks) {
 		if (Cast<UFGUnlockRecipe>(i)) {
-			for (auto e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
+			for (auto& e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
 				auto IngObj = MakeShared<FJsonObject>();
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
@@ -554,7 +554,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 
 	for (auto i : CDO->mSchematicDependencies) {
 		if (Cast<UFGSchematicPurchasedDependency>(i)) {
-			for (auto e : Cast<UFGSchematicPurchasedDependency>(i)->mSchematics) {
+			for (auto& e : Cast<UFGSchematicPurchasedDependency>(i)->mSchematics) {
 				auto IngObj = MakeShared<FJsonObject>();
 				Deps.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
@@ -580,7 +580,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	Obj->Values.Add("DependsOn", DepArray);
 
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }

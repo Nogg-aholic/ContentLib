@@ -70,7 +70,7 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 	if (ClearFirst)
 		Recipe.GetDefaultObject()->mProducedIn.Empty();
 
-	for(auto i : RecipeStruct.BuildIn) {
+	for(auto& i : RecipeStruct.BuildIn) {
 
 		if(i.Contains("/")) {
 			UClass* Loaded = LoadObject<UClass>(nullptr, *RecipeStruct.Category);
@@ -122,7 +122,7 @@ void UCLRecipeBPFLib::AddToSchematicUnlock(const TSubclassOf<class UFGRecipe> Re
 	if (!Recipe) {
 		return;
 	}
-	for (const FString SchematicToFind : RecipeStruct.UnlockedBy) {
+	for (const FString& SchematicToFind : RecipeStruct.UnlockedBy) {
 		UClass * SchematicClass = UBPFContentLib::FindClassWithLog(SchematicToFind,UFGSchematic::StaticClass(),Subsystem);
 		if (SchematicClass) {
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, Subsystem, Recipe);
@@ -195,19 +195,19 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 	TArray< TSharedPtr<FJsonValue>> Ingredients;
 	TArray< TSharedPtr<FJsonValue>> Products;
 	TArray< TSharedPtr<FJsonValue>> ProducedIn; 
-	for(auto i : CDO->mIngredients) {
+	for(auto& i : CDO->mIngredients) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Amount));
 		Ingredients.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : CDO->mProduct) {
+	for(auto& i : CDO->mProduct) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.ItemClass->GetName()));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Amount));
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : CDO->mProducedIn) {
+	for(auto& i : CDO->mProducedIn) {
 		auto IngObj = MakeShared<FJsonObject>();
 		ProducedIn.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
@@ -225,7 +225,7 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 	Obj->Values.Add("VariablePowerConsumptionFactor", mVariablePowerConsumptionFactor);
 	Obj->Values.Add("VariablePowerConsumptionConstant", mVariablePowerConsumptionConstant);
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
@@ -244,19 +244,19 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	TArray< TSharedPtr<FJsonValue>> Ingredients;
 	TArray< TSharedPtr<FJsonValue>> Products;
 	TArray< TSharedPtr<FJsonValue>> ProducedIn; 
-	for(auto i : Recipe.Ingredients) {
+	for(auto& i : Recipe.Ingredients) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.Key));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Value));
 		Ingredients.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : Recipe.Products) {
+	for(auto& i : Recipe.Products) {
 		auto IngObj = MakeShared<FJsonObject>();
 		IngObj->Values.Add("Item",MakeShared<FJsonValueString>(i.Key));
 		IngObj->Values.Add("Amount",MakeShared<FJsonValueNumber>(i.Value));
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
-	for(auto i : Recipe.BuildIn) {
+	for(auto& i : Recipe.BuildIn) {
 		auto IngObj = MakeShared<FJsonObject>();
 		ProducedIn.Add(MakeShared<FJsonValueString>(i));
 	}
@@ -284,7 +284,7 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	Obj->Values.Add("ClearBuilders", ClearBuilders);
 
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 };

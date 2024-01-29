@@ -4,7 +4,7 @@
 #include "CLItemBPFLib.h"
 #include "BPFContentLib.h"
 #include "FGWorldSettings.h"
-#include "Contentlib.h"
+#include "ContentLib.h"
 #include "Serialization/JsonSerializer.h"
 
 
@@ -315,8 +315,8 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	}
 
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
-		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<
+		TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
@@ -463,8 +463,8 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 	}
 
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
-		wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<
+		TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
@@ -617,8 +617,8 @@ FString UCLItemBPFLib::GenerateKitFromClass(TSubclassOf<UFGItemDescriptor> Item)
 	return "";
 
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
-        wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<
+		TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(FContentLib_VisualKit::GetAsJsonObject(Item), JsonWriter);
 	return Write;
 
@@ -656,7 +656,7 @@ FString UCLItemBPFLib::GetVisualKitAsString(FContentLib_VisualKit Kit)
 	Obj->Values.Add("FluidColor", MakeShared<FJsonValueObject>(Color));
 	Obj->Values.Add("GasColor", MakeShared<FJsonValueObject>(ColorGas));
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
@@ -802,8 +802,8 @@ FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescripto
 	{
 		TSubclassOf<UFGItemDescriptorNuclearFuel> Resource = *Item;
 		FString Write;
-		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
-            wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<
+			TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 		FJsonSerializer::Serialize(FContentLib_NuclearFuelItem::GetNuclearFuelAsJsonObject(Resource), JsonWriter);
 		return Write;
 	}
@@ -823,8 +823,8 @@ FString UCLItemBPFLib::GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> 
 	{
 		TSubclassOf<UFGResourceDescriptor> Resource = *Item;
 		FString Write;
-		const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<
-            wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<
+			TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 		FJsonSerializer::Serialize(FContentLib_ResourceItem::GetResourceAsJsonObject(Resource), JsonWriter);
 		return Write;
 	}

@@ -58,14 +58,14 @@ TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::Ca
 	TArray<TSubclassOf<UFGItemDescriptor>> RecipesItem;
 	RecurseIngredients(Item, RecipesItem, nRecipes, System, UseAlternates, Exclude);
 
-	for (auto i : RecipesItem) {
+	for (auto& i : RecipesItem) {
 		System->Items.Find(i)->MJValue = -1;
 	}
-	for (auto i : nRecipes) {
+	for (auto& i : nRecipes) {
 		System->Recipes.Find(i)->MJ.MJ_Average = 0;
 	}
 	CalculateCost(nRecipes,System);
-	for (auto i : RecipesItem) {
+	for (auto& i : RecipesItem) {
 		FFactoryGame_Descriptor& InValue = *System->Items.Find(i);
 		Map.Add(i, InValue);
 	}
@@ -78,7 +78,7 @@ void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,U
 	int32 CounterInside = 0;
 	int8  Loops = 0;
 	while (CounterInside < RecipesToCalc.Num()) {
-		for (auto Recipe : RecipesToCalc) {
+		for (auto& Recipe : RecipesToCalc) {
 			FFactoryGame_Recipe& ItemItr = *System->Recipes.Find(Recipe);
 			if (ItemItr.MJ.TryAssignMJ(System))
 				CounterInside++;
@@ -95,13 +95,13 @@ void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,U
 
 bool UCLUtilBPFLib::FindVisualKit(const FString Name, FContentLib_VisualKit& Kit,UContentLibSubsystem* System)
 {
-	for (const auto i : System->ImportedVisualKits) {
+	for (const auto& i : System->ImportedVisualKits) {
 		if (UBPFContentLib::StringCompareItem(Name,i.Key,"Desc","_C")) {
 			Kit = i.Value;
 			return true;
 		}
 	}
-	for (const auto i : System->VisualKits) {
+	for (const auto& i : System->VisualKits) {
 		if (UBPFContentLib::StringCompareItem(Name,i.Key,"Desc","_C")) {
 			Kit = i.Value;
 			return true;
@@ -116,7 +116,7 @@ void UCLUtilBPFLib::PrintSortedRecipes(UContentLibSubsystem* System)
 {
 	TArray<TSubclassOf<UObject>> Array_To_Sort_Keys;
 	TArray<float> Array_To_Sort_Values;
-	for(auto i: System->Recipes) {
+	for(auto& i: System->Recipes) {
 		if(i.Value.MJ.HasAssignedMJ()) {
 			Array_To_Sort_Keys.Add(i.Key);
 			Array_To_Sort_Values.Add(i.Value.MJ.MJ_Average);
@@ -132,7 +132,7 @@ void UCLUtilBPFLib::PrintSortedItems(UContentLibSubsystem* System)
 {
 	TArray<TSubclassOf<UObject>> Array_To_Sort_Keys;
 	TArray<float> Array_To_Sort_Values;
-	for(auto i: System->Items) {
+	for(auto& i: System->Items) {
 		if(i.Value.HasMj())
 		{
 			Array_To_Sort_Keys.Add(i.Key);
@@ -164,7 +164,7 @@ void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<class UFGItemDescriptor
 		return;
 	
 	const int32 Len = AllRecipes.Num(); 
-	for(auto i : System->Items.Find(Item)->ProductInRecipe) {
+	for(auto& i : System->Items.Find(Item)->ProductInRecipe) {
 		if(!Excluded.Contains(i))
 			continue;
 		if(!AllRecipes.Contains(i))
@@ -173,7 +173,7 @@ void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<class UFGItemDescriptor
 		if(Recipe.UnlockedFromAlternate() && SkipAlternate)
 			continue;
 		
-		for(auto e: Recipe.Ingredients()) {
+		for(auto& e: Recipe.Ingredients()) {
 			if(!AllRecipes.Contains(i))
 				RecurseIngredients(e, AllItems,AllRecipes,System, SkipAlternate,Excluded);
 			if(!AllItems.Contains(e))

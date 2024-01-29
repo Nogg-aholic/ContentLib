@@ -21,7 +21,7 @@ FString UCLCategoryBPFLib::GenerateFromItemCategory(TSubclassOf<UFGItemCategory>
 	Obj->Values.Add("Name",Name);
 	Obj->Values.Add("MenuPriority", MenuPriority);
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
@@ -70,7 +70,7 @@ FString UCLCategoryBPFLib::GenerateFromSchematicCategory(TSubclassOf<UFGSchemati
 	Obj->Values.Add("Name",Name);
 	Obj->Values.Add("Icon", Icon);
 	FString Write;
-	const TSharedRef<TJsonWriter<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>> JsonWriter = TJsonWriterFactory<wchar_t, TPrettyJsonPrintPolicy<wchar_t>>::Create(&Write); //Our Writer Factory
+	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
 	FJsonSerializer::Serialize(Obj, JsonWriter);
 	return Write;
 }
