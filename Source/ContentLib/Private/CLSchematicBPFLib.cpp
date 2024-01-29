@@ -27,9 +27,7 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 		return FContentLib_ResearchNode();
 	FContentLib_ResearchNode NodeStruct;
 
-
 	UBPFContentLib::SetStringFieldWithLog(NodeStruct.ResearchTree, "ResearchTree", Result);
-
 
 	for (const auto& i : Result->TryGetField("Parents")->AsArray()) {
 		if (i->Type == EJson::Object) {
@@ -535,14 +533,12 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	}
 
 	for (auto& i : CDO->mSubCategories) {
-		auto IngObj = MakeShared<FJsonObject>();
 		SubCats.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
 	TArray< TSharedPtr<FJsonValue>> Recipes;
 	for (auto& i : CDO->mUnlocks) {
 		if (Cast<UFGUnlockRecipe>(i)) {
 			for (auto& e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
-				auto IngObj = MakeShared<FJsonObject>();
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
@@ -555,7 +551,6 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	for (auto i : CDO->mSchematicDependencies) {
 		if (Cast<UFGSchematicPurchasedDependency>(i)) {
 			for (auto& e : Cast<UFGSchematicPurchasedDependency>(i)->mSchematics) {
-				auto IngObj = MakeShared<FJsonObject>();
 				Deps.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}

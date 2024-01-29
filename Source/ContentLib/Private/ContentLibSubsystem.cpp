@@ -421,7 +421,7 @@ void UContentLibSubsystem::ClientInit()
 			Filter.PackagePaths.Add(*i);
 			Filter.bIncludeOnlyOnDiskAssets = true;
 			AssetRegistryModule.Get().GetAssets(Filter, AssetsData);
-			for (auto& asset : AssetsData) {
+			for (const auto& asset : AssetsData) {
 				if (!asset.IsAssetLoaded()) {
 					FString NativeParentPath = *asset.TagsAndValues.FindTag("NativeParentClass").AsString();
 					UClass* Parent = FindObject<UClass>(NULL, *NativeParentPath);
@@ -432,7 +432,7 @@ void UContentLibSubsystem::ClientInit()
 					}
 					FString TempParentName = Parent->GetPathName();
 					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Parsing asset %s with parent %s"), *TempPackageName, *TempParentName);
-					auto& assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
+					const FString assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
 					if (
 						   Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
@@ -460,7 +460,6 @@ void UContentLibSubsystem::ClientInit()
 								if(I != Obj) {
 									UE_LOG(LogContentLib,Fatal,TEXT("Redirect Failed for %s"), *assetPathString);
 								}
-								
 							}
 							else
 							{

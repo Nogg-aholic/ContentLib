@@ -187,7 +187,7 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 	const auto Obj = MakeShared<FJsonObject>();
 	const auto Name = MakeShared<FJsonValueString>(CDO->mDisplayName.ToString());
 	const auto Override = MakeShared<FJsonValueBoolean>(CDO->mDisplayNameOverride);
-	const auto Cat = MakeShared<FJsonValueString>(CDO->mOverriddenCategory->GetPathName());
+	const auto Cat = MakeShared<FJsonValueString>(CDO->mOverriddenCategory ? CDO->mOverriddenCategory->GetPathName() : "");
 	const auto ManufacturingDuration = MakeShared<FJsonValueNumber>(CDO->mManufactoringDuration);
 	const auto mVariablePowerConsumptionFactor = MakeShared<FJsonValueNumber>(CDO->mVariablePowerConsumptionFactor);
 	const auto mVariablePowerConsumptionConstant = MakeShared<FJsonValueNumber>(CDO->mVariablePowerConsumptionConstant);
@@ -208,8 +208,11 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
 	for(auto& i : CDO->mProducedIn) {
-		auto IngObj = MakeShared<FJsonObject>();
-		ProducedIn.Add(MakeShared<FJsonValueString>(i->GetPathName()));
+		if (!i) {
+			UE_LOG(LogContentLib, Error, TEXT("Encountered NULL producer in recipe '%s'"), *CDO->GetPathName());
+		} else {
+			ProducedIn.Add(MakeShared<FJsonValueString>(i->GetPathName()));
+		}
 	}
 	const auto Ing = MakeShared<FJsonValueArray>(Ingredients);
 	const auto Prod = MakeShared<FJsonValueArray>(Products);
@@ -257,7 +260,6 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 		Products.Add(MakeShared<FJsonValueObject>(IngObj));
 	}
 	for(auto& i : Recipe.BuildIn) {
-		auto IngObj = MakeShared<FJsonObject>();
 		ProducedIn.Add(MakeShared<FJsonValueString>(i));
 	}
 	const auto Ing = MakeShared<FJsonValueArray>(Ingredients);

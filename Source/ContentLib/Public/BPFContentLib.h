@@ -131,6 +131,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static void UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem);
 
+	UFUNCTION(BlueprintCallable)
+	static UFGSchematicPurchasedDependency* FindFirstOrCreateSchematicPurchasedDependencyObj(TSubclassOf<UFGSchematic> Schematic);
 
 	UFUNCTION(BlueprintCallable)
 	static void AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,

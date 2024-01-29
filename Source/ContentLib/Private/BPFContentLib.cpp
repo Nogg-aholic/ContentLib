@@ -897,32 +897,50 @@ void UBPFContentLib::UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem)
 	}
 }
 
+UFGSchematicPurchasedDependency* UBPFContentLib::FindFirstOrCreateSchematicPurchasedDependencyObj(TSubclassOf<UFGSchematic> Schematic) {
+	for (auto depObject : Schematic.GetDefaultObject()->mSchematicDependencies) {
+		if (const auto purchasedDepObject = Cast<UFGSchematicPurchasedDependency>(depObject)) {
+			return purchasedDepObject;
+		}
+	}
+	// at this point we haven't found one, so we need to make one
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_SchematicPurchasedDependency_C"), false);
+	if (!Class) {
+		Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
+		if (!Class) {
+			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't load BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName());
+		}
+	}
+	return NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(), Class);
+}
+
 void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, TSubclassOf<UFGSchematic> SchematicDep)
 {
-	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mSchematicDependencies) {
-		if (Cast<UFGSchematicPurchasedDependency>(f)) {
-			if (!Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Contains(SchematicDep)) {
-				Cast<UFGSchematicPurchasedDependency>(f)->mSchematics.Add(SchematicDep);
-				Added = true;
-				UE_LOG(LogContentLib, Warning, TEXT("CL : Added SchematicDep to %s in Schematic %s "), *SchematicDep->GetName(), *Schematic->GetName())
-					break;
+	for (auto depObject : Schematic.GetDefaultObject()->mSchematicDependencies) {
+		if (const auto purchasedDepObject = Cast<UFGSchematicPurchasedDependency>(depObject)) {
+			if (!purchasedDepObject->mSchematics.Contains(SchematicDep)) {
+				purchasedDepObject->mSchematics.Add(SchematicDep);
+				UE_LOG(LogContentLib, Warning, TEXT("CL : Added SchematicDep entry to existing: '%s' as a requirement for Schematic '%s' "), *SchematicDep->GetName(), *Schematic->GetName());
+				return;
+			} else {
+				UE_LOG(LogContentLib, Warning, TEXT("CL : Skipped adding SchematicDep entry: '%s' is already a requirement for Schematic '%s' "), *SchematicDep->GetName(), *Schematic->GetName())
+				return;
 			}
 		}
 	}
-	if (!Added) {
-		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_SchematicPurchasedDependency_C"), false);
+	// No existing 
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_SchematicPurchasedDependency_C"), false);
+	if (!Class) {
+		Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
 		if (!Class) {
-			Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
-			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName())
-			}
+			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't load BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName());
 		}
-		UFGSchematicPurchasedDependency* Object = NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(), Class);
-		Object->mSchematics.Add(SchematicDep);
-		Schematic.GetDefaultObject()->mSchematicDependencies.Add(Object);
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency. Added Schematic to %s in Schematic %s."), *SchematicDep->GetName(), *Schematic->GetName())
 	}
+	UFGSchematicPurchasedDependency* purchasedDepObject = NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(), Class);
+	purchasedDepObject->mSchematics.Add(SchematicDep);
+	Schematic.GetDefaultObject()->mSchematicDependencies.Add(purchasedDepObject);
+	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency and added entry: '%s' as a requirement for Schematic '%s'"), *SchematicDep->GetName(), *Schematic->GetName());
+
 }
 
 bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
