@@ -432,7 +432,8 @@ void UContentLibSubsystem::ClientInit()
 					}
 					FString TempParentName = Parent->GetPathName();
 					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Parsing asset %s with parent %s"), *TempPackageName, *TempParentName);
-					const FString assetPathString = asset.GetObjectPathString().Append("_C"); // TODOU8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
+					const FString assetPathString = asset.GetObjectPathString().Append("_C"); // U8 Migrated asset.GetObjectPathString() from asset.ObjectPath.ToString()
+					UE_LOG(LogContentLibAssetParsing, VeryVerbose, TEXT("Asset path string is %s"), *assetPathString);
 					if (
 						   Parent->IsChildOf(UFGItemDescriptor::StaticClass()) 
 						|| Parent->IsChildOf(UFGSchematic::StaticClass()) 
