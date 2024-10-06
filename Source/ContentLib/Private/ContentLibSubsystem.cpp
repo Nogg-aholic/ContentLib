@@ -27,6 +27,7 @@
 #include "Unlocks/FGUnlockRecipe.h"
 #include "Unlocks/FGUnlockSchematic.h"
 #include "UObject/CoreRedirects.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 void UContentLibSubsystem::FillLoadedClasses()
@@ -94,7 +95,7 @@ float FFactoryGame_ProductBuildingCost::GetMjCostForPotential(const float Potent
 	if (Building) {
 		if (Building->IsChildOf(AFGBuildableFactory::StaticClass()) && Recipe) {
 			const float Power = Cast<AFGBuildableFactory>(Building.GetDefaultObject())->CalcProducingPowerConsumptionForPotential(Potential);
-			const float TimeMod = FMath::Clamp(Potential, Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetMinPotential(),Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetMaxPossiblePotential());
+			const float TimeMod = FMath::Clamp(Potential, Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetCurrentMinPotential(),Cast<AFGBuildableFactory>(Building.GetDefaultObject())->GetCurrentMaxPotential());
 			const float Duration = UFGRecipe::GetManufacturingDuration(Recipe) / TimeMod;
 			return (Duration * Power);
 		}
