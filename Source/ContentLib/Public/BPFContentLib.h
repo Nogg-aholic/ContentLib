@@ -14,6 +14,7 @@
 #include "Serialization/ObjectWriter.h"
 #include "Serialization/ObjectReader.h" 
 #include "Kismet/BlueprintAssetHelperLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "BPFContentLib.generated.h"
 
@@ -28,7 +29,7 @@ struct Grab {
 };
 
 struct grab_FuncTable {
-	typedef TMap<FName, UFunction*> UClass::* type;
+	typedef TMap<FName, TObjectPtr<UFunction>> UClass::* type;
 	friend type get(grab_FuncTable);
 };
 
