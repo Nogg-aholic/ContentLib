@@ -28,6 +28,14 @@ struct Grab {
 	}
 };
 
+/*
+struct grab_FuncTable {
+	typedef TMap<FName, TObjectPtr<UFunction>> UClass::* type;
+	friend type get(grab_FuncTable);
+};
+
+template struct Grab<grab_FuncTable, &UClass::FuncMap>;
+*/
 struct grab_FuncTable {
 	typedef TMap<FName, TObjectPtr<UFunction>> UClass::* type;
 	friend type get(grab_FuncTable);
