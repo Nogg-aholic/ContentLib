@@ -6,6 +6,11 @@ This mod allows users (and developers) to easily **create** custom recipes, item
 
 Questions? Suggestions? Join the [Nog's Mods Discord server](https://discord.gg/kcRmFxn89d) or leave an issue on the [GitHub issues page](https://github.com/Nogg-aholic/ContentLib/issues) (slower response time)
 
+## Multiplayer Support
+
+ContentLib itself supports multiplayer and dedicated servers as long as all sides have the same content definitions.
+Other mods that depend on ContentLib may not support multiplayer, so check the mod page or ask the mod author.
+
 ## Examples
 
 You can use ContentLib for your own personal edits, but you can also easily distribute your scripts as mods for others to use.
@@ -37,6 +42,7 @@ Below is an example of a freshly created Item and a screenshot of it within the 
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_Item.json",
   "Name": "Gold Too",
   "VisualKit": "Desc_OreGold_C",
   "Description" : "This is a new Item which re-uses the visuals of Caterium Ore!"
@@ -46,6 +52,8 @@ Below is an example of a freshly created Item and a screenshot of it within the 
 ![New Item in game](https://i.imgur.com/T7OC3vq.jpg)
 
 Remember that you still need a recipe somewhere that produces the item, or the game will not load it.
+
+Check out the [docs](https://docs.ficsit.app/contentlib/latest/index.html) to get started.
 
 ### Item Patching Example
 
@@ -58,6 +66,7 @@ This example replaces the item name and description, but you can modify other fi
 ```json
 //Game/FactoryGame/Resource/RawResources/OreGold/Desc_OreGold.Desc_OreGold_C
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_Item.json",
   "Name": "Gold Ore",
   "Description" : "Surely not Caterium Ore. Couldn't be!"
 }
@@ -79,6 +88,7 @@ Here's an example recipe for the Blender made by McGalleon.
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_Recipe.json",
   "Name": "Synthetic Crystal",
   "Ingredients": [
     {
@@ -108,6 +118,8 @@ Here's an example recipe for the Blender made by McGalleon.
 
 ![Blender example ingame](https://cdn.discordapp.com/attachments/771801486828896260/863510909476143184/unknown.png)
 
+Check out the [docs](https://docs.ficsit.app/contentlib/latest/index.html) to get started.
+
 ### Recipe Patching Example
 
 In addition to creating new recipes, you can also use _ContentLib_ to modify existing recipes, both base-game recipes and those added by other mods.
@@ -117,6 +129,7 @@ Below is an example modification of the base game's Biofuel recipe. The recipe d
 ```json
 //Game/FactoryGame/Recipes/Constructor/Recipe_Biofuel.Recipe_Biofuel_C
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_Recipe.json",
   "Name": "BioFuel Override",
   "Ingredients": [
     {
@@ -160,6 +173,7 @@ Edit the properties of an item without using the ContentLib Item system.
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_CDO.json",
   "Class": "/Game/FactoryGame/Resource/Parts/GoldIngot/Desc_GoldIngot.Desc_GoldIngot_C",
   "Edits": [
     {
@@ -198,6 +212,7 @@ Edit the ingredients of a recipe without using the ContentLib Recipe system.
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_CDO.json",
   "Class": "/Game/FactoryGame/Recipes/Blender/Recipe_FusedModularFrame.Recipe_FusedModularFrame_C",
   "Edits": [
     {
@@ -225,6 +240,7 @@ Change the parent of a blueprint.
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/budak7273/ContentLib_Documentation/main/JsonSchemas/CL_CDO.json",
   "Class": "/Game/FactoryGame/-Shared/Material/MI_Factory_Base_01.MI_Factory_Base_01",
   "Edits": [
     {
@@ -236,5 +252,9 @@ Change the parent of a blueprint.
 ```
 
 </details>
+
+Check out the [docs](https://docs.ficsit.app/contentlib/latest/index.html) to get started.
+
+## Credits
 
 Icons by deantendo#4265
