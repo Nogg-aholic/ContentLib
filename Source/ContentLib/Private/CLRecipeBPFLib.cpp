@@ -21,16 +21,6 @@ void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FCon
 		return;
 	}
 
-	//If IgnoreInvalidRecipe is set -> If invalid item is found, don't override given Class
-	//This code was superceeded by the blueprint functions but it may turn out usefull later (or maybe not)
-	if (RecipeStruct.IgnoreInvalidRecipe &&
-		(UBPFContentLib::ContainsInvalidItem(RecipeStruct.Ingredients, Subsystem->mItems) || 
-		UBPFContentLib::ContainsInvalidItem(RecipeStruct.Products, Subsystem->mItems))) {
-				
-		UE_LOG(LogContentLib, Display, TEXT("Recipe %s was skipped because of invalid Items"),*RecipeStruct.Name);
-		return;
-	}
-
 	UFGRecipe* CDO = Recipe.GetDefaultObject();
 
 	// If a Name is specified, it will also turn on override
