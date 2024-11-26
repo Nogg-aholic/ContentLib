@@ -642,6 +642,32 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString, UContentLibS
 	return CategoryClass;
 }
 
+bool UBPFContentLib::ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> Items)
+{
+	//Checks if given item list contains at least one invalid item
+
+	for (auto i : Cost) {
+		if (i.Key.Contains("/")) {
+			UClass* Loaded = LoadObject<UClass>(nullptr, *i.Key);
+			if (!(Loaded && Loaded->IsChildOf(UFGItemDescriptor::StaticClass()))) {
+				UE_LOG(LogContentLib, Error, TEXT("Finding Item by Path %s failed"), *i.Key);
+				return true;
+			}
+		}
+		else
+		{
+			for (auto e : Items) {
+				if (UBPFContentLib::StringCompareItem(e->GetName(), i.Key, "Desc", "_C")) {					
+					return false;
+				}
+			}
+			UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *i.Key);
+			return true;
+		}
+	}
+	return false;
+}
+
 void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount>& Array, TMap<FString, int32> Cost, TArray<UClass*> Items, const bool ClearFirst)
 {
 	if (ClearFirst) {

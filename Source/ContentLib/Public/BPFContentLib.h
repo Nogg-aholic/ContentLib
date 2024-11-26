@@ -112,6 +112,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static UClass* SetCategoryWithLoad(const FString CategoryString,
 		                                UContentLibSubsystem* Subsystem, bool Schematic);
+
+	UFUNCTION(BlueprintCallable)
+		static bool ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> Items);
+
 	UFUNCTION(BlueprintCallable)
 		static void AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FString,int32> Cost,TArray<UClass*> Items, bool ClearFirst);
 

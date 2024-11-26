@@ -15,11 +15,22 @@
 #include "Buildables/FGBuildableFactory.h"
 #include "Registry/ModContentRegistry.h"
 
-void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe,bool ClearIngredients,bool ClearProducts,bool ClearBuilders)
+void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe,bool ClearIngredients,bool ClearProducts,bool ClearBuilders, bool IgnoreInvalidRecipe)
 {
 	if (!Recipe) {
 		return;
 	}
+
+	//If IgnoreInvalidRecipe is set -> If invalid item is found, don't override given Class
+	//This code was superceeded by the blueprint functions but it may turn out usefull later (or maybe not)
+	if (RecipeStruct.IgnoreInvalidRecipe &&
+		(UBPFContentLib::ContainsInvalidItem(RecipeStruct.Ingredients, Subsystem->mItems) || 
+		UBPFContentLib::ContainsInvalidItem(RecipeStruct.Products, Subsystem->mItems))) {
+				
+		UE_LOG(LogContentLib, Display, TEXT("Recipe %s was skipped because of invalid Items"),*RecipeStruct.Name);
+		return;
+	}
+
 	UFGRecipe* CDO = Recipe.GetDefaultObject();
 
 	// If a Name is specified, it will also turn on override
@@ -175,7 +186,8 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearIngredients, "ClearIngredients", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearProducts, "ClearProducts", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearBuilders, "ClearBuilders", ParsedJson);
-	
+	UBPFContentLib::SetBooleanFieldWithLog(Recipe.IgnoreInvalidRecipe, "IgnoreInvalidRecipe", ParsedJson);
+
 	return Recipe;
 }
 
@@ -268,6 +280,7 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	const auto ClearIngredients = MakeShared<FJsonValueBoolean>(Recipe.ClearIngredients);
 	const auto ClearProducts = MakeShared<FJsonValueBoolean>(Recipe.ClearProducts);
 	const auto ClearBuilders = MakeShared<FJsonValueBoolean>(Recipe.ClearBuilders);
+	const auto IgnoreInvalidRecipe = MakeShared<FJsonValueBoolean>(Recipe.IgnoreInvalidRecipe);
 
 
 
@@ -284,6 +297,7 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	Obj->Values.Add("ClearIngredients", ClearIngredients);
 	Obj->Values.Add("ClearProducts", ClearProducts);
 	Obj->Values.Add("ClearBuilders", ClearBuilders);
+	Obj->Values.Add("IgnoreInvalidRecipe", IgnoreInvalidRecipe);
 
 	FString Write;
 	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory
