@@ -7,8 +7,6 @@
 #include "FGWorkBench.h"
 #include "FGResearchTree.h"
 #include "AvailabilityDependencies/FGSchematicPurchasedDependency.h"
-//#include "Patching/BlueprintHookHelper.h"
-//#include "Patching/BlueprintHookManager.h"
 #include "Resources/FGBuildingDescriptor.h"
 #include "Resources/FGItemDescriptor.h"
 #include "Unlocks/FGUnlockArmEquipmentSlot.h"
@@ -780,12 +778,12 @@ void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 		NewEntry->mUnlockIconBig = big;
 	}
 
-	auto smallicon = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.SmallIcon);
-	if (!smallicon) {
+	auto smallIcon = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.SmallIcon);
+	if (!smallIcon) {
 		UE_LOG(LogContentLib, Warning, TEXT("Failed to find SmallIcon %s"), *InfoCardToAdd.SmallIcon);
 	} else {
 		UE_LOG(LogContentLib, Warning, TEXT("Found SmallIcon %s"), *InfoCardToAdd.SmallIcon);
-		NewEntry->mUnlockIconBig = smallicon;
+		NewEntry->mUnlockIconBig = smallIcon;
 	}
 
 	auto category = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.CategoryIcon);
