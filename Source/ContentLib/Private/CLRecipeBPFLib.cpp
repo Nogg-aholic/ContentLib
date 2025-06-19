@@ -94,7 +94,9 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe,FCon
 			}
 			for(auto e : CraftingComps) {
 				TSubclassOf<class UFGWorkBench> Desc = e;
-				if(Desc.GetDefaultObject()->GetName().Equals(i, ESearchCase::IgnoreCase)|| i.Equals("manual", ESearchCase::IgnoreCase)) {
+				if(Desc.GetDefaultObject()->GetName().Equals(i, ESearchCase::IgnoreCase)
+						|| Desc.GetDefaultObject()->GetName().RightChop(FString("Default__").Len()).LeftChop(FString("_C").Len()).Equals(i, ESearchCase::IgnoreCase)
+						|| i.Equals("manual", ESearchCase::IgnoreCase)) {
 					TSoftClassPtr< UObject > Insert = TSoftClassPtr< UObject > (e);
 					if(!Recipe.GetDefaultObject()->mProducedIn.Contains((Insert)))
 						Recipe.GetDefaultObject()->mProducedIn.Add(Insert);
