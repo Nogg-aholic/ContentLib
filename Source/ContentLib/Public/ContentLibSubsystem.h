@@ -201,8 +201,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ClientInit();
 	
+	// Clears and rebuilds records of all content. Called multiple times as new content is created by ContentLib.
 	UFUNCTION(BlueprintCallable)
-        void FillLoadedClasses();
+        void FillLoadedClasses(bool logBuilders);
 
 	UFUNCTION(BlueprintCallable)
         void CollectVisualKits();
@@ -275,7 +276,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<TSubclassOf<UFGSchematic>,FString> CreatedSchematics;
-
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FJsonSchematic> SchematicPatches;
 
@@ -284,8 +284,4 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FString, FString> DumpItems;
-
-	// TODO U8 is this needed still?
-	//UPROPERTY(BlueprintReadOnly)
-	//TArray<UObjectRedirector *> Redirectors;
 };

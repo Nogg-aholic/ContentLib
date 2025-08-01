@@ -102,6 +102,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static void AddToSchematicUnlock(TSubclassOf<class UFGRecipe> Recipe,FContentLib_Recipe RecipeStruct, UContentLibSubsystem* Subsystem);
 
+protected:
+	// Helper function to add a single builder. Must be a class member for access transformers to work.
+	UFUNCTION()
+	static bool AddBuilder(FString builderName, UFGRecipe* recipeCDO, TArray<UClass*> AllKnownBuilders, TArray<UClass*> AllKnownCraftingComps);
+
+public:
 	// Add the producers from the RecipeStruct to the Recipe. Requires known producers passed as arrays
 	UFUNCTION(BlueprintCallable)
 	static void AddBuilders(TSubclassOf<class UFGRecipe> Recipe,FContentLib_Recipe RecipeStruct,TArray<UClass*> Builders,TArray<UClass*> CraftingComps, bool ClearFirst = false);

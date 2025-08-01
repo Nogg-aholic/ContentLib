@@ -62,7 +62,59 @@ void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FCon
 
 }
 
+bool UCLRecipeBPFLib::AddBuilder(FString builderName, UFGRecipe* recipeCDO, TArray<UClass*> AllKnownBuilders, TArray<UClass*> AllKnownCraftingComps) {
+	if (builderName.Contains("/")) {
+		FString builderPath = builderName;
+		UClass* Loaded = LoadObject<UClass>(nullptr, *builderPath);
+		if (Loaded) {
+			if (!Loaded->ImplementsInterface(UFGRecipeProducerInterface::StaticClass())) {
+				UE_LOG(LogContentLib, Error, TEXT("Builder by Path '%s' is not a UFGRecipeProducerInterface, skipping"), *builderPath);
+				return false;
+			}
 
+			// Silently avoid adding duplicates
+			recipeCDO->mProducedIn.AddUnique(Loaded);
+			return true;
+		} else {
+			UE_LOG(LogContentLib, Error, TEXT("Finding Builder by Path '%s' failed"), *builderPath);
+			return false;
+		}
+	} else {
+		if (builderName.Contains("BuildGun")) {
+			UClass* buildgun = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/Equipment/BuildGun/BP_BuildGun.BP_BuildGun_C"));
+			recipeCDO->mProducedIn.AddUnique(buildgun);
+			return true;
+		}
+
+		for (auto candidate : AllKnownBuilders) {
+			if (UBPFContentLib::StringCompareItem(candidate->GetName(), builderName, "Build", "_C")) {
+				recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
+				return true;
+			}
+		}
+
+		for (auto candidate : AllKnownCraftingComps) {
+			// Old Nog workaround that caused the C++ parent crafting component to be added if `manual` used.
+			// Probably works because it's the first one AllKnown contains?
+			// TODO - Remove me in CL 2.x.x
+			if (builderName.Equals("manual", ESearchCase::IgnoreCase)) {
+				recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
+				UE_LOG(LogContentLib, Error, TEXT("CL Recipes: When modifying recipe '%s', the old `manual` workaround for producers was found, so the component '%s' was added. Please use a specific producer instead, this will fail in a future update. They are logged in Verbose at mod startup."), *recipeCDO->GetName(), *candidate->GetFullName());
+				return true;
+			}
+
+			// Normal logic
+			TSubclassOf<class UFGWorkBench> asWorkBench = candidate;
+			if (UBPFContentLib::StringCompareItem(asWorkBench.GetDefaultObject()->GetName(), builderName, "Default__", "_C")) {
+				recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
+				return true;
+			}
+		}
+	}
+
+	UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Builder '%s' for Recipe '%s'. All found builders are logged in Verbose at mod startup, check against that list."), *builderName, *recipeCDO->GetName());
+	return false;
+}
 
 void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe, FContentLib_Recipe RecipeStruct, TArray<UClass*> AllKnownBuilders, TArray<UClass*> AllKnownCraftingComps, const bool ClearFirst)
 {
@@ -73,61 +125,7 @@ void UCLRecipeBPFLib::AddBuilders(const TSubclassOf<class UFGRecipe> Recipe, FCo
 		recipeCDO->mProducedIn.Empty();
 
 	for(FString& requested : RecipeStruct.BuildIn) {
-		if (requested.Contains("/")) {
-			UClass* Loaded = LoadObject<UClass>(nullptr, *requested);
-			if (Loaded) {
-				if (!Loaded->ImplementsInterface(UFGRecipeProducerInterface::StaticClass())) {
-					UE_LOG(LogContentLib, Error, TEXT("Builder by Path '%s' is not a UFGRecipeProducerInterface, skipping"), *requested);
-					continue;
-				}
-
-				// Silently avoid adding duplicates
-				recipeCDO->mProducedIn.AddUnique(Loaded);
-			} else {
-				UE_LOG(LogContentLib, Error, TEXT("Finding Builder by Path '%s' failed"), *requested);
-				continue;
-			}
-		} else {
-			if (requested.Contains("BuildGun")) {
-				UClass* buildgun = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/Equipment/BuildGun/BP_BuildGun.BP_BuildGun_C"));
-				recipeCDO->mProducedIn.AddUnique(buildgun);
-				continue;
-			}
-
-			bool Found = false;
-			for(auto candidate : AllKnownBuilders) {
-				if (UBPFContentLib::StringCompareItem(candidate->GetName(),requested,"Build","_C")) {
-					recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
-					Found = true;
-					break;
-				}
-			}
-			if (Found)
-				continue;
-
-			for(auto candidate : AllKnownCraftingComps) {
-				// Old Nog workaround that caused the C++ parent crafting component to be added if `manual` used.
-				// Probably works because it's the first one AllKnown contains?
-				// TODO - Remove me in CL 2.x.x
-				if (requested.Equals("manual", ESearchCase::IgnoreCase)) {
-					recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
-					UE_LOG(LogContentLib, Error, TEXT("CL Recipes: When modifying recipe '%s', the old `manual` workaround for producers was found, so the component '%s' was added. Please use a specific producer instead, this will fail in a future update. They are logged in Verbose at mod startup."), *Recipe->GetName(), *candidate->GetFullName());
-					Found = true;
-					break;
-				}
-
-				// Normal logic
-				TSubclassOf<class UFGWorkBench> asWorkBench = candidate;
-				if(UBPFContentLib::StringCompareItem(asWorkBench.GetDefaultObject()->GetName(), requested, "Default__", "_C")) {
-					recipeCDO->mProducedIn.AddUnique(TSoftClassPtr< UObject >(candidate));
-					Found = true;
-					break;
-				}
-			}
-			if (!Found) {
-				UE_LOG(LogContentLib, Error, TEXT("CL Recipes: Failed to find Builder '%s' for Recipe '%s'. All found builders are logged in Verbose at mod startup, check against that list."), *requested, *Recipe->GetName());
-			}
-		}
+		AddBuilder(requested, recipeCDO, AllKnownBuilders, AllKnownCraftingComps);
 	}
 }
 

@@ -13,7 +13,7 @@
 #include "FGSchematic.h"
 #include "FGSchematicCategory.h"
 #include "FGWorkBench.h"
-#include "Buildables/FGBuildableFactory.h"
+#include "Buildables/FGBuildableManufacturer.h"
 #include "Resources/FGItemDescriptor.h"
 #include "AvailabilityDependencies/FGSchematicPurchasedDependency.h"
 #include "Equipment/FGBuildGun.h"
@@ -30,7 +30,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 
-void UContentLibSubsystem::FillLoadedClasses()
+void UContentLibSubsystem::FillLoadedClasses(bool logBuilders)
 {
 	mItems.Empty();
 	mCategories.Empty();
@@ -42,19 +42,21 @@ void UContentLibSubsystem::FillLoadedClasses()
 
 	GetDerivedClasses(UFGItemDescriptor::StaticClass(), mItems, true);
 	GetDerivedClasses(UFGCategory::StaticClass(), mCategories, true);
-	GetDerivedClasses(AFGBuildableFactory::StaticClass(), mBuilders, true);
+	GetDerivedClasses(AFGBuildableManufacturer::StaticClass(), mBuilders, true);
 	GetDerivedClasses(UFGWorkBench::StaticClass(), mCraftingComps, true);
 	GetDerivedClasses(UFGSchematic::StaticClass(), mSchematics, true);
 	GetDerivedClasses(UFGRecipe::StaticClass(), mRecipes, true);
 	GetDerivedClasses(UFGResearchTree::StaticClass(), mResearchTrees, true);
 
-	UE_LOG(LogContentLib, Verbose, TEXT("All detected producers (AFGBuildableFactory):"));
-	for (auto& entry : mBuilders) {
-		UE_LOG(LogContentLib, Verbose, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
-	}
-	UE_LOG(LogContentLib, Verbose, TEXT("All detected crafting components (UFGWorkBench):"));
-	for (auto& entry : mCraftingComps) {
-		UE_LOG(LogContentLib, Verbose, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
+	if (logBuilders) {
+		UE_LOG(LogContentLib, Display, TEXT("All detected producers (AFGBuildableManufacturer):"));
+		for (auto& entry : mBuilders) {
+			UE_LOG(LogContentLib, Display, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
+		}
+		UE_LOG(LogContentLib, Display, TEXT("All detected crafting components (UFGWorkBench):"));
+		for (auto& entry : mCraftingComps) {
+			UE_LOG(LogContentLib, Display, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
+		}
 	}
 }
 
