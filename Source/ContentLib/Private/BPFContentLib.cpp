@@ -541,18 +541,16 @@ TSubclassOf<UObject> UBPFContentLib::CreateContentLibClass(FString Name, UClass*
 }
 
 
-bool UBPFContentLib::StringCompareItem(FString e, FString Name, FString Prefix, FString Suffix)
+bool UBPFContentLib::StringCompareItem(FString toCompare, FString Name, FString Prefix, FString Suffix)
 {
-	FString S = e;
-	FString A = Name;
-	FString DescPre = Prefix.Append(Name);
-	if (!DescPre.EndsWith(Suffix)) {
-		DescPre.Append(Suffix);
+	FString PrefixNameSuffix = Prefix.Append(Name);
+	if (!PrefixNameSuffix.EndsWith(Suffix)) {
+		PrefixNameSuffix.Append(Suffix);
 	}
-	if (S.Equals(Name, ESearchCase::IgnoreCase) || S.Equals(A.Append(Suffix), ESearchCase::IgnoreCase) || S.Equals(DescPre, ESearchCase::IgnoreCase)) {
-		return true;
-	}
-	return false;
+	return
+		toCompare.Equals(Name, ESearchCase::IgnoreCase) ||
+		toCompare.Equals(Name.Append(Suffix), ESearchCase::IgnoreCase) ||
+		toCompare.Equals(PrefixNameSuffix, ESearchCase::IgnoreCase);
 }
 
 UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString, UContentLibSubsystem* Subsystem, bool Schematic)

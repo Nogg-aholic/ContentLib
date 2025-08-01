@@ -108,7 +108,7 @@ public:
 		static TSubclassOf<UObject> CreateContentLibClass(FString Name, UClass* ParentClass);
 
 	UFUNCTION(BlueprintCallable)
-		static bool StringCompareItem(FString e, FString Name, FString Prefix, FString Suffix);
+		static bool StringCompareItem(FString toCompare, FString Name, FString Prefix, FString Suffix);
 	UFUNCTION(BlueprintCallable)
 		static UClass* SetCategoryWithLoad(const FString CategoryString,
 		                                UContentLibSubsystem* Subsystem, bool Schematic);

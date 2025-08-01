@@ -47,9 +47,15 @@ void UContentLibSubsystem::FillLoadedClasses()
 	GetDerivedClasses(UFGSchematic::StaticClass(), mSchematics, true);
 	GetDerivedClasses(UFGRecipe::StaticClass(), mRecipes, true);
 	GetDerivedClasses(UFGResearchTree::StaticClass(), mResearchTrees, true);
-	
-	// Since build categories inherit from category, pretty sure this isn't needed
-	// GetDerivedClasses(UFGBuildCategory::StaticClass(), mCategories, true);
+
+	UE_LOG(LogContentLib, Verbose, TEXT("All detected producers (AFGBuildableFactory):"));
+	for (auto& entry : mBuilders) {
+		UE_LOG(LogContentLib, Verbose, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
+	}
+	UE_LOG(LogContentLib, Verbose, TEXT("All detected crafting components (UFGWorkBench):"));
+	for (auto& entry : mCraftingComps) {
+		UE_LOG(LogContentLib, Verbose, TEXT("'%s' at path %s"), *entry->GetName(), *entry->GetClassPathName().ToString());
+	}
 }
 
 void UContentLibSubsystem::CollectVisualKits()
