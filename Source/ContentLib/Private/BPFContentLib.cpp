@@ -175,7 +175,6 @@ void UBPFContentLib::SetBooleanFieldWithLog(bool& Field, const FString FieldName
 	}
 
 	Field = Result->TryGetField(FieldName)->AsBool();
-
 }
 
 void UBPFContentLib::SetFloatFieldWithLog(float& Field, const FString FieldName, TSharedPtr<FJsonObject> Result) {
@@ -226,6 +225,7 @@ void UBPFContentLib::SetSmallIntegerFieldWithLog(uint8& Field, const FString Fie
 
 	Field = Result->TryGetField(FieldName)->AsNumber();
 }
+
 void UBPFContentLib::SetStringFieldWithLog(FString& Field, const FString FieldName, TSharedPtr<FJsonObject> Result) {
 	if (!Result->HasField(FieldName)) {
 		return;
@@ -279,6 +279,7 @@ void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool 
 	}
 #endif
 }
+
 UTexture2D* UBPFContentLib::LoadTextureFromFile(FString& String, FString Path, bool Relative) {
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
 	const FString AbsolutePath = FPaths::ConvertRelativePathToFull(Path);
@@ -292,8 +293,6 @@ UTexture2D* UBPFContentLib::LoadTextureFromFile(FString& String, FString Path, b
 	return nullptr;
 
 }
-
-
 
 bool UBPFContentLib::LoadStringFromFile(FString& String, FString Path, bool Relative) {
 #if WITH_EDITOR 
@@ -649,13 +648,18 @@ bool UBPFContentLib::ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClas
 			}
 		} else {
 			// TODO kinda expensive search, optimization potential
+			bool found = false;
 			for (auto possibleItemMatch : AllKnownItems) {
 				if (UBPFContentLib::StringCompareItem(possibleItemMatch->GetName(), entry.Key, "Desc", "_C")) {
-					return false;
+					// UE_LOG(LogContentLib, VeryVerbose, TEXT("CL DEBUG: Found item %s as: %s"), *entry.Key, *possibleItemMatch->GetName());
+					found = true;
+					break;
 				}
 			}
-			UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *entry.Key);
-			return true;
+			if (!found) {
+				UE_LOG(LogContentLib, Error, TEXT("Failed to find Item '%s'"), *entry.Key);
+				return true;
+			}
 		}
 	}
 	return false;
