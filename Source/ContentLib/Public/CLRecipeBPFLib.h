@@ -46,7 +46,8 @@ struct  CONTENTLIB_API  FContentLib_Recipe
 	                      ManufacturingMenuPriority(-1),
 	                      ClearIngredients(true),
 	                      ClearProducts(true),
-	                      ClearBuilders(true)
+	                      ClearBuilders(true),
+						  IgnoreInvalidRecipe(false)
 	{
 	} ;
 
@@ -84,6 +85,8 @@ struct  CONTENTLIB_API  FContentLib_Recipe
 		bool ClearProducts;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearBuilders;
+	UPROPERTY(BlueprintReadWrite)
+		bool IgnoreInvalidRecipe;
 };
 
 
@@ -98,7 +101,7 @@ class CONTENTLIB_API UCLRecipeBPFLib : public UBlueprintFunctionLibrary
 	
 public:
 	UFUNCTION(BlueprintCallable)
-	static void InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe, bool ClearIngredients = true, bool ClearProducts = true, bool ClearBuilders = true);
+	static void InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe, bool ClearIngredients = true, bool ClearProducts = true, bool ClearBuilders = true, bool IgnoreInvalidRecipe = false);
 	UFUNCTION(BlueprintCallable)
 	static void AddToSchematicUnlock(TSubclassOf<class UFGRecipe> Recipe,FContentLib_Recipe RecipeStruct, UContentLibSubsystem* Subsystem);
 
