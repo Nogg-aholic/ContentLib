@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogContentLib, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogContentLib, Verbose, All);
 
 DECLARE_LOG_CATEGORY_EXTERN(LogContentLibAssetParsing, Warning, All);
 
