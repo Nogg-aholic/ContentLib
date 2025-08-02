@@ -106,20 +106,20 @@ FContentLib_NuclearFuelItem::FContentLib_NuclearFuelItem(): AmountOfWaste(-1)
 {
 }
 
-TSharedRef<FJsonObject> FContentLib_NuclearFuelItem::GetNuclearFuelAsJsonObject(
-	TSubclassOf<UFGItemDescriptorNuclearFuel> Item)
+TSharedRef<FJsonObject> FContentLib_NuclearFuelItem::GetNuclearFuelAsJsonObject(TSubclassOf<UFGItemDescriptorNuclearFuel> Item)
 {
 	const auto CDO = Cast<UFGItemDescriptorNuclearFuel>(Item->GetDefaultObject());
 	const auto Obj = MakeShared<FJsonObject>();
 
-	const auto SpentFuelClass = MakeShared<FJsonValueString>(CDO->GetSpentFuelClass(Item)->GetPathName());
-
+	if (const auto spentFuelItem = CDO->GetSpentFuelClass(Item)) {
+		const auto SpentFuelClass = MakeShared<FJsonValueString>(spentFuelItem->GetPathName());
+		Obj->Values.Add("SpentFuelClass", SpentFuelClass);
+	}
+	
 	const auto AmountOfWaste = MakeShared<FJsonValueNumber>(CDO->GetAmountWasteCreated(Item));
 
-	Obj->Values.Add("SpentFuelClass", SpentFuelClass);
 	Obj->Values.Add("AmountOfWaste", AmountOfWaste);
 	return Obj;
-
 }
 
 
