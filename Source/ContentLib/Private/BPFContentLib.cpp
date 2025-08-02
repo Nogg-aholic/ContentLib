@@ -638,26 +638,23 @@ UClass* UBPFContentLib::SetCategoryWithLoad(FString CategoryString, UContentLibS
 	return CategoryClass;
 }
 
-bool UBPFContentLib::ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> Items)
+bool UBPFContentLib::ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> AllKnownItems)
 {
-	//Checks if given item list contains at least one invalid item
-
-	for (auto i : Cost) {
-		if (i.Key.Contains("/")) {
-			UClass* Loaded = LoadObject<UClass>(nullptr, *i.Key);
+	for (auto& entry : Cost) {
+		if (entry.Key.Contains("/")) {
+			UClass* Loaded = LoadObject<UClass>(nullptr, *entry.Key);
 			if (!(Loaded && Loaded->IsChildOf(UFGItemDescriptor::StaticClass()))) {
-				UE_LOG(LogContentLib, Error, TEXT("Finding Item by Path %s failed"), *i.Key);
+				UE_LOG(LogContentLib, Error, TEXT("Finding Item by Path %s failed"), *entry.Key);
 				return true;
 			}
-		}
-		else
-		{
-			for (auto e : Items) {
-				if (UBPFContentLib::StringCompareItem(e->GetName(), i.Key, "Desc", "_C")) {					
+		} else {
+			// TODO kinda expensive search, optimization potential
+			for (auto possibleItemMatch : AllKnownItems) {
+				if (UBPFContentLib::StringCompareItem(possibleItemMatch->GetName(), entry.Key, "Desc", "_C")) {
 					return false;
 				}
 			}
-			UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *i.Key);
+			UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *entry.Key);
 			return true;
 		}
 	}
@@ -669,12 +666,12 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount>& Array, TMap<FStri
 	if (ClearFirst) {
 		Array.Empty();
 	}
-	for (auto i : Cost) {
-		if (i.Key.Contains("/")) {
-			UClass* Loaded = LoadObject<UClass>(nullptr, *i.Key);
+	for (auto& entry : Cost) {
+		if (entry.Key.Contains("/")) {
+			UClass* Loaded = LoadObject<UClass>(nullptr, *entry.Key);
 			if (Loaded && Loaded->IsChildOf(UFGItemDescriptor::StaticClass())) {
 				FItemAmount Amount;
-				Amount.Amount = i.Value;
+				Amount.Amount = entry.Value;
 				Amount.ItemClass = Loaded;
 				bool Exists = false;
 				for (auto& l : Array) {
@@ -688,38 +685,41 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount>& Array, TMap<FStri
 				}
 				if (!Exists)
 					Array.Add(Amount);
-			}
-			else {
-				UE_LOG(LogContentLib, Error, TEXT("Finding Item by Path %s failed"), *i.Key);
+			} else {
+				UE_LOG(LogContentLib, Error, TEXT("Finding Item by Path %s failed"), *entry.Key);
 			}
 		}
 		else
 		{
 			bool Found = false;
-			for (auto e : Items) {
-				TSubclassOf<class UFGItemDescriptor> Desc = e;
-				if (UBPFContentLib::StringCompareItem(e->GetName(), i.Key, "Desc", "_C")) {
+			// TODO kinda expensive search, optimization potential
+			for (auto possibleItemMatch : Items) {
+				TSubclassOf<class UFGItemDescriptor> Desc = possibleItemMatch;
+				if (UBPFContentLib::StringCompareItem(possibleItemMatch->GetName(), entry.Key, "Desc", "_C")) {
 					FItemAmount Amount;
-					Amount.Amount = i.Value;
+					Amount.Amount = entry.Value;
 					Amount.ItemClass = Desc;
+
+					// Consolidate duplicate cost entries in the final output array
 					bool Exists = false;
-					for (auto& l : Array) {
-						if (l.ItemClass == Desc) {
+					for (auto& outputArrayEntry : Array) {
+						if (outputArrayEntry.ItemClass == Desc) {
 							Exists = true;
-							if (l.Amount != Amount.Amount) {
-								l.Amount = Amount.Amount;
+							if (outputArrayEntry.Amount != Amount.Amount) {
+								outputArrayEntry.Amount = Amount.Amount;
 							}
 							break;
 						}
 					}
 					if (!Exists)
 						Array.Add(Amount);
+
 					Found = true;
 					break;
 				}
 			}
 			if (!Found)
-				UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *i.Key)
+				UE_LOG(LogContentLib, Error, TEXT("CL: Failed to find Item %s"), *entry.Key)
 		}
 	}
 }

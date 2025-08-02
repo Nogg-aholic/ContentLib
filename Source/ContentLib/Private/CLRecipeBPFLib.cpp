@@ -16,7 +16,7 @@
 #include "Registry/ModContentRegistry.h"
 #include "FGRecipeProducerInterface.h"
 
-void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe,bool ClearIngredients,bool ClearProducts,bool ClearBuilders, bool IgnoreInvalidRecipe)
+void UCLRecipeBPFLib::InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe,bool ClearIngredients,bool ClearProducts,bool ClearBuilders)
 {
 	if (!Recipe) {
 		return;
@@ -188,7 +188,7 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearIngredients, "ClearIngredients", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearProducts, "ClearProducts", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Recipe.ClearBuilders, "ClearBuilders", ParsedJson);
-	UBPFContentLib::SetBooleanFieldWithLog(Recipe.IgnoreInvalidRecipe, "IgnoreInvalidRecipe", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Recipe.RequireItemValidation, "RequireItemValidation", ParsedJson);
 
 	return Recipe;
 }
@@ -282,7 +282,7 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	const auto ClearIngredients = MakeShared<FJsonValueBoolean>(Recipe.ClearIngredients);
 	const auto ClearProducts = MakeShared<FJsonValueBoolean>(Recipe.ClearProducts);
 	const auto ClearBuilders = MakeShared<FJsonValueBoolean>(Recipe.ClearBuilders);
-	const auto IgnoreInvalidRecipe = MakeShared<FJsonValueBoolean>(Recipe.IgnoreInvalidRecipe);
+	const auto RequireItemValidation = MakeShared<FJsonValueBoolean>(Recipe.RequireItemValidation);
 
 
 
@@ -299,7 +299,7 @@ FString UCLRecipeBPFLib::SerializeCLRecipe(FContentLib_Recipe Recipe)
 	Obj->Values.Add("ClearIngredients", ClearIngredients);
 	Obj->Values.Add("ClearProducts", ClearProducts);
 	Obj->Values.Add("ClearBuilders", ClearBuilders);
-	Obj->Values.Add("IgnoreInvalidRecipe", IgnoreInvalidRecipe);
+	Obj->Values.Add("RequireItemValidation", RequireItemValidation);
 
 	FString Write;
 	const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Write); //Our Writer Factory

@@ -113,8 +113,9 @@ public:
 		static UClass* SetCategoryWithLoad(const FString CategoryString,
 		                                UContentLibSubsystem* Subsystem, bool Schematic);
 
+	// Checks if given item list contains at least one invalid item
 	UFUNCTION(BlueprintCallable)
-		static bool ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> Items);
+		static bool ContainsInvalidItem(TMap<FString, int32> Cost, TArray<UClass*> AllKnownItems);
 
 	UFUNCTION(BlueprintCallable)
 		static void AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FString,int32> Cost,TArray<UClass*> Items, bool ClearFirst);

@@ -38,16 +38,17 @@ USTRUCT(BlueprintType)
 struct  CONTENTLIB_API  FContentLib_Recipe
 {
 	GENERATED_BODY()
-	FContentLib_Recipe(): OverrideName(-1),
-	                      ManufacturingDuration(-1),
-	                      ManualManufacturingMultiplier(-1),
-	                      VariablePowerConsumptionFactor(-1),
-	                      VariablePowerConsumptionConstant(-1),
-	                      ManufacturingMenuPriority(-1),
-	                      ClearIngredients(true),
-	                      ClearProducts(true),
-	                      ClearBuilders(true),
-						  IgnoreInvalidRecipe(false)
+	FContentLib_Recipe():
+						OverrideName(-1),
+						ManufacturingDuration(-1),
+						ManualManufacturingMultiplier(-1),
+						VariablePowerConsumptionFactor(-1),
+						VariablePowerConsumptionConstant(-1),
+						ManufacturingMenuPriority(-1),
+						ClearIngredients(true),
+						ClearProducts(true),
+						ClearBuilders(true),
+						RequireItemValidation(false)
 	{
 	} ;
 
@@ -79,14 +80,16 @@ struct  CONTENTLIB_API  FContentLib_Recipe
 		float VariablePowerConsumptionConstant;
 	UPROPERTY(BlueprintReadWrite)
 		float ManufacturingMenuPriority;
+
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearIngredients;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearProducts;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearBuilders;
+
 	UPROPERTY(BlueprintReadWrite)
-		bool IgnoreInvalidRecipe;
+		bool RequireItemValidation;
 };
 
 
@@ -100,8 +103,9 @@ class CONTENTLIB_API UCLRecipeBPFLib : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	// Loads details of a FContentLib_Recipe onto a Recipe class. Note: Assumes RequireItemValidation property has already been handled.
 	UFUNCTION(BlueprintCallable)
-	static void InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe, bool ClearIngredients = true, bool ClearProducts = true, bool ClearBuilders = true, bool IgnoreInvalidRecipe = false);
+	static void InitRecipeFromStruct(UContentLibSubsystem* Subsystem ,FContentLib_Recipe RecipeStruct, TSubclassOf<class UFGRecipe> Recipe, bool ClearIngredients = true, bool ClearProducts = true, bool ClearBuilders = true);
 	UFUNCTION(BlueprintCallable)
 	static void AddToSchematicUnlock(TSubclassOf<class UFGRecipe> Recipe,FContentLib_Recipe RecipeStruct, UContentLibSubsystem* Subsystem);
 
@@ -121,5 +125,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static FString SerializeRecipe(TSubclassOf<UFGRecipe> Recipe);
 	UFUNCTION(BlueprintCallable)
-    static FString SerializeCLRecipe(FContentLib_Recipe Recipe);
+	static FString SerializeCLRecipe(FContentLib_Recipe Recipe);
 };
