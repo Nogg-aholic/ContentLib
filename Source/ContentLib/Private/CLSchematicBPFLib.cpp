@@ -365,13 +365,8 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		CDO->mTimeToComplete = Schematic.Time;
 
 	if (Schematic.ClearRecipes) {
-		// TODO why this and not CDO->mUnlocks.Empty();
-		auto copy = CDO->mUnlocks;
-		for (auto i : copy) {
-			if (Cast<UFGUnlockRecipe>(i)) {
-				CDO->mUnlocks.Remove(i);
-			}
-		}
+		auto elementIsRecipeUnlock = [](UFGUnlock* unlock) { return Cast<UFGUnlockRecipe>(unlock); };
+		CDO->mUnlocks.RemoveAll(elementIsRecipeUnlock);
 	}
 	for (const FString& i : Schematic.Recipes) {
 		UClass* RecipesClass = UBPFContentLib::FindClassWithLog(i, UFGRecipe::StaticClass(), SubSystem);
@@ -385,13 +380,8 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 	}
 
 	if (Schematic.ClearSchematics) {
-		// TODO why this and not CDO->mUnlocks.Empty();
-		auto copy = CDO->mUnlocks;
-		for (auto i : copy) {
-			if (Cast<UFGUnlockSchematic>(i)) {
-				CDO->mUnlocks.Remove(i);
-			}
-		}
+		auto elementIsSchematicUnlock = [](UFGUnlock* unlock) { return Cast<UFGUnlockSchematic>(unlock); };
+		CDO->mUnlocks.RemoveAll(elementIsSchematicUnlock);
 	}
 	for (const FString& i : Schematic.Schematics) {
 		UClass* Class = UBPFContentLib::FindClassWithLog(i, UFGSchematic::StaticClass(), SubSystem);
