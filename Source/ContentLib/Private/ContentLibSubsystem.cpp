@@ -63,25 +63,58 @@ void UContentLibSubsystem::FillLoadedClasses(bool logBuilders)
 void UContentLibSubsystem::CollectVisualKits()
 {
 	for (const auto& ItemPair : Items) {
-		const auto key = ItemPair.Key;
-		if (!key) {
+		const auto descriptor = ItemPair.Key;
+		if (!descriptor) {
 			continue;
 		}
-		const auto cdo = key->GetDefaultObject();
+		const auto cdo = descriptor->GetDefaultObject();
 		if (!cdo) {
 			continue;
 		}
-		UFGItemDescriptor* Item = Cast<UFGItemDescriptor>(cdo); // TODO why is this done when the field is unused? is it trying to load data that otherwise isn't loaded?
-		if (!Item) {
+		// TODO why is this done? Presumably to ensure valid object?
+		if (!Cast<UFGItemDescriptor>(cdo)) {
 			continue;
 		}
 		FContentLib_VisualKit Kit;
-		Kit.Mesh = UFGItemDescriptor::GetItemMesh(ItemPair.Key)->GetPathName();
-		Kit.BigIcon = UFGItemDescriptor::GetBigIcon(ItemPair.Key)->GetPathName();
-		Kit.SmallIcon = UFGItemDescriptor::GetSmallIcon(ItemPair.Key)->GetPathName();
-		Kit.FluidColor = UFGItemDescriptor::GetFluidColor(ItemPair.Key);
-		Kit.GasColor = UFGItemDescriptor::GetGasColor(ItemPair.Key);
-		VisualKits.Add(ItemPair.Key->GetName(), Kit);
+		Kit.Mesh = UFGItemDescriptor::GetItemMesh(descriptor)->GetPathName();
+		Kit.BigIcon = UFGItemDescriptor::GetBigIcon(descriptor)->GetPathName();
+		Kit.SmallIcon = UFGItemDescriptor::GetSmallIcon(descriptor)->GetPathName();
+		Kit.FluidColor = UFGItemDescriptor::GetFluidColor(descriptor);
+		Kit.GasColor = UFGItemDescriptor::GetGasColor(descriptor);
+		VisualKits.Add(descriptor->GetName(), Kit);
+	}
+
+	for (const auto& SchematicPair : Schematics) {
+		const auto schematic = SchematicPair.Key;
+		if (!schematic) {
+			continue;
+		}
+		const auto cdo = schematic->GetDefaultObject();
+		if (!cdo) {
+			continue;
+		}
+		// TODO why is this done? Presumably to ensure valid object?
+		if (!Cast<UFGSchematic>(cdo)) {
+			continue;
+		}
+		FContentLib_VisualKit Kit;
+		Kit.Mesh = TEXT("None");
+		Kit.SmallIcon = UFGSchematic::GetSmallIcon(schematic)->GetPathName();
+		auto brush = UFGSchematic::GetItemIcon(schematic);
+		auto brushPathname = brush.GetResourceObject()->GetPathName();
+		if (brush.HasUObject()) {
+			Kit.BigIcon = brushPathname;
+		} else {
+			// This happens on a ton of vanilla stuff that isn't meant to have icons... not sure under what conditions it would be useful to log it
+			// UE_LOG(LogContentLib, Warning, TEXT("Non-UObject brush detected for schematic %s, using its small icon as its big icon for visual kit. BigIcon resource object is: %s"), *schematic->GetPathName(), *brush.GetResourceObject()->GetPathName());
+			Kit.BigIcon = Kit.SmallIcon;
+		}
+		if (brushPathname.Equals("None") && UFGSchematic::GetType(schematic) == ESchematicType::EST_Milestone) {
+			UE_LOG(LogContentLib, Warning, TEXT("Visual kit for Milestone schematic %s has no big icon, this will cause display problems in the HUB"), *schematic->GetPathName());
+		}
+		Kit.FluidColor = FColor::Magenta;
+		Kit.GasColor = FColor::Magenta;
+		VisualKits.Add(schematic->GetName(), Kit);
 	}
 }
 
