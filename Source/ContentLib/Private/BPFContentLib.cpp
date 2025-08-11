@@ -266,7 +266,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 
 void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool Relative) {
 
-#if WITH_EDITOR 
+#if WITH_EDITOR
 	FFileHelper::SaveStringToFile(resultString, Relative ? *(FPaths::ProjectDir() + Path) : *Path);
 #else
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
@@ -295,7 +295,7 @@ UTexture2D* UBPFContentLib::LoadTextureFromFile(FString& String, FString Path, b
 }
 
 bool UBPFContentLib::LoadStringFromFile(FString& String, FString Path, bool Relative) {
-#if WITH_EDITOR 
+#if WITH_EDITOR
 	return FFileHelper::LoadFileToString(String, Relative ? *(FPaths::ProjectDir() + Path) : *Path);
 #else
 	const FString AbsoluteRootPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
@@ -736,7 +736,7 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 			if (!Cast<UFGUnlockRecipe>(f)->mRecipes.Contains(Recipe)) {
 				Cast<UFGUnlockRecipe>(f)->mRecipes.Add(Recipe);
 				Added = true;
-				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe to %s in Schematic %s "), *Recipe->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 					break;
 			}
 		}
@@ -746,13 +746,13 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"));
 			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockRecipe* Object = NewObject<UFGUnlockRecipe>(Schematic.GetDefaultObject(), Class);
 		Object->mRecipes.Add(Recipe);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 	}
 }
 
@@ -764,7 +764,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 			if (!Cast<UFGUnlockSchematic>(f)->mSchematics.Contains(SchematicToAdd)) {
 				Cast<UFGUnlockSchematic>(f)->mSchematics.Add(SchematicToAdd);
 				Added = true;
-				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic to %s in Schematic %s "), *SchematicToAdd->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 					break;
 			}
 		}
@@ -780,7 +780,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(Schematic.GetDefaultObject(), Class);
 		Object->mSchematics.Add(SchematicToAdd);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 	}
 }
 
@@ -796,7 +796,7 @@ void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 	NewEntry->mUnlockName = InfoCardToAdd.mUnlockName;
 	NewEntry->mUnlockDescription = InfoCardToAdd.mUnlockDescription;
 
-	// TODO consider switching to subsystem find 
+	// TODO consider switching to subsystem find
 	//auto big = Subsystem->Icons.Find(InfoCardToAdd.BigIcon);
 	auto big = LoadObject<UTexture2D>(nullptr, *InfoCardToAdd.BigIcon);
 	if (!big) {
@@ -954,7 +954,7 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 			}
 		}
 	}
-	// No existing 
+	// No existing
 	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_SchematicPurchasedDependency_C"), false);
 	if (!Class) {
 		Class = LoadClass<UClass>(nullptr, TEXT("/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"));
