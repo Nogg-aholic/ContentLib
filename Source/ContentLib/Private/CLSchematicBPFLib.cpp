@@ -177,6 +177,8 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 		Schematic.ClearSubCategories = false;
 	if (!UBPFContentLib::SetStringArrayFieldWithLog(Schematic.Recipes, "Recipes", ParsedJson))
 		Schematic.ClearRecipes = false;
+	if (!UBPFContentLib::SetStringArrayFieldWithLog(Schematic.Schematics, "Schematics", ParsedJson))
+		Schematic.ClearSchematics = false;
 	if (!UBPFContentLib::SetStringArrayFieldWithLog(Schematic.DependsOn, "DependsOn", ParsedJson))
 		Schematic.ClearDeps = false;
 	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Schematic.Cost, "Cost", ParsedJson))
@@ -188,6 +190,7 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearSubCategories, "ClearSubCategories", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearCost, "ClearCost", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearRecipes, "ClearRecipes", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearSchematics, "ClearSchematics", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson); // TODO is this even used?
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearItemsToGive, "ClearItemsToGive", ParsedJson);
 
@@ -362,13 +365,8 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		CDO->mTimeToComplete = Schematic.Time;
 
 	if (Schematic.ClearRecipes) {
-		// TODO why this and not CDO->mUnlocks.Empty();
-		auto copy = CDO->mUnlocks;
-		for (auto i : copy) {
-			if (Cast<UFGUnlockRecipe>(i)) {
-				CDO->mUnlocks.Remove(i);
-			}
-		}
+		auto elementIsRecipeUnlock = [](UFGUnlock* unlock) { return Cast<UFGUnlockRecipe>(unlock); };
+		CDO->mUnlocks.RemoveAll(elementIsRecipeUnlock);
 	}
 	for (const FString& i : Schematic.Recipes) {
 		UClass* RecipesClass = UBPFContentLib::FindClassWithLog(i, UFGRecipe::StaticClass(), SubSystem);
@@ -376,12 +374,16 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, SubSystem, RecipesClass);
 		}
 	}
-
+	
 	for (const auto& entry : Schematic.InfoCards) {
 		UBPFContentLib::AddInfoOnlyToUnlock(SchematicClass, SubSystem, entry);
 	}
 
-	for (const FString& i : Schematic.Schematics) { // TODO what sets this field?
+	if (Schematic.ClearSchematics) {
+		auto elementIsSchematicUnlock = [](UFGUnlock* unlock) { return Cast<UFGUnlockSchematic>(unlock); };
+		CDO->mUnlocks.RemoveAll(elementIsSchematicUnlock);
+	}
+	for (const FString& i : Schematic.Schematics) {
 		UClass* Class = UBPFContentLib::FindClassWithLog(i, UFGSchematic::StaticClass(), SubSystem);
 		if (Class) {
 			UBPFContentLib::AddSchematicToUnlock(SchematicClass, SubSystem, Class);
@@ -536,13 +538,18 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 		SubCats.Add(MakeShared<FJsonValueString>(i->GetPathName()));
 	}
 	TArray< TSharedPtr<FJsonValue>> Recipes;
+	TArray< TSharedPtr<FJsonValue>> Schematics;
 	for (auto& i : CDO->mUnlocks) {
 		if (Cast<UFGUnlockRecipe>(i)) {
 			for (auto& e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
-		// TODO schematic unlocks
+		if (Cast<UFGUnlockSchematic>(i)) {
+			for (auto& e : Cast<UFGUnlockSchematic>(i)->mSchematics) {
+				Schematics.Add(MakeShared<FJsonValueString>(e->GetPathName()));
+			}
+		}
 		// TODO arm slot, inventory slot unlocks
 		// TODO info only unlocks
 	}
@@ -558,6 +565,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 
 	const auto DepArray = MakeShared<FJsonValueArray>(Deps);
 	const auto RecipesArray = MakeShared<FJsonValueArray>(Recipes);
+	const auto SchematicsArray = MakeShared<FJsonValueArray>(Schematics);
 	const auto CostArray = MakeShared<FJsonValueArray>(Cost);
 	const auto SubCatArray = MakeShared<FJsonValueArray>(SubCats);
 
@@ -572,6 +580,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	Obj->Values.Add("IconBig", IconBig);
 	Obj->Values.Add("IconSmall", IconSmall);
 	Obj->Values.Add("Recipes", RecipesArray);
+	Obj->Values.Add("Schematics", SchematicsArray);
 	Obj->Values.Add("DependsOn", DepArray);
 
 	FString Write;

@@ -93,6 +93,7 @@ struct CONTENTLIB_API FContentLib_Schematic
 		ClearSubCategories(false),
 		ClearCost(false),
 		ClearRecipes(false),
+		ClearSchematics(false),
 		ClearDeps(false),
 		ClearItemsToGive(false)
 	{
@@ -142,6 +143,8 @@ struct CONTENTLIB_API FContentLib_Schematic
 		bool ClearCost;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearRecipes;
+	UPROPERTY(BlueprintReadWrite)
+		bool ClearSchematics;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearDeps;
 	UPROPERTY(BlueprintReadWrite)
