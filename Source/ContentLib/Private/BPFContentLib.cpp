@@ -736,7 +736,7 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 			if (!Cast<UFGUnlockRecipe>(f)->mRecipes.Contains(Recipe)) {
 				Cast<UFGUnlockRecipe>(f)->mRecipes.Add(Recipe);
 				Added = true;
-				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe to %s in Schematic %s "), *Recipe->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 					break;
 			}
 		}
@@ -746,13 +746,13 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 		if (!Class) {
 			Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"));
 			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldnt find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
 		UFGUnlockRecipe* Object = NewObject<UFGUnlockRecipe>(Schematic.GetDefaultObject(), Class);
 		Object->mRecipes.Add(Recipe);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe to %s in Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 	}
 }
 
@@ -764,7 +764,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 			if (!Cast<UFGUnlockSchematic>(f)->mSchematics.Contains(SchematicToAdd)) {
 				Cast<UFGUnlockSchematic>(f)->mSchematics.Add(SchematicToAdd);
 				Added = true;
-				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic to %s in Schematic %s "), *SchematicToAdd->GetName(), *Schematic->GetName())
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 					break;
 			}
 		}
@@ -780,7 +780,7 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(Schematic.GetDefaultObject(), Class);
 		Object->mSchematics.Add(SchematicToAdd);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Schematic to %s in Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 	}
 }
 
