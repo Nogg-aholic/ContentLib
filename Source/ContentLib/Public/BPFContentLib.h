@@ -12,7 +12,7 @@
 #include "ItemAmount.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/ObjectWriter.h"
-#include "Serialization/ObjectReader.h" 
+#include "Serialization/ObjectReader.h"
 #include "Kismet/BlueprintAssetHelperLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -44,7 +44,7 @@ struct grab_FuncTable {
 template struct Grab<grab_FuncTable, &UClass::FuncMap>;
 
 /**
- * 
+ *
  */
 UCLASS()
 class CONTENTLIB_API UBPFContentLib : public UBlueprintFunctionLibrary
@@ -86,9 +86,16 @@ public:
 	static void SetSmallIntegerFieldWithLog(uint8& Field, const FString FieldName, TSharedPtr<FJsonObject> Result);
 	static void SetStringFieldWithLog(FString& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
 	static bool SetStringArrayFieldWithLog(TArray<FString>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
+  static bool SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_UnlockScannableResource>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
 	static bool SetStringIntMapFieldWithLog(TMap<FString,int32>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
 	static bool SetColorFieldWithLog(FColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
 	static bool SetLinearColorFieldWithLog(FLinearColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+
+  UFUNCTION(BlueprintCallable)
+    static EResourceNodeType GetResourceNodeType(FString NodeTypeName);
+
+  UFUNCTION(BlueprintCallable)
+    static FString GetResourceNodeTypeString(EResourceNodeType NodeType);
 
 	UFUNCTION(BlueprintCallable)
 		static void WriteStringToFile(FString Path, FString resultString, bool Relative);
@@ -129,7 +136,15 @@ public:
 	                          TSubclassOf<UFGSchematic> SchematicToAdd);
 
 	UFUNCTION(BlueprintCallable)
-		static void AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, 
+	static void AddScannableResourceToUnlock(
+    TSubclassOf<UFGSchematic> Schematic,
+    UContentLibSubsystem* Subsystem,
+    TSubclassOf<UFGResourceDescriptor> ScannableResource,
+    EResourceNodeType NodeType
+  );
+
+	UFUNCTION(BlueprintCallable)
+		static void AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
 			FContentLib_UnlockInfoOnly InfoOnlyToAdd);
 
 	UFUNCTION(BlueprintCallable)

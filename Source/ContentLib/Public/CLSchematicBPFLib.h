@@ -61,6 +61,17 @@ struct CONTENTLIB_API FContentLib_ResearchNode
 };
 
 USTRUCT(BlueprintType)
+struct CONTENTLIB_API FContentLib_UnlockScannableResource {
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+		FString Resource;
+
+	UPROPERTY(BlueprintReadWrite)
+		FString NodeType;
+};
+
+USTRUCT(BlueprintType)
 struct CONTENTLIB_API FContentLib_UnlockInfoOnly {
 	GENERATED_BODY()
 
@@ -94,6 +105,7 @@ struct CONTENTLIB_API FContentLib_Schematic
 		ClearCost(false),
 		ClearRecipes(false),
 		ClearSchematics(false),
+    ClearScannableResources(false),
 		ClearDeps(false),
 		ClearItemsToGive(false)
 	{
@@ -123,6 +135,8 @@ struct CONTENTLIB_API FContentLib_Schematic
 	UPROPERTY(BlueprintReadWrite)
 		TArray< FString > Schematics;
 	UPROPERTY(BlueprintReadWrite)
+		TArray< FContentLib_UnlockScannableResource > ScannableResources;
+	UPROPERTY(BlueprintReadWrite)
 		TArray< FContentLib_UnlockInfoOnly > InfoCards;
 	UPROPERTY(BlueprintReadWrite)
 		int32 InventorySlotsToGive;
@@ -145,6 +159,8 @@ struct CONTENTLIB_API FContentLib_Schematic
 		bool ClearRecipes;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearSchematics;
+	UPROPERTY(BlueprintReadWrite)
+		bool ClearScannableResources;
 	UPROPERTY(BlueprintReadWrite)
 		bool ClearDeps;
 	UPROPERTY(BlueprintReadWrite)
