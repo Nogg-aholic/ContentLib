@@ -164,6 +164,9 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
     UFUNCTION(BlueprintCallable)
     static void InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item Struct, UContentLibSubsystem* Subsystem);
 
+	UFUNCTION(BlueprintCallable)
+	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints);
+
 
 	UFUNCTION(BlueprintCallable)
 	static FString GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescriptor> Item);

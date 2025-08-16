@@ -6,6 +6,9 @@
 #include "FGWorldSettings.h"
 #include "ContentLib.h"
 #include "Serialization/JsonSerializer.h"
+#include "FGResourceSinkSettings.h"
+#include "FGResourceSinkSubsystem.h"
+#include "Engine/DataTable.h"
 
 
 
@@ -661,7 +664,7 @@ FString UCLItemBPFLib::GetVisualKitAsString(FContentLib_VisualKit Kit)
 	return Write;
 }
 
-void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item ItemStruct,UContentLibSubsystem * Subsystem)
+void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item ItemStruct, UContentLibSubsystem * Subsystem)
 {
 	if(!Item)
 		return;
@@ -751,6 +754,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	{
 		// TODO this writes to a cache field, to actually overwrite points we need to talk to the subsystem
 		CDO->mResourceSinkPoints = ItemStruct.ResourceSinkPoints;
+		//UpdateSinkPoints(SinkSubsystem, Item, ItemStruct.ResourceSinkPoints);
 	}
 
 	if (Item->IsChildOf(UFGResourceDescriptor::StaticClass()))
@@ -789,6 +793,53 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 			Cast<UFGItemDescriptorNuclearFuel>(CDO)->mAmountOfWaste = ItemStruct.FuelWasteItem.AmountOfWaste;
 		}
 	}
+}
+
+void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints)
+{
+	//TODO: This currently only works for new items. Item patches seem to do nothing. SetupPointsData probably does not replace existing entries. Modification may need to take place earlier than this.
+
+	if (sinkPoints < 0 || not sinkPoints) { 
+		return; //If item does not have sink points
+	}
+
+	if (not SinkSubsystem) {
+		UE_LOG(LogContentLib, Error, TEXT("Could not find resource sink subsystem, item cannot be sunk"));
+		return;
+	}
+
+	EResourceSinkTrack SinkTrack;
+	int32 oldSinkPoints;
+	if (not SinkSubsystem->FindResourceSinkPointsForItem(Item, oldSinkPoints, SinkTrack)) {
+		SinkTrack = EResourceSinkTrack::RST_Default; //If the item does not have a sink track -> add to default
+		UE_LOG(LogContentLib, Error, TEXT("item not found"));
+	}
+
+	FResourceSinkPointsData SinkPoints;
+	SinkPoints.ItemClass = Item;
+	SinkPoints.Points = sinkPoints;
+	TMap<FName, const uint8*> DummyDataMap;
+
+	FString Message = UEnum::GetValueAsString(SinkTrack);
+	UE_LOG(LogContentLib, Error, TEXT("Sink Track: %s"), *Message);
+	UE_LOG(LogContentLib, Error, TEXT("New Sink Points: %s"), *FString::FromInt(sinkPoints));
+
+	if (SinkTrack == EResourceSinkTrack::RST_Default) {
+		UDataTable* DefaultPointsDataTable = NewObject<UDataTable>();
+		DefaultPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
+		DefaultPointsDataTable->AddRow(Item->GetFName(), SinkPoints);
+		SinkSubsystem->SetupPointData(SinkTrack, DefaultPointsDataTable);
+		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Default' Sink Track..."), *Item->GetName());
+	}
+	else if (SinkTrack == EResourceSinkTrack::RST_Exploration) {
+		UDataTable* ExplorationPointsDataTable = NewObject<UDataTable>();
+		ExplorationPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
+		ExplorationPointsDataTable->AddRow(Item->GetFName(), SinkPoints);
+		SinkSubsystem->SetupPointData(SinkTrack, ExplorationPointsDataTable);
+		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Exploration' Sink Track..."), *Item->GetName());
+	}
+	
+
 }
 
 
