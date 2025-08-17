@@ -17,12 +17,8 @@ void UCLUtilBPFLib::SortPairs(TArray<TSubclassOf<UObject>>& Array_To_Sort_Keys, 
 		if (Descending == true)  {
 			for (int32 k = 0; k < m - a - 1; k++) {
 				if (Array_To_Sort_Values[k] < Array_To_Sort_Values[k + 1]) {
-					const float z = Array_To_Sort_Values[k];
-					const auto Ob = Array_To_Sort_Keys[k];
-					Array_To_Sort_Values[k] = Array_To_Sort_Values[k + 1];
-					Array_To_Sort_Keys[k] = Array_To_Sort_Keys[k + 1];
-					Array_To_Sort_Values[k + 1] = z;
-					Array_To_Sort_Keys[k + 1] = Ob;
+					Swap(Array_To_Sort_Keys[k], Array_To_Sort_Keys[k + 1]);
+					Swap(Array_To_Sort_Values[k], Array_To_Sort_Values[k + 1]);
 					bDidSwap = true;
 				}
 			}
@@ -30,16 +26,11 @@ void UCLUtilBPFLib::SortPairs(TArray<TSubclassOf<UObject>>& Array_To_Sort_Keys, 
 			if (bDidSwap == false)  {
 				break;
 			}
-		}
-		else {
+		} else {
 			for (int32 k = 0; k < m - a - 1; k++) {
 				if (Array_To_Sort_Values[k] > Array_To_Sort_Values[k + 1]) {
-					const float z = Array_To_Sort_Values[k];
-					const auto Ob = Array_To_Sort_Keys[k];
-					Array_To_Sort_Values[k] = Array_To_Sort_Values[k + 1];
-					Array_To_Sort_Keys[k] = Array_To_Sort_Keys[k + 1];
-					Array_To_Sort_Values[k + 1] = z;
-					Array_To_Sort_Keys[k + 1] = Ob;
+					Swap(Array_To_Sort_Keys[k], Array_To_Sort_Keys[k + 1]);
+					Swap(Array_To_Sort_Values[k], Array_To_Sort_Values[k + 1]);
 					bDidSwap = true;
 				}
 			}
@@ -70,7 +61,7 @@ TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::Ca
 		Map.Add(i, InValue);
 	}
 	return Map;
-};
+}
 
 void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,UContentLibSubsystem* System)
 {
@@ -143,7 +134,7 @@ void UCLUtilBPFLib::PrintSortedItems(UContentLibSubsystem* System)
 	for(int32 i = 0; i< Array_To_Sort_Keys.Num(); i++) {
 		UE_LOG(LogContentLib,Display,TEXT("Item: %s MJ: %f"), *Array_To_Sort_Keys[i]->GetName(),Array_To_Sort_Values[i]);
 	}
-};
+}
 
 
 int32 UCLUtilBPFLib::CalculateDepth(UContentLibSubsystem * System, const TSubclassOf<UFGItemDescriptor> Item)
@@ -155,34 +146,37 @@ int32 UCLUtilBPFLib::CalculateDepth(UContentLibSubsystem * System, const TSubcla
 		RecurseIngredients(Item,RecipesItem,Recipes,System,false,Exc,true);
 		return Recipes.Num();
 	}
-	return 0 ;
+	return 0;
 }
 
-void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<class UFGItemDescriptor> Item, TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst)
+void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<UFGItemDescriptor> Item, TArray<TSubclassOf<UFGItemDescriptor>>& AllItems, TArray<TSubclassOf<UFGRecipe>>& AllRecipes, UContentLibSubsystem* System, bool SkipAlternate, const TArray<TSubclassOf<UFGRecipe>>& Excluded, bool UseFirst)
 {
-	if(!System)
+	if (!System) {
 		return;
+	}
 	
 	const int32 Len = AllRecipes.Num(); 
-	for(auto& i : System->Items.Find(Item)->ProductInRecipe) {
-		if(!Excluded.Contains(i))
+	for (const auto& i : System->Items.Find(Item)->ProductInRecipe) {
+		if (!Excluded.Contains(i)) {
 			continue;
-		if(!AllRecipes.Contains(i))
-			AllRecipes.Add(i);
-		FFactoryGame_Recipe Recipe = *System->Recipes.Find(i); 
-		if(Recipe.UnlockedFromAlternate() && SkipAlternate)
-			continue;
-		
-		for(auto& e: Recipe.Ingredients()) {
-			if(!AllRecipes.Contains(i))
-				RecurseIngredients(e, AllItems,AllRecipes,System, SkipAlternate,Excluded);
-			if(!AllItems.Contains(e))
-				AllItems.Add(e);
 		}
-		if(UseFirst && Len != AllRecipes.Num())
+		AllRecipes.AddUnique(i);
+		FFactoryGame_Recipe Recipe = *System->Recipes.Find(i); 
+		if (Recipe.UnlockedFromAlternate() && SkipAlternate) {
+			continue;
+		}
+		
+		for (const auto& e: Recipe.Ingredients()) {
+			if (!AllRecipes.Contains(i)) {
+				RecurseIngredients(e, AllItems, AllRecipes, System, SkipAlternate, Excluded);
+			}
+			AllItems.AddUnique(e);
+		}
+		if (UseFirst && Len != AllRecipes.Num()) {
 			return;
+		}
 	}
-};
+}
 
 void UCLUtilBPFLib::AddToSchematicArrayProp(UPARAM(ref)FFactoryGame_Schematic& Obj,
                                                     const TSubclassOf<UFGSchematic> Schematic, const int32 Index)

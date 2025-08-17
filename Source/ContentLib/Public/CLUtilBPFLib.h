@@ -45,7 +45,7 @@ public:
 	static void PrintSortedItems( UContentLibSubsystem* System);
 
 	UFUNCTION(BlueprintCallable)
-	static void RecurseIngredients(TSubclassOf<class UFGItemDescriptor> Item , UPARAM(ref)TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , UPARAM(ref)TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst = false);
+	static void RecurseIngredients(TSubclassOf<UFGItemDescriptor> Item, UPARAM(ref)TArray<TSubclassOf<UFGItemDescriptor>>& AllItems, UPARAM(ref)TArray<TSubclassOf<UFGRecipe>>& AllRecipes, UContentLibSubsystem* System, bool SkipAlternate, const TArray<TSubclassOf<UFGRecipe>>& Excluded, bool UseFirst = false);
 
 	UFUNCTION(BlueprintCallable)
 	static int32 CalculateDepth(UContentLibSubsystem* System, TSubclassOf<UFGItemDescriptor> Item);
