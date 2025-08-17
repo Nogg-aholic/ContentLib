@@ -63,14 +63,23 @@ class CONTENTLIB_API UCLCategoryBPFLib : public UBlueprintFunctionLibrary
     static FString GenerateFromSchematicCategory(TSubclassOf<UFGSchematicCategory> Item);
 	UFUNCTION(BlueprintCallable)
     static FContentLib_SchematicCategory CLSchematicCategoryFromString(FString String, UContentLibSubsystem* Subsystem);
+
 	UFUNCTION(BlueprintCallable)
-	static void InitItemCategoryFromStruct(FContentLib_ItemCategory SchematicCategory, TSubclassOf<UFGItemCategory> SchematicCategoryClass,  UContentLibSubsystem* Subsystem);
+	static void InitItemCategoryFromStruct(FContentLib_ItemCategory SchematicCategory, TSubclassOf<UFGItemCategory> SchematicCategoryClass, UContentLibSubsystem* Subsystem);
+
 	UFUNCTION(BlueprintCallable)
-	static void InitSchematicCategoryFromStruct(FContentLib_SchematicCategory Schematic, TSubclassOf<UFGSchematicCategory> SchematicClass,   UContentLibSubsystem* SubSystem);
+	static void InitCategoryFromSchematicStruct(FContentLib_SchematicCategory SchematicCategory, TSubclassOf<UFGCategory> CategoryClass, UContentLibSubsystem* Subsystem);
+	// TODO: These could be removed in favour of the general `InitCategoryFromSchematicStruct` function
+	UFUNCTION(BlueprintCallable)
+	static void InitSchematicCategoryFromStruct(FContentLib_SchematicCategory SchematicCategory, TSubclassOf<UFGSchematicCategory> SchematicClass, UContentLibSubsystem* SubSystem);
 	UFUNCTION(BlueprintCallable)
 	static void InitBuildCategoryFromStruct(FContentLib_SchematicCategory SchematicCategory, TSubclassOf<UFGBuildCategory> BuildCategoryClass, UContentLibSubsystem* Subsystem);
+
+	UFUNCTION(BlueprintCallable)
+	static void ApplyVisualKitToCategory(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit, TSubclassOf<UFGCategory> Category);
+	// TODO: These could be removed in favour of the general `ApplyVisualKitToCategory` function
 	UFUNCTION(BlueprintCallable)
 	static void ApplyVisualKitToPurchaseCategory(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit, TSubclassOf<UFGBuildCategory> Item);
 	UFUNCTION(BlueprintCallable)
-	static void ApplyVisualKitToSchematicCategory(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit,  TSubclassOf<UFGSchematicCategory> Item);
+	static void ApplyVisualKitToSchematicCategory(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit, TSubclassOf<UFGSchematicCategory> Item);
 };

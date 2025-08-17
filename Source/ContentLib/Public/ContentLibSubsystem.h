@@ -53,7 +53,7 @@ struct  CONTENTLIB_API  FFactoryGame_RecipeMJ
 	bool HasAssignedMJ() const;
 	bool TryAssignMJ(UContentLibSubsystem * System);
 
-	int32 GetItemAmount(TSubclassOf<UFGItemDescriptor> Item, bool Ingredient);
+	int32 GetItemAmount(TSubclassOf<UFGItemDescriptor> Item, bool Ingredient) const;
 	private:
 	bool CanCalculateMj(UContentLibSubsystem * System) const;
 	float GetAverageBuildingCost(TArray<TSubclassOf<UObject>> Exclude)const;
