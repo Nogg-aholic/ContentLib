@@ -1,5 +1,6 @@
 #include "BPFContentLib.h"
 
+#include "Algo/Reverse.h"
 #include "FGSchematic.h"
 #include "FGSchematicCategory.h"
 #include "FGSchematicManager.h"
@@ -373,13 +374,7 @@ void UBPFContentLib::String_Sort(UPARAM(ref) TArray <FString>& Array_To_Sort, bo
 	Sorted_Array.Sort();               // Sort array using built in function (sorts A-Z)
 
 	if (Descending == true) {
-		TArray <FString> NewArray;      // Define "temp" holding array
-		int x = Sorted_Array.Num() - 1;
-		while (x > -1) {
-			NewArray.Add(Sorted_Array[x]); // loop through A-Z sorted array and remove element from back and place it in beginning of "temp" array
-			--x;
-		}
-		Sorted_Array = NewArray;   // Set reference array to "temp" array order, array is now Z-A
+		Algo::Reverse(Sorted_Array);
 	}
 }
 
@@ -394,31 +389,13 @@ bool UBPFContentLib::GetFilesInPath(const FString& FullPathOfBaseDir, TArray<FSt
 		{
 			//Files
 			if (!bIsDirectory) {
-				//Filter by Extension
-				if (FileExt != "") {
-					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
+				Str = FPaths::GetCleanFilename(FilenameOrDirectory);
 
-					//Filter by Extension
-					if (FPaths::GetExtension(Str).ToLower() == FileExt) {
-						if (Recursive) {
-							FilenamesOut.Push(FilenameOrDirectory); //need whole path for recursive
-						}
-						else {
-							FilenamesOut.Push(Str);
-						}
-					}
-				}
-
-				//Include All Filenames!
-				else
-				{
-					//Just the Directory
-					Str = FPaths::GetCleanFilename(FilenameOrDirectory);
-
+				//Filter by Extension if specified, otherwise Include All Filenames!
+				if (FileExt == "" || FPaths::GetExtension(Str).ToLower() == FileExt) {
 					if (Recursive) {
 						FilenamesOut.Push(FilenameOrDirectory); //need whole path for recursive
-					}
-					else {
+					} else {
 						FilenamesOut.Push(Str);
 					}
 				}
@@ -730,11 +707,16 @@ void UBPFContentLib::AddToItemAmountArray(TArray<FItemAmount>& Array, TMap<FStri
 
 void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const TSubclassOf<class UFGRecipe> Recipe)
 {
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
 	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockRecipe>(f)) {
-			if (!Cast<UFGUnlockRecipe>(f)->mRecipes.Contains(Recipe)) {
-				Cast<UFGUnlockRecipe>(f)->mRecipes.Add(Recipe);
+	for (auto f : CDO->mUnlocks) {
+		if (UFGUnlockRecipe* unlock = Cast<UFGUnlockRecipe>(f)) {
+			if (!unlock->mRecipes.Contains(Recipe)) {
+				unlock->mRecipes.Add(Recipe);
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 					break;
@@ -749,20 +731,25 @@ void UBPFContentLib::AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UCon
 				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockRecipe_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
-		UFGUnlockRecipe* Object = NewObject<UFGUnlockRecipe>(Schematic.GetDefaultObject(), Class);
+		UFGUnlockRecipe* Object = NewObject<UFGUnlockRecipe>(CDO, Class);
 		Object->mRecipes.Add(Recipe);
-		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
+		CDO->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Recipe %s to unlocks of Schematic %s."), *Recipe->GetName(), *Schematic->GetName())
 	}
 }
 
 void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const TSubclassOf<class UFGSchematic> SchematicToAdd)
 {
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
 	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockSchematic>(f)) {
-			if (!Cast<UFGUnlockSchematic>(f)->mSchematics.Contains(SchematicToAdd)) {
-				Cast<UFGUnlockSchematic>(f)->mSchematics.Add(SchematicToAdd);
+	for (auto f : CDO->mUnlocks) {
+		if (UFGUnlockSchematic* unlock = Cast<UFGUnlockSchematic>(f)) {
+			if (!unlock->mSchematics.Contains(SchematicToAdd)) {
+				unlock->mSchematics.Add(SchematicToAdd);
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 					break;
@@ -777,14 +764,20 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
-		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(Schematic.GetDefaultObject(), Class);
+		UFGUnlockSchematic* Object = NewObject<UFGUnlockSchematic>(CDO, Class);
 		Object->mSchematics.Add(SchematicToAdd);
-		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
+		CDO->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Schematic %s to unlocks of Schematic %s."), *SchematicToAdd->GetName(), *Schematic->GetName())
 	}
 }
 
-void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
+void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd)
+{
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
 	UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockInfoOnly_C"), false);
 	if (!Class) {
 		Class = LoadObject<UClass>(nullptr, TEXT("/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"));
@@ -792,7 +785,7 @@ void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockInfoOnly_C wanting to Add to %s"), *Schematic->GetName())
 		}
 	}
-	UFGUnlockInfoOnly* NewEntry = NewObject<UFGUnlockInfoOnly>(Schematic.GetDefaultObject(), Class);
+	UFGUnlockInfoOnly* NewEntry = NewObject<UFGUnlockInfoOnly>(CDO, Class);
 	NewEntry->mUnlockName = InfoCardToAdd.mUnlockName;
 	NewEntry->mUnlockDescription = InfoCardToAdd.mUnlockDescription;
 
@@ -822,17 +815,22 @@ void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 		NewEntry->mUnlockIconCategory = category;
 	}
 
-	Schematic.GetDefaultObject()->mUnlocks.Add(NewEntry);
+	CDO->mUnlocks.Add(NewEntry);
 	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added InfoCard %s in Schematic %s."), *InfoCardToAdd.mUnlockName.ToString(), *Schematic->GetName())
 }
 
 void UBPFContentLib::AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const int32 Slots)
 {
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
 	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockInventorySlot>(f)) {
-			if (!(Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock != Slots)) {
-				Cast<UFGUnlockInventorySlot>(f)->mNumInventorySlotsToUnlock = Slots;
+	for (auto f : CDO->mUnlocks) {
+		if (const auto unlock = Cast<UFGUnlockInventorySlot>(f)) {
+			if (!(unlock->mNumInventorySlotsToUnlock != Slots)) {
+				unlock->mNumInventorySlotsToUnlock = Slots;
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
 					break;
@@ -847,18 +845,23 @@ void UBPFContentLib::AddInventorySlotsToUnlock(TSubclassOf<UFGSchematic> Schemat
 				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockSchematic_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
-		UFGUnlockInventorySlot* Object = NewObject<UFGUnlockInventorySlot>(Schematic.GetDefaultObject(), Class);
+		UFGUnlockInventorySlot* Object = NewObject<UFGUnlockInventorySlot>(CDO, Class);
 		Object->mNumInventorySlotsToUnlock = Slots;
-		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
+		CDO->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set UnlockSlots to %i in Schematic %s "), Slots, *Schematic->GetName())
 	}
 }
 
 void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const TMap<FString, int32> ItemsToGive, bool ClearFirst)
 {
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockGiveItem>(f)) {
-			AddToItemAmountArray(Cast<UFGUnlockGiveItem>(f)->mItemsToGive, ItemsToGive, Subsystem->mItems, ClearFirst);
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
+	for (auto f : CDO->mUnlocks) {
+		if (const auto unlock = Cast<UFGUnlockGiveItem>(f)) {
+			AddToItemAmountArray(unlock->mItemsToGive, ItemsToGive, Subsystem->mItems, ClearFirst);
 			return;
 		}
 	}
@@ -870,19 +873,24 @@ void UBPFContentLib::AddGiveItemsToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockGiveItem wanting to Add to %s"), *Schematic->GetName())
 		}
 	}
-	UFGUnlockGiveItem* Object = NewObject<UFGUnlockGiveItem>(Schematic.GetDefaultObject(), Class);
+	UFGUnlockGiveItem* Object = NewObject<UFGUnlockGiveItem>(CDO, Class);
 	AddToItemAmountArray(Object->mItemsToGive, ItemsToGive, Subsystem->mItems, ClearFirst);
-	Schematic.GetDefaultObject()->mUnlocks.Add(Object);
+	CDO->mUnlocks.Add(Object);
 	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set for Items to Give in Schematic %s "), *Schematic->GetName())
 }
 
 void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, const int32 Slots)
 {
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
 	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockArmEquipmentSlot>(f)) {
-			if (!(Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock != Slots)) {
-				Cast<UFGUnlockArmEquipmentSlot>(f)->mNumArmEquipmentSlotsToUnlock = Slots;
+	for (auto f : CDO->mUnlocks) {
+		if (const auto unlock = Cast<UFGUnlockArmEquipmentSlot>(f)) {
+			if (!(unlock->mNumArmEquipmentSlotsToUnlock != Slots)) {
+				unlock->mNumArmEquipmentSlotsToUnlock = Slots;
 				Added = true;
 				UE_LOG(LogContentLib, Warning, TEXT("CL: Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
 					break;
@@ -897,9 +905,9 @@ void UBPFContentLib::AddArmSlotsToUnlock(TSubclassOf<UFGSchematic> Schematic, UC
 				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockArmEquipmentSlot_C wanting to Add to %s"), *Schematic->GetName())
 			}
 		}
-		UFGUnlockArmEquipmentSlot* Object = NewObject<UFGUnlockArmEquipmentSlot>(Schematic.GetDefaultObject(), Class);
+		UFGUnlockArmEquipmentSlot* Object = NewObject<UFGUnlockArmEquipmentSlot>(CDO, Class);
 		Object->mNumArmEquipmentSlotsToUnlock = Slots;
-		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
+		CDO->mUnlocks.Add(Object);
 		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Set Unlock Arm Slots to %i in Schematic %s "), Slots, *Schematic->GetName())
 	}
 }
@@ -910,21 +918,29 @@ void UBPFContentLib::UnlockUnlockedRecipes(UContentLibSubsystem* Subsystem)
 	AFGUnlockSubsystem* Unlock = AFGUnlockSubsystem::Get(Subsystem->GetWorld());
 	AFGSchematicManager* Manager = AFGSchematicManager::Get(Subsystem->GetWorld());
 
-	for (auto nRecipe : Subsystem->Recipes) {
-		if (Manager && Unlock && Unlock->HasAuthority()) {
-			for (auto i : nRecipe.Value.nUnlockedBy) {
-				if (Manager->IsSchematicPurchased(i)) {
-					Unlock->UnlockRecipe(nRecipe.Key);
-					UE_LOG(LogContentLib, Warning, TEXT("CL: Unlocked Recipe %s"), *nRecipe.Key->GetName())
+	if (!IsValid(Manager) || !IsValid(Unlock) || !Unlock->HasAuthority()) {
+		return;
+	}
 
-				}
+	for (auto nRecipe : Subsystem->Recipes) {
+		for (auto i : nRecipe.Value.nUnlockedBy) {
+			if (Manager->IsSchematicPurchased(i)) {
+				Unlock->UnlockRecipe(nRecipe.Key);
+				UE_LOG(LogContentLib, Warning, TEXT("CL: Unlocked Recipe %s"), *nRecipe.Key->GetName())
 			}
 		}
 	}
 }
 
-UFGSchematicPurchasedDependency* UBPFContentLib::FindFirstOrCreateSchematicPurchasedDependencyObj(TSubclassOf<UFGSchematic> Schematic) {
-	for (auto depObject : Schematic.GetDefaultObject()->mSchematicDependencies) {
+UFGSchematicPurchasedDependency* UBPFContentLib::FindFirstOrCreateSchematicPurchasedDependencyObj(TSubclassOf<UFGSchematic> Schematic)
+{
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		UE_LOG(LogContentLib, Fatal, TEXT("CL: Invalid schematic passed to %s"), *FString(__func__));
+		return nullptr;
+	}
+
+	for (auto depObject : CDO->mSchematicDependencies) {
 		if (const auto purchasedDepObject = Cast<UFGSchematicPurchasedDependency>(depObject)) {
 			return purchasedDepObject;
 		}
@@ -937,12 +953,17 @@ UFGSchematicPurchasedDependency* UBPFContentLib::FindFirstOrCreateSchematicPurch
 			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't load BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName());
 		}
 	}
-	return NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(), Class);
+	return NewObject<UFGSchematicPurchasedDependency>(CDO, Class);
 }
 
 void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, TSubclassOf<UFGSchematic> SchematicDep)
 {
-	for (auto depObject : Schematic.GetDefaultObject()->mSchematicDependencies) {
+	const auto CDO = Schematic.GetDefaultObject();
+	if (!IsValid(CDO)) {
+		return;
+	}
+
+	for (auto depObject : CDO->mSchematicDependencies) {
 		if (const auto purchasedDepObject = Cast<UFGSchematicPurchasedDependency>(depObject)) {
 			if (!purchasedDepObject->mSchematics.Contains(SchematicDep)) {
 				purchasedDepObject->mSchematics.Add(SchematicDep);
@@ -962,21 +983,22 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't load BP_SchematicPurchasedDependency_C wanting to Add to %s"), *Schematic->GetName());
 		}
 	}
-	UFGSchematicPurchasedDependency* purchasedDepObject = NewObject<UFGSchematicPurchasedDependency>(Schematic.GetDefaultObject(), Class);
+	UFGSchematicPurchasedDependency* purchasedDepObject = NewObject<UFGSchematicPurchasedDependency>(CDO, Class);
 	purchasedDepObject->mSchematics.Add(SchematicDep);
-	Schematic.GetDefaultObject()->mSchematicDependencies.Add(purchasedDepObject);
+	CDO->mSchematicDependencies.Add(purchasedDepObject);
 	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGSchematicPurchasedDependency and added entry: '%s' as a requirement for Schematic '%s'"), *SchematicDep->GetName(), *Schematic->GetName());
-
 }
 
-bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
+bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString)
+{
 	if (jsonString.IsEmpty() || !jsonString.StartsWith("{") || !jsonString.EndsWith("}")) {
-		if (jsonString.IsEmpty())
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String  %s"), *jsonString)
-		else if (!jsonString.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt start with '{': %s"), *jsonString)
-		else if (!jsonString.EndsWith("}"))
+		if (jsonString.IsEmpty()) {
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String  %s"), *jsonString);
+		} else if (!jsonString.StartsWith("{")) {
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt start with '{': %s"), *jsonString);
+		} else if (!jsonString.EndsWith("}")) {
 			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt end with '}':  %s"), *jsonString);
+		}
 		return true;
 	}
 	return false;
