@@ -821,19 +821,15 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 	}
 
 	TMap<FName, const uint8*> DummyDataMap;
+	UDataTable* PointsDataTable = NewObject<UDataTable>();
+	PointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
+	PointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
+	SinkSubsystem->SetupPointData(SinkTrack, PointsDataTable);
 
 	if (SinkTrack == EResourceSinkTrack::RST_Default) {
-		UDataTable* DefaultPointsDataTable = NewObject<UDataTable>();
-		DefaultPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
-		DefaultPointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
-		SinkSubsystem->SetupPointData(SinkTrack, DefaultPointsDataTable);
 		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Default' Sink Track..."), *Item->GetName());
 	}
 	else if (SinkTrack == EResourceSinkTrack::RST_Exploration) {
-		UDataTable* ExplorationPointsDataTable = NewObject<UDataTable>();
-		ExplorationPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
-		ExplorationPointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
-		SinkSubsystem->SetupPointData(SinkTrack, ExplorationPointsDataTable);
 		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Exploration' Sink Track..."), *Item->GetName());
 	}
 
