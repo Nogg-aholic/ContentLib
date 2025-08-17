@@ -165,7 +165,7 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
     static void InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item Struct, UContentLibSubsystem* Subsystem);
 
 	UFUNCTION(BlueprintCallable)
-	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints, bool isPatch = false);
+	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, bool isPatch = false);
 
 
 	UFUNCTION(BlueprintCallable)

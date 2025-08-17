@@ -794,15 +794,18 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	}
 }
 
-void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints, bool isPatch)
+void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, bool isPatch)
 {
 
-	if (sinkPoints < 0 || not sinkPoints) { 
+	UFGItemDescriptor* CDO = Item.GetDefaultObject();
+	int32 sinkPoints = CDO->mResourceSinkPoints;
+
+	if (sinkPoints <= 0) { 
 		return;
 	}
 
-	if (not SinkSubsystem) {
-		UE_LOG(LogContentLib, Error, TEXT("Could not find resource sink subsystem, item cannot be sunk"));
+	if (not IsValid(SinkSubsystem)) {
+		UE_LOG(LogContentLib, Error, TEXT("Could not find resource sink subsystem"));
 		return;
 	}
 
@@ -826,12 +829,7 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 	PointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
 	SinkSubsystem->SetupPointData(SinkTrack, PointsDataTable);
 
-	if (SinkTrack == EResourceSinkTrack::RST_Default) {
-		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Default' Sink Track..."), *Item->GetName());
-	}
-	else if (SinkTrack == EResourceSinkTrack::RST_Exploration) {
-		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Exploration' Sink Track..."), *Item->GetName());
-	}
+	UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *UEnum::GetValueAsString(SinkTrack));
 
 }
 
