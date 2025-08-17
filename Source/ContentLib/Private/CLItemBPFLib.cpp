@@ -794,11 +794,8 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	}
 }
 
-void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints)
+void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, int32 sinkPoints, bool isPatch)
 {
-	//TODO: This currently only works for new items. Item patches seem to do nothing. SetupPointsData probably does not replace existing entries.
-	//Modification may need to take place earlier than this, if possible at all, considering everything is stored in DTs.
-	//Only way would be to somehow replace the DTs with one that was edited here?
 
 	if (sinkPoints < 0 || not sinkPoints) { 
 		return;
@@ -815,26 +812,30 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 		SinkTrack = EResourceSinkTrack::RST_Default;
 	}
 
-	FResourceSinkPointsData SinkPoints;
-	SinkPoints.ItemClass = Item;
-	SinkPoints.Points = sinkPoints;
+	FResourceSinkPointsData NewSinkPointData;
+	NewSinkPointData.ItemClass = Item;
+	NewSinkPointData.Points = sinkPoints;
+
+	if (isPatch) {
+		NewSinkPointData.OverriddenResourceSinkPoints = sinkPoints;
+	}
+
 	TMap<FName, const uint8*> DummyDataMap;
 
 	if (SinkTrack == EResourceSinkTrack::RST_Default) {
 		UDataTable* DefaultPointsDataTable = NewObject<UDataTable>();
 		DefaultPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
-		DefaultPointsDataTable->AddRow(Item->GetFName(), SinkPoints);
+		DefaultPointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
 		SinkSubsystem->SetupPointData(SinkTrack, DefaultPointsDataTable);
 		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Default' Sink Track..."), *Item->GetName());
 	}
 	else if (SinkTrack == EResourceSinkTrack::RST_Exploration) {
 		UDataTable* ExplorationPointsDataTable = NewObject<UDataTable>();
 		ExplorationPointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
-		ExplorationPointsDataTable->AddRow(Item->GetFName(), SinkPoints);
+		ExplorationPointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
 		SinkSubsystem->SetupPointData(SinkTrack, ExplorationPointsDataTable);
 		UE_LOG(LogContentLib, Error, TEXT("Added %s to the 'Exploration' Sink Track..."), *Item->GetName());
 	}
-	
 
 }
 
