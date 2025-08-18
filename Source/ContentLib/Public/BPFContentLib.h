@@ -80,22 +80,22 @@ class CONTENTLIB_API UBPFContentLib : public UBlueprintFunctionLibrary
 
 
 public:
-	static void SetBooleanFieldWithLog(bool& Field, FString FieldName, TSharedPtr<FJsonObject>   Result);
-	static void SetFloatFieldWithLog(float& Field, FString FieldName, TSharedPtr<FJsonObject>   Result);
-	static void SetIntegerFieldWithLog(int32& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
+	static void SetBooleanFieldWithLog(bool& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+	static void SetFloatFieldWithLog(float& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+	static void SetIntegerFieldWithLog(int32& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
 	static void SetSmallIntegerFieldWithLog(uint8& Field, const FString FieldName, TSharedPtr<FJsonObject> Result);
-	static void SetStringFieldWithLog(FString& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
-	static bool SetStringArrayFieldWithLog(TArray<FString>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
-  static bool SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_UnlockScannableResource>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
-	static bool SetStringIntMapFieldWithLog(TMap<FString,int32>& Field, FString FieldName,  TSharedPtr<FJsonObject>  Result);
+	static void SetStringFieldWithLog(FString& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+	static bool SetStringArrayFieldWithLog(TArray<FString>& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+	static bool SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_UnlockScannableResource>& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
+	static bool SetStringIntMapFieldWithLog(TMap<FString,int32>& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
 	static bool SetColorFieldWithLog(FColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
 	static bool SetLinearColorFieldWithLog(FLinearColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result);
 
-  UFUNCTION(BlueprintCallable)
-    static EResourceNodeType GetResourceNodeType(FString NodeTypeName);
+	UFUNCTION(BlueprintCallable)
+		static EResourceNodeType GetResourceNodeType(FString NodeTypeName);
 
-  UFUNCTION(BlueprintCallable)
-    static FString GetResourceNodeTypeString(EResourceNodeType NodeType);
+	UFUNCTION(BlueprintCallable)
+		static FString GetResourceNodeTypeString(EResourceNodeType NodeType);
 
 	UFUNCTION(BlueprintCallable)
 		static void WriteStringToFile(FString Path, FString resultString, bool Relative);
@@ -117,8 +117,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static bool StringCompareItem(FString toCompare, FString Name, FString Prefix, FString Suffix);
 	UFUNCTION(BlueprintCallable)
-		static UClass* SetCategoryWithLoad(const FString CategoryString,
-		                                UContentLibSubsystem* Subsystem, bool Schematic);
+		static UClass* SetCategoryWithLoad(const FString CategoryString, UContentLibSubsystem* Subsystem, bool Schematic);
 
 	// Checks if given item list contains at least one invalid item
 	UFUNCTION(BlueprintCallable)
@@ -128,20 +127,18 @@ public:
 		static void AddToItemAmountArray(TArray<FItemAmount> & Array,TMap<FString,int32> Cost,TArray<UClass*> Items, bool ClearFirst);
 
 	UFUNCTION(BlueprintCallable)
-		static void AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
-	                       TSubclassOf<UFGRecipe> Recipe);
+		static void AddRecipeToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, TSubclassOf<UFGRecipe> Recipe);
 
 	UFUNCTION(BlueprintCallable)
-	static void AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
-	                          TSubclassOf<UFGSchematic> SchematicToAdd);
+	static void AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, TSubclassOf<UFGSchematic> SchematicToAdd);
 
 	UFUNCTION(BlueprintCallable)
 	static void AddScannableResourceToUnlock(
-    TSubclassOf<UFGSchematic> Schematic,
-    UContentLibSubsystem* Subsystem,
-    TSubclassOf<UFGResourceDescriptor> ScannableResource,
-    EResourceNodeType NodeType
-  );
+		TSubclassOf<UFGSchematic> Schematic,
+		UContentLibSubsystem* Subsystem,
+		TSubclassOf<UFGResourceDescriptor> ScannableResource,
+		EResourceNodeType NodeType
+	);
 
 	UFUNCTION(BlueprintCallable)
 		static void AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
@@ -164,18 +161,17 @@ public:
 	static UFGSchematicPurchasedDependency* FindFirstOrCreateSchematicPurchasedDependencyObj(TSubclassOf<UFGSchematic> Schematic);
 
 	UFUNCTION(BlueprintCallable)
-	static void AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem,
-	                               TSubclassOf<UFGSchematic> SchematicDep);
+	static void AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, TSubclassOf<UFGSchematic> SchematicDep);
 
 
 	UFUNCTION(BlueprintPure, Category = "Class", meta = (DisplayName = "To CDO", CompactNodeTitle = "CDO", BlueprintAutocast))
-    static UObject* Conv_ClassToObject(UClass* Class);
+	static UObject* Conv_ClassToObject(UClass* Class);
 
 	UFUNCTION(BlueprintCallable)
-    static UTexture2D* GetIconForBuilding(UContentLibSubsystem* System, TSubclassOf<AFGBuildable> Buildable, bool Big, const UObject* WorldContext);
+	static UTexture2D* GetIconForBuilding(UContentLibSubsystem* System, TSubclassOf<AFGBuildable> Buildable, bool Big, const UObject* WorldContext);
 
 	UFUNCTION(BlueprintPure)
-    static TArray<FString> GetBlueprintFunctionNames(UClass * BlueprintClass);
+	static TArray<FString> GetBlueprintFunctionNames(UClass * BlueprintClass);
 
 	// Returns true and logs error messages if passed string doesn't pass some basic json validation logic
 	UFUNCTION(BlueprintCallable)

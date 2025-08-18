@@ -105,7 +105,7 @@ struct CONTENTLIB_API FContentLib_Schematic
 		ClearCost(false),
 		ClearRecipes(false),
 		ClearSchematics(false),
-    ClearScannableResources(false),
+		ClearScannableResources(false),
 		ClearDeps(false),
 		ClearItemsToGive(false)
 	{

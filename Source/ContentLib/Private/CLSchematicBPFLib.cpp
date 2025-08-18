@@ -193,8 +193,8 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearCost, "ClearCost", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearRecipes, "ClearRecipes", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearSchematics, "ClearSchematics", ParsedJson);
-  UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearScannableResources, "ClearScannableResources", ParsedJson);
-	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson); // TODO is this even used?
+	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearScannableResources, "ClearScannableResources", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearItemsToGive, "ClearItemsToGive", ParsedJson);
 
 	if (ParsedJson->HasField("ResearchTree")) {
@@ -398,14 +398,14 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 	}
 	for (const auto& entry : Schematic.ScannableResources) {
 		UClass* Resource = UBPFContentLib::FindClassWithLog(entry.Resource, UFGItemDescriptor::StaticClass(), SubSystem);
-    if (!Resource) {
-      continue;
-    }
+		if (!Resource) {
+			continue;
+		}
 
-    UBPFContentLib::AddScannableResourceToUnlock(SchematicClass, SubSystem, Resource, UBPFContentLib::GetResourceNodeType(entry.NodeType));
-  }
+		UBPFContentLib::AddScannableResourceToUnlock(SchematicClass, SubSystem, Resource, UBPFContentLib::GetResourceNodeType(entry.NodeType));
+	}
 
-  if (Schematic.ItemsToGive.Num() || Schematic.ClearItemsToGive) {
+	if (Schematic.ItemsToGive.Num() || Schematic.ClearItemsToGive) {
 		UBPFContentLib::AddGiveItemsToUnlock(SchematicClass, SubSystem, Schematic.ItemsToGive, Schematic.ClearItemsToGive);
 	}
 
@@ -569,8 +569,8 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 		if (Cast<UFGUnlockScannableResource>(i)) {
 			for (auto& e : Cast<UFGUnlockScannableResource>(i)->mResourcePairsToAddToScanner) {
 				ScannableResources.Add(MakeShared<FJsonValueString>(
-          UBPFContentLib::GetResourceNodeTypeString(e.ResourceNodeType) + ": " + e.ResourceDescriptor->GetPathName()
-        ));
+				UBPFContentLib::GetResourceNodeTypeString(e.ResourceNodeType) + ": " + e.ResourceDescriptor->GetPathName()
+			));
 			}
 		}
 		// TODO arm slot, inventory slot unlocks
@@ -589,7 +589,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	const auto DepArray = MakeShared<FJsonValueArray>(Deps);
 	const auto RecipesArray = MakeShared<FJsonValueArray>(Recipes);
 	const auto SchematicsArray = MakeShared<FJsonValueArray>(Schematics);
-  const auto ScannableResourcesArray = MakeShared<FJsonValueArray>(ScannableResources);
+	const auto ScannableResourcesArray = MakeShared<FJsonValueArray>(ScannableResources);
 	const auto CostArray = MakeShared<FJsonValueArray>(Cost);
 	const auto SubCatArray = MakeShared<FJsonValueArray>(SubCats);
 

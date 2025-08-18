@@ -269,100 +269,100 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 		return false;
 	}
 
-  auto FieldValue = Result->TryGetField(FieldName);
+	auto FieldValue = Result->TryGetField(FieldName);
 	if (FieldValue->Type != EJson::Array) {
 		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of type Array"), *FieldName);
 		return false;
 	}
 
-  bool Added = false;
+	bool Added = false;
 	for (const auto& entryNew : FieldValue->AsArray()) {
-    auto entryNewObject = entryNew->AsObject();
-    if (!entryNewObject->HasField("Resource")) {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property Resource"), *FieldName);
-      return false;
-    }
-    auto Resource = entryNewObject->TryGetField("Resource");
-    if (Resource->Type != EJson::String) {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is not of type String"), *FieldName);
-      return false;
-    }
-    FString ResourceString = Resource->AsString();
-    if (ResourceString == "") {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is empty"), *FieldName);
-      return false;
-    }
+		auto entryNewObject = entryNew->AsObject();
+		if (!entryNewObject->HasField("Resource")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property Resource"), *FieldName);
+			return false;
+		}
+		auto Resource = entryNewObject->TryGetField("Resource");
+		if (Resource->Type != EJson::String) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is not of type String"), *FieldName);
+			return false;
+		}
+		FString ResourceString = Resource->AsString();
+		if (ResourceString == "") {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is empty"), *FieldName);
+			return false;
+		}
 
-    if (!entryNewObject->HasField("NodeType")) {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property NodeType"), *FieldName);
-      return false;
-    }
-    auto NodeType = entryNewObject->TryGetField("NodeType");
-    if (NodeType->Type != EJson::String)
-    {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is not of type String"), *FieldName);
-      return false;
-    }
-    FString NodeTypeString = NodeType->AsString();
-    if (NodeTypeString == "") {
-      UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is empty"), *FieldName);
-      return false;
-    }
+		if (!entryNewObject->HasField("NodeType")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property NodeType"), *FieldName);
+			return false;
+		}
+		auto NodeType = entryNewObject->TryGetField("NodeType");
+		if (NodeType->Type != EJson::String)
+		{
+			UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is not of type String"), *FieldName);
+			return false;
+		}
+		FString NodeTypeString = NodeType->AsString();
+		if (NodeTypeString == "") {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is empty"), *FieldName);
+			return false;
+		}
 
-    for (const auto& existingEntry : Field) {
-      if (existingEntry.Resource == ResourceString &&
-          existingEntry.NodeType == NodeTypeString) {
-        UE_LOG(LogContentLib, Warning, TEXT("Field %s already contains entry with Resource %s and NodeType %s"), *FieldName, *ResourceString, *NodeTypeString);
-        goto continueOuter;
-      }
-    }
-    if (false) {
-      continueOuter:;
-      continue;
-    }
+		for (const auto& existingEntry : Field) {
+			if (existingEntry.Resource == ResourceString &&
+					existingEntry.NodeType == NodeTypeString) {
+				UE_LOG(LogContentLib, Warning, TEXT("Field %s already contains entry with Resource %s and NodeType %s"), *FieldName, *ResourceString, *NodeTypeString);
+				goto continueOuter;
+			}
+		}
+		if (false) {
+			continueOuter:;
+			continue;
+		}
 
-    FContentLib_UnlockScannableResource ScannableResourceUnlock;
-    ScannableResourceUnlock.Resource = ResourceString;
-    ScannableResourceUnlock.NodeType = NodeTypeString;
-    Field.Add(ScannableResourceUnlock);
-    Added = true;
+		FContentLib_UnlockScannableResource ScannableResourceUnlock;
+		ScannableResourceUnlock.Resource = ResourceString;
+		ScannableResourceUnlock.NodeType = NodeTypeString;
+		Field.Add(ScannableResourceUnlock);
+		Added = true;
 	}
 	return Added;
 }
 
 EResourceNodeType UBPFContentLib::GetResourceNodeType(FString NodeTypeName) {
-  if (NodeTypeName == "Node") {
-    return EResourceNodeType::Node;
-  }
-  if (NodeTypeName == "FrackingSatellite") {
-    return EResourceNodeType::FrackingSatellite;
-  }
-  if (NodeTypeName == "FrackingCore") {
-    return EResourceNodeType::FrackingCore;
-  }
-  if (NodeTypeName == "Geyser") {
-    return EResourceNodeType::Geyser;
-  }
+	if (NodeTypeName == "Node") {
+		return EResourceNodeType::Node;
+	}
+	if (NodeTypeName == "FrackingSatellite") {
+		return EResourceNodeType::FrackingSatellite;
+	}
+	if (NodeTypeName == "FrackingCore") {
+		return EResourceNodeType::FrackingCore;
+	}
+	if (NodeTypeName == "Geyser") {
+		return EResourceNodeType::Geyser;
+	}
 
-  UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType %s, defaulting to Node"), *NodeTypeName);
-  return EResourceNodeType::Node;
+	UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType %s, defaulting to Node"), *NodeTypeName);
+	return EResourceNodeType::Node;
 }
 
 FString UBPFContentLib::GetResourceNodeTypeString(EResourceNodeType NodeType) {
-  if (NodeType == EResourceNodeType::Node) {
-    return "Node";
-  }
-  if (NodeType == EResourceNodeType::FrackingSatellite) {
-    return "FrackingSatellite";
-  }
-  if (NodeType == EResourceNodeType::FrackingCore) {
-    return "FrackingCore";
-  }
-  if (NodeType == EResourceNodeType::Geyser) {
-    return "Geyser";
-  }
+	if (NodeType == EResourceNodeType::Node) {
+		return "Node";
+	}
+	if (NodeType == EResourceNodeType::FrackingSatellite) {
+		return "FrackingSatellite";
+	}
+	if (NodeType == EResourceNodeType::FrackingCore) {
+		return "FrackingCore";
+	}
+	if (NodeType == EResourceNodeType::Geyser) {
+		return "Geyser";
+	}
 
-  return "Unknown ResourceNodeType";
+	return "Unknown ResourceNodeType";
 }
 
 void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool Relative) {
@@ -471,16 +471,16 @@ void UBPFContentLib::String_Sort(UPARAM(ref) TArray <FString>& Array_To_Sort, bo
 			}
 		}
 	}
-	Sorted_Array.Sort();               // Sort array using built in function (sorts A-Z)
+	Sorted_Array.Sort();							 // Sort array using built in function (sorts A-Z)
 
 	if (Descending == true) {
-		TArray <FString> NewArray;      // Define "temp" holding array
+		TArray <FString> NewArray;			// Define "temp" holding array
 		int x = Sorted_Array.Num() - 1;
 		while (x > -1) {
 			NewArray.Add(Sorted_Array[x]); // loop through A-Z sorted array and remove element from back and place it in beginning of "temp" array
 			--x;
 		}
-		Sorted_Array = NewArray;   // Set reference array to "temp" array order, array is now Z-A
+		Sorted_Array = NewArray;	 // Set reference array to "temp" array order, array is now Z-A
 	}
 }
 
@@ -886,32 +886,32 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 }
 
 void UBPFContentLib::AddScannableResourceToUnlock(
-  TSubclassOf<UFGSchematic> Schematic,
-  UContentLibSubsystem* Subsystem,
-  const TSubclassOf<class UFGResourceDescriptor> ScannableResource,
-  const EResourceNodeType NodeType
+	TSubclassOf<UFGSchematic> Schematic,
+	UContentLibSubsystem* Subsystem,
+	const TSubclassOf<class UFGResourceDescriptor> ScannableResource,
+	const EResourceNodeType NodeType
 ) {
 	bool Added = false;
 	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
 		if (Cast<UFGUnlockScannableResource>(f)) {
-      // Already contains this entry?
-      for (const auto& entry : Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner) {
-        if (entry.ResourceDescriptor == ScannableResource && entry.ResourceNodeType == NodeType) {
-          goto continueContainsEntry;
-        }
-      }
-      if (false) {
-        continueContainsEntry:;
-        continue;
-      }
+			// Already contains this entry?
+			for (const auto& entry : Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner) {
+				if (entry.ResourceDescriptor == ScannableResource && entry.ResourceNodeType == NodeType) {
+					goto continueContainsEntry;
+				}
+			}
+			if (false) {
+				continueContainsEntry:;
+				continue;
+			}
 
-      FScannableResourcePair ScannableResourceUnlock;
-      ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
-      ScannableResourceUnlock.ResourceNodeType = NodeType;
-      Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner.Add(ScannableResourceUnlock);
-      Added = true;
-      UE_LOG(LogContentLib, Warning, TEXT("CL: Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
-      break;
+			FScannableResourcePair ScannableResourceUnlock;
+			ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
+			ScannableResourceUnlock.ResourceNodeType = NodeType;
+			Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner.Add(ScannableResourceUnlock);
+			Added = true;
+			UE_LOG(LogContentLib, Warning, TEXT("CL: Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
+			break;
 		}
 	}
 
@@ -924,15 +924,15 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 			}
 		}
 
-    FScannableResourcePair ScannableResourceUnlock;
-    ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
-    ScannableResourceUnlock.ResourceNodeType = NodeType;
+		FScannableResourcePair ScannableResourceUnlock;
+		ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
+		ScannableResourceUnlock.ResourceNodeType = NodeType;
 
 		UFGUnlockScannableResource* Object = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
 		Object->mResourcePairsToAddToScanner.Add(ScannableResourceUnlock);
 		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
 
-    UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
 	}
 }
 
@@ -1124,11 +1124,11 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
 	if (jsonString.IsEmpty() || !jsonString.StartsWith("{") || !jsonString.EndsWith("}")) {
 		if (jsonString.IsEmpty())
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String  %s"), *jsonString)
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String	%s"), *jsonString)
 		else if (!jsonString.StartsWith("{"))
 			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt start with '{': %s"), *jsonString)
 		else if (!jsonString.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt end with '}':  %s"), *jsonString);
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt end with '}':	%s"), *jsonString);
 		return true;
 	}
 	return false;
