@@ -134,6 +134,7 @@ FContentLib_Item::FContentLib_Item():
 	CanBeDiscarded(-1),
 	RememberPickUp(-1),
 	ResourceSinkPoints(-1),
+	SinkTrack(-1),
 	FuelWasteItem()
 {
 }
@@ -269,6 +270,12 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	{
 		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO.ResourceSinkPoints);
 		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
+	}
+
+	if (CDO.SinkTrack != -1)
+	{
+		const auto SinkTrack = MakeShared<FJsonValueNumber>(CDO.SinkTrack);
+		Obj->Values.Add("SinkTrack", SinkTrack);
 	}
 
 	if (CDO.ResourceItem.CollectSpeedMultiplier != -1 || CDO.ResourceItem.PingColor != FColor(0,0,0,0))
@@ -561,6 +568,7 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 	UBPFContentLib::SetIntegerFieldWithLog(Item.CanBeDiscarded, "CanBeDiscarded", Result);
 	UBPFContentLib::SetIntegerFieldWithLog(Item.RememberPickUp, "RememberPickUp", Result);
 	UBPFContentLib::SetIntegerFieldWithLog(Item.ResourceSinkPoints, "ResourceSinkPoints", Result);
+	UBPFContentLib::SetIntegerFieldWithLog(Item.SinkTrack, "SinkTrack", Result);
 
 
 	if (Result->HasField("ResourceItem") && Result->TryGetField("ResourceItem")->Type == EJson::Object)
@@ -752,7 +760,6 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 
 	if (ItemStruct.ResourceSinkPoints != -1)
 	{
-		// TODO this writes to a cache field, to actually overwrite points we need to talk to the subsystem
 		CDO->mResourceSinkPoints = ItemStruct.ResourceSinkPoints;
 	}
 
@@ -794,7 +801,7 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	}
 }
 
-void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TArray<TSubclassOf<UFGItemDescriptor>> ItemList, bool isPatch)
+void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TMap<TSubclassOf<UFGItemDescriptor>, FString> ItemList)
 {
 
 	if (not IsValid(SinkSubsystem)) {
@@ -807,42 +814,57 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TA
 	}
 
 	TMap<TSubclassOf<UFGItemDescriptor>, FResourceSinkValuePair32> CachedResourceSinkPoints = SinkSubsystem->GetmCachedResourceSinkPoints();
+	
+	for (auto const& [Item, Json] : ItemList) {
 
-	EResourceSinkTrack SinkTrack = EResourceSinkTrack::RST_Default; //TODO: Robb requested users to be able to define this as well
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(*Json);
+		FJsonSerializer Serializer;
+		TSharedPtr<FJsonObject> Result;
+		Serializer.Deserialize(Reader, Result);
+		if (!Result.IsValid()) {
+			continue;
+		}
 
-	for (TSubclassOf<UFGItemDescriptor> Item : ItemList) {
+		int32 sinkPoints = -1;
+		UBPFContentLib::SetIntegerFieldWithLog(sinkPoints, "ResourceSinkPoints", Result);
+		int32 jsonSinkTrack = 0;
+		UBPFContentLib::SetIntegerFieldWithLog(jsonSinkTrack, "SinkTrack", Result);
+		
+		if (jsonSinkTrack < -1 || jsonSinkTrack > 1) {
+			UE_LOG(LogContentLib, Error, TEXT("Invalid Sink Track for item %s"), *Item->GetName());
+			continue;
+		}
 
-		UFGItemDescriptor* CDO = Item.GetDefaultObject();
-		int32 sinkPoints = CDO->mResourceSinkPoints;
+		EResourceSinkTrack SinkTrack = GetSinkTrackEnum(jsonSinkTrack);
 
 		bool itemExists = CachedResourceSinkPoints.Contains(Item);
 
 		if (sinkPoints <= 0) {
-			if (itemExists) {			
+			if (sinkPoints == 0 && itemExists) { //Only delete if explicitly set to 0 as -1 is default			
 				CachedResourceSinkPoints.Remove(Item);
-				UE_LOG(LogContentLib, Display, TEXT("Removed item %s from sink points"), *Item->GetName());
+				UE_LOG(LogContentLib, Display, TEXT("Removed item %s from Sink Track %s"), *Item->GetName(), *GetSinkTrackName(SinkTrack));
 				continue;
 			}
-			else {
-				continue;
-			}
+			continue;
 		}
 
 		if (itemExists) {
-			SinkTrack = CachedResourceSinkPoints[Item].TrackType;
+			if (CachedResourceSinkPoints[Item].TrackType != SinkTrack) {
+				UE_LOG(LogContentLib, Display, TEXT("Changing item %s from Sink Track %s to %s"), *Item->GetName(), *GetSinkTrackName(CachedResourceSinkPoints[Item].TrackType), *GetSinkTrackName(SinkTrack));
+			}
 			CachedResourceSinkPoints[Item] = FResourceSinkValuePair32(SinkTrack, sinkPoints);
+			UE_LOG(LogContentLib, Display, TEXT("Updated item %s in the '%s' Sink Track"), *Item->GetName(), *GetSinkTrackName(SinkTrack));
 		}
 		else {
 			CachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(SinkTrack, sinkPoints));
+			UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *GetSinkTrackName(SinkTrack));
 		}
 
-		UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *UEnum::GetValueAsString(SinkTrack));
 	}
 
 	SinkSubsystem->SetmCachedResourceSinkPoints(CachedResourceSinkPoints);
 
 }
-
 
 
 FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescriptor> Item)
@@ -862,8 +884,6 @@ FString UCLItemBPFLib::GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescripto
 	else
 		return "";
 }
-
-
 
 FString UCLItemBPFLib::GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> Item)
 
@@ -937,6 +957,28 @@ void UCLItemBPFLib::ApplyVisualKitToItem(UContentLibSubsystem* Subsystem, FConte
 	if (Kit.GasColor != FColor(0, 0, 0, 0))
 	{
 		Obj->mGasColor = Kit.GasColor;
+	}
+}
+
+FString UCLItemBPFLib::GetSinkTrackName(EResourceSinkTrack SinkTrack)
+{
+	using enum EResourceSinkTrack;
+
+	switch (SinkTrack) {
+	case RST_Default:		return "Default";
+	case RST_Exploration:	return "Exploration";
+	default:				return "<Invalid>";
+	}
+}
+
+EResourceSinkTrack UCLItemBPFLib::GetSinkTrackEnum(int32 SinkTrack)
+{
+	using enum EResourceSinkTrack;
+
+	switch (SinkTrack) {
+	case 0:		return RST_Default;
+	case 1:		return RST_Exploration;
+	default:	return RST_Default;
 	}
 }
 

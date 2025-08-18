@@ -116,6 +116,9 @@ struct  CONTENTLIB_API  FContentLib_Item
 	int32 ResourceSinkPoints;
 
 	UPROPERTY(BlueprintReadWrite)
+	int32 SinkTrack;
+
+	UPROPERTY(BlueprintReadWrite)
 	FContentLib_ResourceItem ResourceItem;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -165,7 +168,7 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
     static void InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item Struct, UContentLibSubsystem* Subsystem);
 
 	UFUNCTION(BlueprintCallable)
-	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TArray<TSubclassOf<UFGItemDescriptor>> ItemList, bool isPatch = false);
+	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TMap<TSubclassOf<UFGItemDescriptor>, FString> ItemList);
 
 
 	UFUNCTION(BlueprintCallable)
@@ -177,5 +180,10 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable)
 	static void ApplyVisualKitToItem(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit,TSubclassOf<UFGItemDescriptor> Item);
-		
+	
+	UFUNCTION(BlueprintCallable)
+	static FString GetSinkTrackName(EResourceSinkTrack SinkTrack);
+
+	UFUNCTION(BlueprintCallable)
+	static EResourceSinkTrack GetSinkTrackEnum(int32 SinkTrack);
 };
