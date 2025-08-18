@@ -269,62 +269,55 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 		return false;
 	}
 
-	auto FieldValue = Result->TryGetField(FieldName);
-	if (FieldValue->Type != EJson::Array) {
+	auto pendingResourcesToAdd = Result->TryGetField(FieldName);
+	if (pendingResourcesToAdd->Type != EJson::Array) {
 		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of type Array"), *FieldName);
 		return false;
 	}
 
 	bool Added = false;
-	for (const auto& entryNew : FieldValue->AsArray()) {
-		auto entryNewObject = entryNew->AsObject();
-		if (!entryNewObject->HasField("Resource")) {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property Resource"), *FieldName);
+	for (const auto& candidateResourceEntry : pendingResourcesToAdd->AsArray()) {
+		auto candidateResource = candidateResourceEntry->AsObject();
+		if (!candidateResource->HasField("Resource")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property Resource"), *FieldName);
 			return false;
 		}
-		auto Resource = entryNewObject->TryGetField("Resource");
+		auto Resource = candidateResource->TryGetField("Resource");
 		if (Resource->Type != EJson::String) {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is not of type String"), *FieldName);
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .Resource is not of type String"), *FieldName);
 			return false;
 		}
 		FString ResourceString = Resource->AsString();
-		if (ResourceString == "") {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s.Resource is empty"), *FieldName);
+		if (ResourceString.IsEmpty()) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .Resource is empty"), *FieldName);
 			return false;
 		}
 
-		if (!entryNewObject->HasField("NodeType")) {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s is missing property NodeType"), *FieldName);
+		if (!candidateResource->HasField("NodeType")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property NodeType"), *FieldName);
 			return false;
 		}
-		auto NodeType = entryNewObject->TryGetField("NodeType");
+		auto NodeType = candidateResource->TryGetField("NodeType");
 		if (NodeType->Type != EJson::String)
 		{
-			UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is not of type String"), *FieldName);
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .NodeType is not of type String"), *FieldName);
 			return false;
 		}
 		FString NodeTypeString = NodeType->AsString();
-		if (NodeTypeString == "") {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s.NodeType is empty"), *FieldName);
+		if (NodeTypeString.IsEmpty()) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .NodeType is empty"), *FieldName);
 			return false;
 		}
 
-		for (const auto& existingEntry : Field) {
-			if (existingEntry.Resource == ResourceString &&
-					existingEntry.NodeType == NodeTypeString) {
-				UE_LOG(LogContentLib, Warning, TEXT("Field %s already contains entry with Resource %s and NodeType %s"), *FieldName, *ResourceString, *NodeTypeString);
-				goto continueOuter;
-			}
-		}
-		if (false) {
-			continueOuter:;
+		FContentLib_UnlockScannableResource pairToAdd;
+		pairToAdd.Resource = ResourceString;
+		pairToAdd.NodeType = NodeTypeString;
+
+		if (Field.Contains(pairToAdd)) {
+			UE_LOG(LogContentLib, Warning, TEXT("Field %s already contains entry with Resource %s and NodeType %s, skipping"), *FieldName, *ResourceString, *NodeTypeString);
 			continue;
 		}
-
-		FContentLib_UnlockScannableResource ScannableResourceUnlock;
-		ScannableResourceUnlock.Resource = ResourceString;
-		ScannableResourceUnlock.NodeType = NodeTypeString;
-		Field.Add(ScannableResourceUnlock);
+		Field.Add(pairToAdd);
 		Added = true;
 	}
 	return Added;
@@ -891,49 +884,41 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 	const TSubclassOf<class UFGResourceDescriptor> ScannableResource,
 	const EResourceNodeType NodeType
 ) {
-	bool Added = false;
-	for (auto f : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockScannableResource>(f)) {
-			// Already contains this entry?
-			for (const auto& entry : Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner) {
-				if (entry.ResourceDescriptor == ScannableResource && entry.ResourceNodeType == NodeType) {
-					goto continueContainsEntry;
-				}
-			}
-			if (false) {
-				continueContainsEntry:;
-				continue;
-			}
+	FScannableResourcePair pairToAdd;
+	pairToAdd.ResourceDescriptor = ScannableResource;
+	pairToAdd.ResourceNodeType = NodeType;
 
-			FScannableResourcePair ScannableResourceUnlock;
-			ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
-			ScannableResourceUnlock.ResourceNodeType = NodeType;
-			Cast<UFGUnlockScannableResource>(f)->mResourcePairsToAddToScanner.Add(ScannableResourceUnlock);
-			Added = true;
-			UE_LOG(LogContentLib, Warning, TEXT("CL: Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
-			break;
+	// TODO: edge case - if there are multiple `UFGUnlockScannableResource`s, we could end up adding it to an earlier one even if it was already in a later one
+	// Change this code later if someone actually cares about that
+	for (auto unlockEntry : Schematic.GetDefaultObject()->mUnlocks) {
+		if (const auto entryAsScannable = Cast<UFGUnlockScannableResource>(unlockEntry)) {
+			// If this unlockEntry already contains this entry, we're done with checking ALL unlocks - don't want to add it multiple times if there are multiple
+			if (entryAsScannable->mResourcePairsToAddToScanner.Contains(pairToAdd)) {
+				UE_LOG(LogContentLib, Warning, TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"), *Schematic->GetName(), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType));
+				return;
+			}
+			UE_LOG(LogContentLib, Warning, TEXT("CL: Added Scannable Resource %s (%s) to existing unlock in Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName());
+			entryAsScannable->mResourcePairsToAddToScanner.Add(pairToAdd);
+			return;
 		}
 	}
 
-	if (!Added) {
-		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
+	// Not found in existing - create a new unlock to house it
+
+	// TODO eventually switch away from FindObject(ANY_PACKAGE)
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
+	if (!Class) {
+		Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"));
 		if (!Class) {
-			Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"));
-			if (!Class) {
-				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockScannableResource_C wanting to add to unlocks of %s"), *Schematic->GetName())
-			}
+			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockScannableResource_C wanting to add to unlocks of %s"), *Schematic->GetName());
 		}
-
-		FScannableResourcePair ScannableResourceUnlock;
-		ScannableResourceUnlock.ResourceDescriptor = ScannableResource;
-		ScannableResourceUnlock.ResourceNodeType = NodeType;
-
-		UFGUnlockScannableResource* Object = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
-		Object->mResourcePairsToAddToScanner.Add(ScannableResourceUnlock);
-		Schematic.GetDefaultObject()->mUnlocks.Add(Object);
-
-		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName())
 	}
+
+	UFGUnlockScannableResource* newUnlock = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
+	newUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
+	Schematic.GetDefaultObject()->mUnlocks.Add(newUnlock);
+
+	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName());
 }
 
 void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
