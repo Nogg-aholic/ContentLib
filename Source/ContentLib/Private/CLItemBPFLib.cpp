@@ -799,7 +799,7 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 
 	UFGItemDescriptor* CDO = Item.GetDefaultObject();
 	int32 sinkPoints = CDO->mResourceSinkPoints;
-
+	
 	if (sinkPoints <= 0) { 
 		return;
 	}
@@ -809,25 +809,26 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 		return;
 	}
 
-	EResourceSinkTrack SinkTrack;
-	int32 oldSinkPoints; //Not used but required by FindResourceSinkPointsForItem
-	if (not SinkSubsystem->FindResourceSinkPointsForItem(Item, oldSinkPoints, SinkTrack)) {
-		SinkTrack = EResourceSinkTrack::RST_Default;
+	TMap<TSubclassOf<UFGItemDescriptor>, FResourceSinkValuePair32> CachedResourceSinkPoints = SinkSubsystem->GetmCachedResourceSinkPoints();
+
+	UE_LOG(LogContentLib, Error, TEXT("Sink values:"));
+	for (auto const& [key, val] : CachedResourceSinkPoints) {
+		UE_LOG(LogContentLib, Error, TEXT("Item: %s | Track: %s | Value: %d "), *key->GetName(), *UEnum::GetValueAsString(val.TrackType), val.Value);
 	}
 
-	FResourceSinkPointsData NewSinkPointData;
-	NewSinkPointData.ItemClass = Item;
-	NewSinkPointData.Points = sinkPoints;
+	EResourceSinkTrack SinkTrack = EResourceSinkTrack::RST_Default; //TODO: Robb requested users to be able to define this as well
 
-	if (isPatch) {
-		NewSinkPointData.OverriddenResourceSinkPoints = sinkPoints;
+	if (CachedResourceSinkPoints.Contains(Item)) {
+		SinkTrack = CachedResourceSinkPoints[Item].TrackType; 
+		CachedResourceSinkPoints[Item] = FResourceSinkValuePair32(SinkTrack, sinkPoints);
+	}
+	else
+	{
+		CachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(SinkTrack, sinkPoints));
 	}
 
-	TMap<FName, const uint8*> DummyDataMap;
-	UDataTable* PointsDataTable = NewObject<UDataTable>();
-	PointsDataTable->CreateTableFromRawData(DummyDataMap, FResourceSinkPointsData::StaticStruct());
-	PointsDataTable->AddRow(Item->GetFName(), NewSinkPointData);
-	SinkSubsystem->SetupPointData(SinkTrack, PointsDataTable);
+	SinkSubsystem->SetmCachedResourceSinkPoints(CachedResourceSinkPoints);
+
 
 	UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *UEnum::GetValueAsString(SinkTrack));
 
