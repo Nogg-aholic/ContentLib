@@ -794,18 +794,15 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	}
 }
 
-void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TSubclassOf<UFGItemDescriptor> Item, bool isPatch)
+void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TArray<TSubclassOf<UFGItemDescriptor>> ItemList, bool isPatch)
 {
-
-	UFGItemDescriptor* CDO = Item.GetDefaultObject();
-	int32 sinkPoints = CDO->mResourceSinkPoints;
-	
-	if (sinkPoints <= 0) { 
-		return;
-	}
 
 	if (not IsValid(SinkSubsystem)) {
 		UE_LOG(LogContentLib, Error, TEXT("Could not find resource sink subsystem"));
+		return;
+	}
+
+	if (ItemList.IsEmpty()) {
 		return;
 	}
 
@@ -813,19 +810,36 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 
 	EResourceSinkTrack SinkTrack = EResourceSinkTrack::RST_Default; //TODO: Robb requested users to be able to define this as well
 
-	if (CachedResourceSinkPoints.Contains(Item)) {
-		SinkTrack = CachedResourceSinkPoints[Item].TrackType; 
-		CachedResourceSinkPoints[Item] = FResourceSinkValuePair32(SinkTrack, sinkPoints);
-	}
-	else
-	{
-		CachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(SinkTrack, sinkPoints));
+	for (TSubclassOf<UFGItemDescriptor> Item : ItemList) {
+
+		UFGItemDescriptor* CDO = Item.GetDefaultObject();
+		int32 sinkPoints = CDO->mResourceSinkPoints;
+
+		bool itemExists = CachedResourceSinkPoints.Contains(Item);
+
+		if (sinkPoints <= 0) {
+			if (itemExists) {			
+				CachedResourceSinkPoints.Remove(Item);
+				UE_LOG(LogContentLib, Display, TEXT("Removed item %s from sink points"), *Item->GetName());
+				continue;
+			}
+			else {
+				continue;
+			}
+		}
+
+		if (itemExists) {
+			SinkTrack = CachedResourceSinkPoints[Item].TrackType;
+			CachedResourceSinkPoints[Item] = FResourceSinkValuePair32(SinkTrack, sinkPoints);
+		}
+		else {
+			CachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(SinkTrack, sinkPoints));
+		}
+
+		UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *UEnum::GetValueAsString(SinkTrack));
 	}
 
 	SinkSubsystem->SetmCachedResourceSinkPoints(CachedResourceSinkPoints);
-
-
-	UE_LOG(LogContentLib, Display, TEXT("Added %s to the '%s' Sink Track"), *Item->GetName(), *UEnum::GetValueAsString(SinkTrack));
 
 }
 
