@@ -811,11 +811,6 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TS
 
 	TMap<TSubclassOf<UFGItemDescriptor>, FResourceSinkValuePair32> CachedResourceSinkPoints = SinkSubsystem->GetmCachedResourceSinkPoints();
 
-	UE_LOG(LogContentLib, Error, TEXT("Sink values:"));
-	for (auto const& [key, val] : CachedResourceSinkPoints) {
-		UE_LOG(LogContentLib, Error, TEXT("Item: %s | Track: %s | Value: %d "), *key->GetName(), *UEnum::GetValueAsString(val.TrackType), val.Value);
-	}
-
 	EResourceSinkTrack SinkTrack = EResourceSinkTrack::RST_Default; //TODO: Robb requested users to be able to define this as well
 
 	if (CachedResourceSinkPoints.Contains(Item)) {
