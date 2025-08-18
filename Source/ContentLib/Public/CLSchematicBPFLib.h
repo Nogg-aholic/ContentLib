@@ -69,6 +69,10 @@ struct CONTENTLIB_API FContentLib_UnlockScannableResource {
 
 	UPROPERTY(BlueprintReadWrite)
 		FString NodeType;
+
+	FORCEINLINE bool operator==(const FContentLib_UnlockScannableResource& right) const {
+		return Resource.Equals(right.Resource) && NodeType.Equals(right.Resource);
+	}
 };
 
 USTRUCT(BlueprintType)
