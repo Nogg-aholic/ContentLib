@@ -349,21 +349,21 @@ EResourceNodeType UBPFContentLib::GetResourceNodeType(FString NodeTypeName) {
 }
 
 FString UBPFContentLib::GetResourceNodeTypeString(EResourceNodeType NodeType) {
-	if (NodeType == EResourceNodeType::Node) {
+	switch (NodeType) {
+	case EResourceNodeType::Node:
+		return "Node";
+	case EResourceNodeType::FrackingSatellite:
+		return "FrackingSatellite";
+	case EResourceNodeType::FrackingCore:
+		return "FrackingCore";
+	case EResourceNodeType::Geyser:
+		return "Geyser";
+	default:
+		UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType, defaulting to Node"));
 		return "Node";
 	}
-	if (NodeType == EResourceNodeType::FrackingSatellite) {
-		return "FrackingSatellite";
-	}
-	if (NodeType == EResourceNodeType::FrackingCore) {
-		return "FrackingCore";
-	}
-	if (NodeType == EResourceNodeType::Geyser) {
-		return "Geyser";
-	}
-
-	return "Unknown ResourceNodeType";
 }
+
 
 void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool Relative) {
 
