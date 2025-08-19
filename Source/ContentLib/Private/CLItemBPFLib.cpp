@@ -849,7 +849,7 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TM
 
 		if (itemExists) {
 			if (CachedResourceSinkPoints[Item].TrackType != SinkTrack) {
-				UE_LOG(LogContentLib, Display, TEXT("Changing item %s from Sink Track %s to %s"), *Item->GetName(), *GetSinkTrackName(CachedResourceSinkPoints[Item].TrackType), *GetSinkTrackName(SinkTrack));
+				UE_LOG(LogContentLib, Display, TEXT("Moving item %s from Sink Track '%s' to '%s'"), *Item->GetName(), *GetSinkTrackName(CachedResourceSinkPoints[Item].TrackType), *GetSinkTrackName(SinkTrack));
 			}
 			CachedResourceSinkPoints[Item] = FResourceSinkValuePair32(SinkTrack, sinkPoints);
 			UE_LOG(LogContentLib, Display, TEXT("Updated item %s in the '%s' Sink Track"), *Item->GetName(), *GetSinkTrackName(SinkTrack));
