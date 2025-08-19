@@ -898,20 +898,42 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 	pairToAdd.ResourceDescriptor = ScannableResource;
 	pairToAdd.ResourceNodeType = NodeType;
 
-	// TODO: edge case - if there are multiple `UFGUnlockScannableResource`s, we could end up adding it to an earlier one even if it was already present in a later one
-	// Change this code later if someone actually cares about that
-	for (const auto unlockEntry : Schematic.GetDefaultObject()->mUnlocks) {
-		if (const auto entryAsScannable = Cast<UFGUnlockScannableResource>(unlockEntry)) {
-			// TODO replace with `.Contains(pairToAdd)` once FScannableResourcePair gets FACTORYGAME_API (https://discord.com/channels/555424930502541343/562722670974599227/1407121342532157560)
-			if (AlreadyContainsPair(entryAsScannable->mResourcePairsToAddToScanner, pairToAdd)) {
-				UE_LOG(LogContentLib, Warning, TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"), *Schematic->GetName(), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType));
-				// We're done with checking ALL unlocks - don't want to add it multiple times if there are multiple
-				return;
-			}
-			UE_LOG(LogContentLib, Warning, TEXT("CL: Added Scannable Resource %s (%s) to existing unlock in Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName());
-			entryAsScannable->mResourcePairsToAddToScanner.Add(pairToAdd);
-			return;
+	TArray<UFGUnlockScannableResource*> scannableUnlocks;
+	for (auto& unlock : Schematic.GetDefaultObject()->mUnlocks) {
+		if (Cast<UFGUnlockScannableResource>(unlock)) {
+			scannableUnlocks.Add(Cast<UFGUnlockScannableResource>(unlock));
 		}
+	}
+
+	// Already contains the unlock?
+	if (scannableUnlocks.ContainsByPredicate(
+		[&](const UFGUnlockScannableResource *scannableUnlock) {
+			// TODO replace with `.Contains(pairToAdd)` once FScannableResourcePair gets FACTORYGAME_API	(https://discord.com/channels/555424930502541343/562722670974599227/1407121342532157560)
+			return AlreadyContainsPair(
+				scannableUnlock->mResourcePairsToAddToScanner,
+				pairToAdd
+			);
+	})) {
+		UE_LOG(LogContentLib, Warning,
+			TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"),
+			*Schematic->GetName(),
+			*ScannableResource->GetName(),
+			*GetResourceNodeTypeString(NodeType)
+		);
+		return;
+	}
+
+	// Add to first existing unlock.
+	if (scannableUnlocks.Num() > 0) {
+		UE_LOG(LogContentLib, Warning,
+			TEXT("CL: Added Scannable Resource %s (%s) to existing unlock in Schematic %s."),
+			*ScannableResource->GetName(),
+			*GetResourceNodeTypeString(NodeType),
+			*Schematic->GetName()
+		);
+
+		scannableUnlocks[0]->mResourcePairsToAddToScanner.Add(pairToAdd);
+		return;
 	}
 
 	// Not found in existing - create a new unlock to house the pair
