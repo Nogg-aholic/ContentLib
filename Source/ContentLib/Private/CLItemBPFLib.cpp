@@ -134,7 +134,6 @@ FContentLib_Item::FContentLib_Item():
 	CanBeDiscarded(-1),
 	RememberPickUp(-1),
 	ResourceSinkPoints(-1),
-	SinkTrack(-1),
 	FuelWasteItem()
 {
 }
@@ -272,9 +271,9 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
 	}
 
-	if (CDO.SinkTrack != -1)
+	if (CDO.SinkTrack != "")
 	{
-		const auto SinkTrack = MakeShared<FJsonValueNumber>(CDO.SinkTrack);
+		const auto SinkTrack = MakeShared<FJsonValueString>(CDO.SinkTrack);
 		Obj->Values.Add("SinkTrack", SinkTrack);
 	}
 
@@ -568,7 +567,7 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 	UBPFContentLib::SetIntegerFieldWithLog(Item.CanBeDiscarded, "CanBeDiscarded", Result);
 	UBPFContentLib::SetIntegerFieldWithLog(Item.RememberPickUp, "RememberPickUp", Result);
 	UBPFContentLib::SetIntegerFieldWithLog(Item.ResourceSinkPoints, "ResourceSinkPoints", Result);
-	UBPFContentLib::SetIntegerFieldWithLog(Item.SinkTrack, "SinkTrack", Result);
+	UBPFContentLib::SetStringFieldWithLog(Item.SinkTrack, "SinkTrack", Result);
 
 
 	if (Result->HasField("ResourceItem") && Result->TryGetField("ResourceItem")->Type == EJson::Object)
@@ -827,15 +826,15 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TM
 
 		int32 sinkPoints = -1;
 		UBPFContentLib::SetIntegerFieldWithLog(sinkPoints, "ResourceSinkPoints", Result);
-		int32 jsonSinkTrack = 0;
-		UBPFContentLib::SetIntegerFieldWithLog(jsonSinkTrack, "SinkTrack", Result);
+		FString jsonSinkTrack;
+		UBPFContentLib::SetStringFieldWithLog(jsonSinkTrack, "SinkTrack", Result);
+
+		EResourceSinkTrack SinkTrack = GetSinkTrackEnum(jsonSinkTrack);
 		
-		if (jsonSinkTrack < -1 || jsonSinkTrack > 1) {
+		if (SinkTrack == EResourceSinkTrack::RST_MAX) {
 			UE_LOG(LogContentLib, Error, TEXT("Invalid Sink Track for item %s"), *Item->GetName());
 			continue;
 		}
-
-		EResourceSinkTrack SinkTrack = GetSinkTrackEnum(jsonSinkTrack);
 
 		bool itemExists = CachedResourceSinkPoints.Contains(Item);
 
@@ -971,14 +970,18 @@ FString UCLItemBPFLib::GetSinkTrackName(EResourceSinkTrack SinkTrack)
 	}
 }
 
-EResourceSinkTrack UCLItemBPFLib::GetSinkTrackEnum(int32 SinkTrack)
+EResourceSinkTrack UCLItemBPFLib::GetSinkTrackEnum(FString SinkTrack)
 {
 	using enum EResourceSinkTrack;
 
-	switch (SinkTrack) {
-	case 0:		return RST_Default;
-	case 1:		return RST_Exploration;
-	default:	return RST_Default;
+	if (SinkTrack.IsEmpty() || SinkTrack == "Default") {
+		return RST_Default;
+	}
+	else if (SinkTrack == "Exploration") {
+		return RST_Exploration;
+	}
+	else {
+		return RST_MAX; //Invalid
 	}
 }
 

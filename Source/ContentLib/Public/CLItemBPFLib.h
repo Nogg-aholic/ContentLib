@@ -116,7 +116,7 @@ struct  CONTENTLIB_API  FContentLib_Item
 	int32 ResourceSinkPoints;
 
 	UPROPERTY(BlueprintReadWrite)
-	int32 SinkTrack;
+	FString SinkTrack;
 
 	UPROPERTY(BlueprintReadWrite)
 	FContentLib_ResourceItem ResourceItem;
@@ -185,5 +185,5 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
 	static FString GetSinkTrackName(EResourceSinkTrack SinkTrack);
 
 	UFUNCTION(BlueprintCallable)
-	static EResourceSinkTrack GetSinkTrackEnum(int32 SinkTrack);
+	static EResourceSinkTrack GetSinkTrackEnum(FString SinkTrack);
 };
