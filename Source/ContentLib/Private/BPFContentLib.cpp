@@ -878,6 +878,8 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 	}
 }
 
+// Helper for AddScannableResourceToUnlock
+// Note: takes array and not UFGUnlockScannableResource directly because the access transformer doesn't grant non-classmember function access to it
 const bool AlreadyContainsPair(const TArray<FScannableResourcePair>& array, const FScannableResourcePair pairToAdd) {
 	for (const auto& existingEntry : array) {
 		if (existingEntry.ResourceDescriptor == pairToAdd.ResourceDescriptor &&
@@ -898,22 +900,23 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 	pairToAdd.ResourceDescriptor = ScannableResource;
 	pairToAdd.ResourceNodeType = NodeType;
 
-	TArray<UFGUnlockScannableResource*> scannableUnlocks;
+	TArray<UFGUnlockScannableResource*> allScannableUnlocks;
 	for (auto& unlock : Schematic.GetDefaultObject()->mUnlocks) {
-		if (Cast<UFGUnlockScannableResource>(unlock)) {
-			scannableUnlocks.Add(Cast<UFGUnlockScannableResource>(unlock));
+		if (auto asScannable = Cast<UFGUnlockScannableResource>(unlock)) {
+			allScannableUnlocks.Add(asScannable);
 		}
 	}
 
-	// Already contains the unlock?
-	if (scannableUnlocks.ContainsByPredicate(
-		[&](const UFGUnlockScannableResource *scannableUnlock) {
-			// TODO replace with `.Contains(pairToAdd)` once FScannableResourcePair gets FACTORYGAME_API	(https://discord.com/channels/555424930502541343/562722670974599227/1407121342532157560)
+	// Does any existing unlock already contain this scan pair?
+	if (allScannableUnlocks.ContainsByPredicate(
+		[&](const UFGUnlockScannableResource* scannableUnlock) {
+			// TODO replace with `.Contains(pairToAdd)` once FScannableResourcePair gets FACTORYGAME_API (https://discord.com/channels/555424930502541343/562722670974599227/1407121342532157560)
 			return AlreadyContainsPair(
 				scannableUnlock->mResourcePairsToAddToScanner,
 				pairToAdd
 			);
 	})) {
+		// We're done with checking ALL unlocks
 		UE_LOG(LogContentLib, Warning,
 			TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"),
 			*Schematic->GetName(),
@@ -923,8 +926,8 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 		return;
 	}
 
-	// Add to first existing unlock.
-	if (scannableUnlocks.Num() > 0) {
+	if (allScannableUnlocks.Num() > 0) {
+		// Add to first existing unlock.
 		UE_LOG(LogContentLib, Warning,
 			TEXT("CL: Added Scannable Resource %s (%s) to existing unlock in Schematic %s."),
 			*ScannableResource->GetName(),
@@ -932,11 +935,11 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 			*Schematic->GetName()
 		);
 
-		scannableUnlocks[0]->mResourcePairsToAddToScanner.Add(pairToAdd);
+		allScannableUnlocks[0]->mResourcePairsToAddToScanner.Add(pairToAdd);
 		return;
 	}
 
-	// Not found in existing - create a new unlock to house the pair
+	// Create a new unlock to house the pair
 
 	// TODO eventually switch away from FindObject(ANY_PACKAGE)
 	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
