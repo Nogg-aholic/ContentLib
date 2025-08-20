@@ -832,7 +832,7 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, co
 		TSharedPtr<FJsonObject> jsonObj;
 		Serializer.Deserialize(Reader, jsonObj);
 		if (!jsonObj.IsValid()) {
-			UE_LOG(LogContentLib, Error, TEXT("Failed to parse item json when updating Sink Data, skipping: %s"), *Json);
+			UE_LOG(LogContentLib, Error, TEXT("Failed to parse item json when updating Sink Data, skipping: item %s with json %s"), *Item->GetName(), *Json);
 			continue;
 		}
 
@@ -841,42 +841,59 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, co
 		FString jsonSinkTrack;
 		UBPFContentLib::SetStringFieldWithLog(jsonSinkTrack, "ResourceSinkTrack", jsonObj);
 
-		bool shouldModifySinkTrack = !jsonSinkTrack.IsEmpty(); // TODO use this
+		bool shouldModifySinkPoints = newSinkPoints > -1; // -1 is default, 0 is remove, value is points
+		bool shouldModifySinkTrack = !jsonSinkTrack.IsEmpty();
 
 		EResourceSinkTrack newSinkTrack = GetSinkTrackEnum(jsonSinkTrack);
 		if (newSinkTrack == EResourceSinkTrack::RST_MAX) {
-			UE_LOG(LogContentLib, Error, TEXT("Invalid sink track '%s' specified for item %s, not modifying it nor sink points"), *jsonSinkTrack, *Item->GetName());
+			UE_LOG(LogContentLib, Error, TEXT("Invalid sink track '%s' specified for item %s, not modifying the track"), *jsonSinkTrack, *Item->GetName());
+			shouldModifySinkTrack = false;
+		}
+
+		if (!shouldModifySinkTrack && !shouldModifySinkPoints) {
 			continue;
 		}
 
 		bool itemExists = CopyOfCachedResourceSinkPoints.Contains(Item);
 
-		if (newSinkPoints <= 0) {
-			// Only delete if explicitly set to 0 as -1 is default
-			if (newSinkPoints == 0) { 
-				if (itemExists) {
-					CopyOfCachedResourceSinkPoints.Remove(Item);
-					UE_LOG(LogContentLib, Display, TEXT("Removed item %s from sink tracks (now unsinkable)"), *Item->GetName());
-				} else {
-					UE_LOG(LogContentLib, Display, TEXT("Skipping removing item %s from sink track '%s' because it wasn't there"), *Item->GetName(), *GetSinkTrackName(newSinkTrack));
-				}
+		if (shouldModifySinkPoints && newSinkPoints == 0) {
+			if (itemExists) {
+				CopyOfCachedResourceSinkPoints.Remove(Item);
+				UE_LOG(LogContentLib, Display, TEXT("Removed item %s from sink tracks (now unsinkable)"), *Item->GetName());
+			} else {
+				UE_LOG(LogContentLib, Display, TEXT("Skipping removing item %s from sink tracks because it wasn't on any"), *Item->GetName());
 			}
 			continue;
 		}
 
 		if (itemExists) {
 			auto previousEntry = CopyOfCachedResourceSinkPoints.Find(Item);
+			FResourceSinkValuePair32 pendingNewEntry = FResourceSinkValuePair32(previousEntry->TrackType, previousEntry->Value);
 
-			if (previousEntry->TrackType != newSinkTrack) {
-				UE_LOG(LogContentLib, Display, TEXT("Moving item %s from sink track '%s' to '%s'"), *Item->GetName(), *GetSinkTrackName(previousEntry->TrackType), *GetSinkTrackName(newSinkTrack));
+			if (shouldModifySinkTrack) {
+				if (previousEntry->TrackType != newSinkTrack) {
+					UE_LOG(LogContentLib, Display, TEXT("Moving item %s from sink track '%s' to '%s'"), *Item->GetName(), *GetSinkTrackName(previousEntry->TrackType), *GetSinkTrackName(newSinkTrack));
+					pendingNewEntry.TrackType = newSinkTrack;
+				}
 			}
-			CopyOfCachedResourceSinkPoints[Item] = FResourceSinkValuePair32(newSinkTrack, newSinkPoints);
-			UE_LOG(LogContentLib, Display, TEXT("Updated points of item %s in sink track '%s' to %d"), *Item->GetName(), *GetSinkTrackName(newSinkTrack), newSinkPoints);
-		} else {
-			CopyOfCachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(newSinkTrack, newSinkPoints));
-			UE_LOG(LogContentLib, Display, TEXT("Added item %s to sink track '%s' (%d points)"), *Item->GetName(), *GetSinkTrackName(newSinkTrack), newSinkPoints);
+			if (shouldModifySinkPoints) {
+				pendingNewEntry.Value = newSinkPoints;
+				UE_LOG(LogContentLib, Display, TEXT("Updated points of item %s in sink track '%s' to %d"), *Item->GetName(), *GetSinkTrackName(pendingNewEntry.TrackType), newSinkPoints);
+			}
+
+			CopyOfCachedResourceSinkPoints[Item] = pendingNewEntry;
+			continue;
 		}
 
+		// Does not exist yet - must create an entry
+
+		if (!shouldModifySinkPoints || !shouldModifySinkTrack) {
+			UE_LOG(LogContentLib, Error, TEXT("Adding a new item to the sink requires specifying both a sink track and points value. Skipping item %s because it lacked one of those."), *Item->GetName());
+			continue;
+		}
+
+		CopyOfCachedResourceSinkPoints.Add(Item, FResourceSinkValuePair32(newSinkTrack, newSinkPoints));
+		UE_LOG(LogContentLib, Display, TEXT("Added item %s to sink track '%s' (%d points)"), *Item->GetName(), *GetSinkTrackName(newSinkTrack), newSinkPoints);
 	}
 
 	SinkSubsystem->SetmCachedResourceSinkPoints(CopyOfCachedResourceSinkPoints);
