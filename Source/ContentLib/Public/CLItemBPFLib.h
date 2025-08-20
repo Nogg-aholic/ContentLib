@@ -116,7 +116,7 @@ struct  CONTENTLIB_API  FContentLib_Item
 	int32 ResourceSinkPoints;
 
 	UPROPERTY(BlueprintReadWrite)
-	FString SinkTrack;
+	FString ResourceSinkTrack;
 
 	UPROPERTY(BlueprintReadWrite)
 	FContentLib_ResourceItem ResourceItem;
@@ -147,33 +147,30 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
 	public:
 	
 	UFUNCTION(BlueprintCallable)
-    static FString GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item);
-    UFUNCTION(BlueprintCallable)
+	static FString GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor> Item);
+	UFUNCTION(BlueprintCallable)
 	static FContentLib_Item GenerateCLItemFromString(FString JsonString);
 
 	UFUNCTION(BlueprintCallable)
 	static 	FString GenerateStringFromCLItem(FContentLib_Item Item);
-    
-    UFUNCTION(BlueprintCallable)
-    static FContentLib_VisualKit GenerateKitFromString(FString String);
+	
+	UFUNCTION(BlueprintCallable)
+	static FContentLib_VisualKit GenerateKitFromString(FString String);
 
 	UFUNCTION(BlueprintCallable)
 	static FString GenerateKitFromClass(TSubclassOf<UFGItemDescriptor> Item);
 
-   
-    UFUNCTION(BlueprintCallable)
-    static FString GetVisualKitAsString(FContentLib_VisualKit Kit);
-    
-    UFUNCTION(BlueprintCallable)
-    static void InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item Struct, UContentLibSubsystem* Subsystem);
+	UFUNCTION(BlueprintCallable)
+	static FString GetVisualKitAsString(FContentLib_VisualKit Kit);
+	
+	UFUNCTION(BlueprintCallable)
+	static void InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item, FContentLib_Item Struct, UContentLibSubsystem* Subsystem);
 
 	UFUNCTION(BlueprintCallable)
-	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, TMap<TSubclassOf<UFGItemDescriptor>, FString> ItemList);
-
+	static void UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, const TMap<TSubclassOf<UFGItemDescriptor>, FString> ItemList);
 
 	UFUNCTION(BlueprintCallable)
 	static FString GenerateFromNuclearFuelClass(TSubclassOf<UFGItemDescriptor> Item);
-
 
 	UFUNCTION(BlueprintCallable)
 	static FString GenerateResourceFromClass(TSubclassOf<UFGItemDescriptor> Item);
@@ -182,8 +179,8 @@ class CONTENTLIB_API UCLItemBPFLib : public UBlueprintFunctionLibrary
 	static void ApplyVisualKitToItem(UContentLibSubsystem* Subsystem, FContentLib_VisualKit Kit,TSubclassOf<UFGItemDescriptor> Item);
 	
 	UFUNCTION(BlueprintCallable)
-	static FString GetSinkTrackName(EResourceSinkTrack SinkTrack);
+	static FString GetSinkTrackName(EResourceSinkTrack ResourceSinkTrack);
 
 	UFUNCTION(BlueprintCallable)
-	static EResourceSinkTrack GetSinkTrackEnum(FString SinkTrack);
+	static EResourceSinkTrack GetSinkTrackEnum(FString ResourceSinkTrack);
 };
