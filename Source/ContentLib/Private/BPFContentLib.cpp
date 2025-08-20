@@ -900,61 +900,50 @@ void UBPFContentLib::AddScannableResourceToUnlock(
 	pairToAdd.ResourceDescriptor = ScannableResource;
 	pairToAdd.ResourceNodeType = NodeType;
 
-	TArray<UFGUnlockScannableResource*> allScannableUnlocks;
+	UFGUnlockScannableResource* firstScannableUnlock = nullptr;
 	for (auto& unlock : Schematic.GetDefaultObject()->mUnlocks) {
 		if (auto asScannable = Cast<UFGUnlockScannableResource>(unlock)) {
-			allScannableUnlocks.Add(asScannable);
+			if (AlreadyContainsPair(asScannable->mResourcePairsToAddToScanner, pairToAdd)) {
+				// We're done with checking ALL unlocks
+				UE_LOG(LogContentLib, Warning,
+					TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"),
+					*Schematic->GetName(),
+					*ScannableResource->GetName(),
+					*GetResourceNodeTypeString(NodeType)
+				);
+				return;
+			}
+			if (!firstScannableUnlock) {
+				firstScannableUnlock = asScannable;
+			}
 		}
 	}
 
-	// Does any existing unlock already contain this scan pair?
-	if (allScannableUnlocks.ContainsByPredicate(
-		[&](const UFGUnlockScannableResource* scannableUnlock) {
-			// TODO replace with `.Contains(pairToAdd)` once FScannableResourcePair gets FACTORYGAME_API (https://discord.com/channels/555424930502541343/562722670974599227/1407121342532157560)
-			return AlreadyContainsPair(
-				scannableUnlock->mResourcePairsToAddToScanner,
-				pairToAdd
-			);
-	})) {
-		// We're done with checking ALL unlocks
-		UE_LOG(LogContentLib, Warning,
-			TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"),
-			*Schematic->GetName(),
-			*ScannableResource->GetName(),
-			*GetResourceNodeTypeString(NodeType)
-		);
-		return;
-	}
+	if (firstScannableUnlock) {
+		firstScannableUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
+	} else {
+		// Create a new unlock to house the pair
 
-	if (allScannableUnlocks.Num() > 0) {
-		// Add to first existing unlock.
-		UE_LOG(LogContentLib, Warning,
-			TEXT("CL: Added Scannable Resource %s (%s) to existing unlock in Schematic %s."),
-			*ScannableResource->GetName(),
-			*GetResourceNodeTypeString(NodeType),
-			*Schematic->GetName()
-		);
-
-		allScannableUnlocks[0]->mResourcePairsToAddToScanner.Add(pairToAdd);
-		return;
-	}
-
-	// Create a new unlock to house the pair
-
-	// TODO eventually switch away from FindObject(ANY_PACKAGE)
-	UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
-	if (!Class) {
-		Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"));
+		// TODO eventually switch away from FindObject(ANY_PACKAGE)
+		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
 		if (!Class) {
-			UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockScannableResource_C wanting to add to unlocks of %s"), *Schematic->GetName());
+			Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"));
+			if (!Class) {
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockScannableResource_C wanting to add to unlocks of %s"), *Schematic->GetName());
+			}
 		}
+
+		UFGUnlockScannableResource* newUnlock = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
+		newUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
+		Schematic.GetDefaultObject()->mUnlocks.Add(newUnlock);
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGUnlockScannableResource"));
 	}
-
-	UFGUnlockScannableResource* newUnlock = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
-	newUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
-	Schematic.GetDefaultObject()->mUnlocks.Add(newUnlock);
-
-	UE_LOG(LogContentLib, Warning, TEXT("CL: Created new Unlock. Added Scannable Resource %s (%s) to unlocks of Schematic %s."), *ScannableResource->GetName(), *GetResourceNodeTypeString(NodeType), *Schematic->GetName());
+	UE_LOG(LogContentLib, Warning,
+		TEXT("CL: Added Scannable Resource %s (%s) to unlock in Schematic %s."),
+		*ScannableResource->GetName(),
+		*GetResourceNodeTypeString(NodeType),
+		*Schematic->GetName()
+	);
 }
 
 void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
