@@ -1,6 +1,3 @@
-
-
-
 #include "CLSchematicBPFLib.h"
 #include "ContentLib.h"
 
@@ -11,7 +8,7 @@
 #include "Reflection/ReflectionHelper.h"
 #include "Serialization/JsonSerializer.h"
 #include "Unlocks/FGUnlockRecipe.h"
-
+#include "Unlocks/FGUnlockScannableResource.h"
 
 
 FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FString String)
@@ -543,10 +540,10 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	TArray< TSharedPtr<FJsonValue>> Cost;
 	TArray< TSharedPtr<FJsonValue>> SubCats;
 	for (auto& i : CDO->mCost) {
-		auto IngObj = MakeShared<FJsonObject>();
-		IngObj->Values.Add("Item", MakeShared<FJsonValueString>(i.ItemClass->GetName()));
-		IngObj->Values.Add("Amount", MakeShared<FJsonValueNumber>(i.Amount));
-		Cost.Add(MakeShared<FJsonValueObject>(IngObj));
+		auto costPair = MakeShared<FJsonObject>();
+		costPair->Values.Add("Item", MakeShared<FJsonValueString>(i.ItemClass->GetName()));
+		costPair->Values.Add("Amount", MakeShared<FJsonValueNumber>(i.Amount));
+		Cost.Add(MakeShared<FJsonValueObject>(costPair));
 	}
 
 	for (auto& i : CDO->mSubCategories) {
@@ -556,21 +553,22 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	TArray< TSharedPtr<FJsonValue>> Schematics;
 	TArray< TSharedPtr<FJsonValue>> ScannableResources;
 	for (auto& i : CDO->mUnlocks) {
-		if (Cast<UFGUnlockRecipe>(i)) {
-			for (auto& e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
+		if (auto recipeUnlock = Cast<UFGUnlockRecipe>(i)) {
+			for (auto& e : recipeUnlock->mRecipes) {
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
-		if (Cast<UFGUnlockSchematic>(i)) {
-			for (auto& e : Cast<UFGUnlockSchematic>(i)->mSchematics) {
+		if (auto schematicUnlock = Cast<UFGUnlockSchematic>(i)) {
+			for (auto& e : schematicUnlock->mSchematics) {
 				Schematics.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
-		if (Cast<UFGUnlockScannableResource>(i)) {
-			for (auto& e : Cast<UFGUnlockScannableResource>(i)->mResourcePairsToAddToScanner) {
-				ScannableResources.Add(MakeShared<FJsonValueString>(
-				UBPFContentLib::GetResourceNodeTypeString(e.ResourceNodeType) + ": " + e.ResourceDescriptor->GetPathName()
-			));
+		if (auto scanResourceUnlock = Cast<UFGUnlockScannableResource>(i)) {
+			for (auto& e : scanResourceUnlock->mResourcePairsToAddToScanner) {
+				auto newPair = MakeShared<FJsonObject>();
+				newPair->Values.Add("Resource", MakeShared<FJsonValueString>(e.ResourceDescriptor->GetPathName()));
+				newPair->Values.Add("NodeType", MakeShared<FJsonValueString>(UBPFContentLib::GetResourceNodeTypeString(e.ResourceNodeType)));
+				ScannableResources.Add(MakeShared<FJsonValueObject>(newPair));
 			}
 		}
 		// TODO arm slot, inventory slot unlocks
