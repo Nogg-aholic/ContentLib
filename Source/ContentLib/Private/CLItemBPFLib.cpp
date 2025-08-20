@@ -819,7 +819,7 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, co
 		return;
 	}
 
-	UE_LOG(LogContentLib, Error, TEXT("Updating sink points for %d items"), ItemToItemJson.Num());
+	UE_LOG(LogContentLib, Display, TEXT("Updating sink points for %d items"), ItemToItemJson.Num());
 
 	// We must pickpocket the SinkSubsystem because trying to pass it new points records 'normally' is ignored if something else already has,
 	// ex. another mod earlier in load order.
@@ -887,8 +887,8 @@ void UCLItemBPFLib::UpdateSinkPoints(AFGResourceSinkSubsystem* SinkSubsystem, co
 
 		// Does not exist yet - must create an entry
 
-		if (!shouldModifySinkPoints || !shouldModifySinkTrack) {
-			UE_LOG(LogContentLib, Error, TEXT("Adding a new item to the sink requires specifying both a sink track and points value. Skipping item %s because it lacked one of those."), *Item->GetName());
+		if (newSinkPoints < 1) {
+			UE_LOG(LogContentLib, Error, TEXT("Adding a new item to the sink requires specifying a points value greater than 0. Skipping item %s because no sink points were defined."), *Item->GetName());
 			continue;
 		}
 
