@@ -28,15 +28,7 @@ FString UCLCategoryBPFLib::GenerateFromItemCategory(TSubclassOf<UFGItemCategory>
 
 FContentLib_ItemCategory UCLCategoryBPFLib::CLItemCategoryFromString(FString String)
 {
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
-	{
-		if (String == "")
-			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
-		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
-		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
-
+	if (UBPFContentLib::FailsBasicJsonFormCheck(String)) {
 		return FContentLib_ItemCategory();
 	}
 	
@@ -75,18 +67,9 @@ FString UCLCategoryBPFLib::GenerateFromSchematicCategory(TSubclassOf<UFGSchemati
 	return Write;
 }
 
-FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(FString String,UContentLibSubsystem* Subsystem)
+FContentLib_SchematicCategory UCLCategoryBPFLib::CLSchematicCategoryFromString(FString String, UContentLibSubsystem* Subsystem)
 {
-
-	
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}")) {
-		if (String == "")
-			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
-		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
-		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String);
-
+	if (UBPFContentLib::FailsBasicJsonFormCheck(String)) {
 		return FContentLib_SchematicCategory();
 	}
 	

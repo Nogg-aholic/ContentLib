@@ -1138,9 +1138,9 @@ bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
 		if (jsonString.IsEmpty())
 			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String"))
 		else if (!jsonString.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt start with '{': %s"), *jsonString)
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesn't start with '{': %s"), *jsonString)
 		else if (!jsonString.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt end with '}': %s"), *jsonString);
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesn't end with '}': %s"), *jsonString);
 		return true;
 	}
 	return false;
