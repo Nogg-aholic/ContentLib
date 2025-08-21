@@ -451,8 +451,10 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 		Obj->Values.Add("RememberPickUp", RememberPickUp);
 	}
 
+	// TODO sink point data may not be ready when this is called, so it's not safe to assume 0 means remove at this stage.
+	// For now, excluding 0s, even though this means the output string could be inaccurate
 	// -1 is default, 0 is remove, value is set value
-	if (CDO->mResourceSinkPoints >= 0)
+	if (CDO->mResourceSinkPoints > 0) // (ideally >= 0 to catch removals)
 	{
 		const auto ResourceSinkPoints = MakeShared<FJsonValueNumber>(CDO->mResourceSinkPoints);
 		Obj->Values.Add("ResourceSinkPoints", ResourceSinkPoints);
