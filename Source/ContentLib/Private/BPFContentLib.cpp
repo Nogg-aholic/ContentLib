@@ -324,32 +324,34 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 }
 
 EResourceNodeType UBPFContentLib::GetResourceNodeType(FString NodeTypeName) {
+	using enum EResourceNodeType;
 	if (NodeTypeName == "Node") {
-		return EResourceNodeType::Node;
+		return Node;
 	}
 	if (NodeTypeName == "FrackingSatellite") {
-		return EResourceNodeType::FrackingSatellite;
+		return FrackingSatellite;
 	}
 	if (NodeTypeName == "FrackingCore") {
-		return EResourceNodeType::FrackingCore;
+		return FrackingCore;
 	}
 	if (NodeTypeName == "Geyser") {
-		return EResourceNodeType::Geyser;
+		return Geyser;
 	}
 
 	UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType %s, defaulting to Node"), *NodeTypeName);
-	return EResourceNodeType::Node;
+	return Node;
 }
 
 FString UBPFContentLib::GetResourceNodeTypeString(EResourceNodeType NodeType) {
+	using enum EResourceNodeType;
 	switch (NodeType) {
-	case EResourceNodeType::Node:
+	case Node:
 		return "Node";
-	case EResourceNodeType::FrackingSatellite:
+	case FrackingSatellite:
 		return "FrackingSatellite";
-	case EResourceNodeType::FrackingCore:
+	case FrackingCore:
 		return "FrackingCore";
-	case EResourceNodeType::Geyser:
+	case Geyser:
 		return "Geyser";
 	default:
 		UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType, defaulting to Node"));
