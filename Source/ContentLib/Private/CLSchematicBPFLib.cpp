@@ -1,6 +1,3 @@
-
-
-
 #include "CLSchematicBPFLib.h"
 #include "ContentLib.h"
 
@@ -11,7 +8,7 @@
 #include "Reflection/ReflectionHelper.h"
 #include "Serialization/JsonSerializer.h"
 #include "Unlocks/FGUnlockRecipe.h"
-
+#include "Unlocks/FGUnlockScannableResource.h"
 
 
 FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FString String)
@@ -179,6 +176,8 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 		Schematic.ClearRecipes = false;
 	if (!UBPFContentLib::SetStringArrayFieldWithLog(Schematic.Schematics, "Schematics", ParsedJson))
 		Schematic.ClearSchematics = false;
+	if (!UBPFContentLib::SetScannableResourcesArrayFieldWithLog(Schematic.ScannableResources, "ScannableResources", ParsedJson))
+		Schematic.ClearScannableResources = false;
 	if (!UBPFContentLib::SetStringArrayFieldWithLog(Schematic.DependsOn, "DependsOn", ParsedJson))
 		Schematic.ClearDeps = false;
 	if (!UBPFContentLib::SetStringIntMapFieldWithLog(Schematic.Cost, "Cost", ParsedJson))
@@ -191,7 +190,8 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearCost, "ClearCost", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearRecipes, "ClearRecipes", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearSchematics, "ClearSchematics", ParsedJson);
-	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson); // TODO is this even used?
+	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearScannableResources, "ClearScannableResources", ParsedJson);
+	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearItemsToGive, "ClearItemsToGive", ParsedJson);
 
 	if (ParsedJson->HasField("ResearchTree")) {
@@ -374,7 +374,6 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 			UBPFContentLib::AddRecipeToUnlock(SchematicClass, SubSystem, RecipesClass);
 		}
 	}
-	
 	for (const auto& entry : Schematic.InfoCards) {
 		UBPFContentLib::AddInfoOnlyToUnlock(SchematicClass, SubSystem, entry);
 	}
@@ -388,6 +387,19 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 		if (Class) {
 			UBPFContentLib::AddSchematicToUnlock(SchematicClass, SubSystem, Class);
 		}
+	}
+
+	if (Schematic.ClearScannableResources) {
+		auto elementIsScannableResourcesUnlock = [](UFGUnlock* unlock) { return Cast<UFGUnlockScannableResource>(unlock); };
+		CDO->mUnlocks.RemoveAll(elementIsScannableResourcesUnlock);
+	}
+	for (const auto& entry : Schematic.ScannableResources) {
+		UClass* Resource = UBPFContentLib::FindClassWithLog(entry.Resource, UFGItemDescriptor::StaticClass(), SubSystem);
+		if (!Resource) {
+			continue;
+		}
+
+		UBPFContentLib::AddScannableResourceToUnlock(SchematicClass, SubSystem, Resource, UBPFContentLib::GetResourceNodeType(entry.NodeType));
 	}
 
 	if (Schematic.ItemsToGive.Num() || Schematic.ClearItemsToGive) {
@@ -528,10 +540,10 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	TArray< TSharedPtr<FJsonValue>> Cost;
 	TArray< TSharedPtr<FJsonValue>> SubCats;
 	for (auto& i : CDO->mCost) {
-		auto IngObj = MakeShared<FJsonObject>();
-		IngObj->Values.Add("Item", MakeShared<FJsonValueString>(i.ItemClass->GetName()));
-		IngObj->Values.Add("Amount", MakeShared<FJsonValueNumber>(i.Amount));
-		Cost.Add(MakeShared<FJsonValueObject>(IngObj));
+		auto costPair = MakeShared<FJsonObject>();
+		costPair->Values.Add("Item", MakeShared<FJsonValueString>(i.ItemClass->GetName()));
+		costPair->Values.Add("Amount", MakeShared<FJsonValueNumber>(i.Amount));
+		Cost.Add(MakeShared<FJsonValueObject>(costPair));
 	}
 
 	for (auto& i : CDO->mSubCategories) {
@@ -539,15 +551,24 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	}
 	TArray< TSharedPtr<FJsonValue>> Recipes;
 	TArray< TSharedPtr<FJsonValue>> Schematics;
+	TArray< TSharedPtr<FJsonValue>> ScannableResources;
 	for (auto& i : CDO->mUnlocks) {
-		if (Cast<UFGUnlockRecipe>(i)) {
-			for (auto& e : Cast<UFGUnlockRecipe>(i)->mRecipes) {
+		if (auto recipeUnlock = Cast<UFGUnlockRecipe>(i)) {
+			for (auto& e : recipeUnlock->mRecipes) {
 				Recipes.Add(MakeShared<FJsonValueString>(e->GetPathName()));
 			}
 		}
-		if (Cast<UFGUnlockSchematic>(i)) {
-			for (auto& e : Cast<UFGUnlockSchematic>(i)->mSchematics) {
+		if (auto schematicUnlock = Cast<UFGUnlockSchematic>(i)) {
+			for (auto& e : schematicUnlock->mSchematics) {
 				Schematics.Add(MakeShared<FJsonValueString>(e->GetPathName()));
+			}
+		}
+		if (auto scanResourceUnlock = Cast<UFGUnlockScannableResource>(i)) {
+			for (auto& e : scanResourceUnlock->mResourcePairsToAddToScanner) {
+				auto newPair = MakeShared<FJsonObject>();
+				newPair->Values.Add("Resource", MakeShared<FJsonValueString>(e.ResourceDescriptor->GetPathName()));
+				newPair->Values.Add("NodeType", MakeShared<FJsonValueString>(UBPFContentLib::GetResourceNodeTypeString(e.ResourceNodeType)));
+				ScannableResources.Add(MakeShared<FJsonValueObject>(newPair));
 			}
 		}
 		// TODO arm slot, inventory slot unlocks
@@ -566,6 +587,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	const auto DepArray = MakeShared<FJsonValueArray>(Deps);
 	const auto RecipesArray = MakeShared<FJsonValueArray>(Recipes);
 	const auto SchematicsArray = MakeShared<FJsonValueArray>(Schematics);
+	const auto ScannableResourcesArray = MakeShared<FJsonValueArray>(ScannableResources);
 	const auto CostArray = MakeShared<FJsonValueArray>(Cost);
 	const auto SubCatArray = MakeShared<FJsonValueArray>(SubCats);
 
@@ -581,6 +603,7 @@ FString UCLSchematicBPFLib::SerializeSchematic(TSubclassOf<UFGSchematic> Schemat
 	Obj->Values.Add("IconSmall", IconSmall);
 	Obj->Values.Add("Recipes", RecipesArray);
 	Obj->Values.Add("Schematics", SchematicsArray);
+	Obj->Values.Add("ScannableResources", ScannableResourcesArray);
 	Obj->Values.Add("DependsOn", DepArray);
 
 	FString Write;
