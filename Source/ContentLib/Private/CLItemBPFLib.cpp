@@ -599,15 +599,7 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 
 FContentLib_VisualKit UCLItemBPFLib::GenerateKitFromString(FString String)
 {
-	if (String == "" || !String.StartsWith("{") || !String.EndsWith("}"))
-	{
-		if (String == "")
-			UE_LOG(LogContentLib, Error, TEXT("Empty String  %s"), *String)
-		else if (!String.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt start with '{' %s"), *String)
-		else if (!String.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("String doesnt end with '}'  %s"), *String)
-
+	if (UBPFContentLib::FailsBasicJsonFormCheck(String)) {
 		return FContentLib_VisualKit();
 	}
 

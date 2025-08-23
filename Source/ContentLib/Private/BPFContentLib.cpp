@@ -264,6 +264,102 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 	return true;
 }
 
+bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_UnlockScannableResource>& Field, FString FieldName, TSharedPtr<FJsonObject> Result) {
+	if (!Result->HasField(FieldName)) {
+		return false;
+	}
+
+	auto pendingResourcesToAdd = Result->TryGetField(FieldName);
+	if (pendingResourcesToAdd->Type != EJson::Array) {
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of type Array"), *FieldName);
+		return false;
+	}
+
+	bool Added = false;
+	for (const auto& candidateResourceEntry : pendingResourcesToAdd->AsArray()) {
+		auto candidateResource = candidateResourceEntry->AsObject();
+		if (!candidateResource->HasField("Resource")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property Resource"), *FieldName);
+			return false;
+		}
+		auto Resource = candidateResource->TryGetField("Resource");
+		if (Resource->Type != EJson::String) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .Resource is not of type String"), *FieldName);
+			return false;
+		}
+		FString ResourceString = Resource->AsString();
+		if (ResourceString.IsEmpty()) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .Resource is empty"), *FieldName);
+			return false;
+		}
+
+		if (!candidateResource->HasField("NodeType")) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property NodeType"), *FieldName);
+			return false;
+		}
+		auto NodeType = candidateResource->TryGetField("NodeType");
+		if (NodeType->Type != EJson::String)
+		{
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .NodeType is not of type String"), *FieldName);
+			return false;
+		}
+		FString NodeTypeString = NodeType->AsString();
+		if (NodeTypeString.IsEmpty()) {
+			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .NodeType is empty"), *FieldName);
+			return false;
+		}
+
+		FContentLib_UnlockScannableResource pairToAdd;
+		pairToAdd.Resource = ResourceString;
+		pairToAdd.NodeType = NodeTypeString;
+
+		if (Field.Contains(pairToAdd)) {
+			UE_LOG(LogContentLib, Warning, TEXT("Field %s already contains entry with Resource %s and NodeType %s, skipping"), *FieldName, *ResourceString, *NodeTypeString);
+			continue;
+		}
+		Field.Add(pairToAdd);
+		Added = true;
+	}
+	return Added;
+}
+
+EResourceNodeType UBPFContentLib::GetResourceNodeType(FString NodeTypeName) {
+	using enum EResourceNodeType;
+	if (NodeTypeName == "Node") {
+		return Node;
+	}
+	if (NodeTypeName == "FrackingSatellite") {
+		return FrackingSatellite;
+	}
+	if (NodeTypeName == "FrackingCore") {
+		return FrackingCore;
+	}
+	if (NodeTypeName == "Geyser") {
+		return Geyser;
+	}
+
+	UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType %s, defaulting to Node"), *NodeTypeName);
+	return Node;
+}
+
+FString UBPFContentLib::GetResourceNodeTypeString(EResourceNodeType NodeType) {
+	using enum EResourceNodeType;
+	switch (NodeType) {
+	case Node:
+		return "Node";
+	case FrackingSatellite:
+		return "FrackingSatellite";
+	case FrackingCore:
+		return "FrackingCore";
+	case Geyser:
+		return "Geyser";
+	default:
+		UE_LOG(LogContentLib, Error, TEXT("CL: Unknown ResourceNodeType, defaulting to Node"));
+		return "Node";
+	}
+}
+
+
 void UBPFContentLib::WriteStringToFile(FString Path, FString resultString, bool Relative) {
 
 #if WITH_EDITOR
@@ -370,16 +466,16 @@ void UBPFContentLib::String_Sort(UPARAM(ref) TArray <FString>& Array_To_Sort, bo
 			}
 		}
 	}
-	Sorted_Array.Sort();               // Sort array using built in function (sorts A-Z)
+	Sorted_Array.Sort();							 // Sort array using built in function (sorts A-Z)
 
 	if (Descending == true) {
-		TArray <FString> NewArray;      // Define "temp" holding array
+		TArray <FString> NewArray;			// Define "temp" holding array
 		int x = Sorted_Array.Num() - 1;
 		while (x > -1) {
 			NewArray.Add(Sorted_Array[x]); // loop through A-Z sorted array and remove element from back and place it in beginning of "temp" array
 			--x;
 		}
-		Sorted_Array = NewArray;   // Set reference array to "temp" array order, array is now Z-A
+		Sorted_Array = NewArray;	 // Set reference array to "temp" array order, array is now Z-A
 	}
 }
 
@@ -784,6 +880,74 @@ void UBPFContentLib::AddSchematicToUnlock(TSubclassOf<UFGSchematic> Schematic, U
 	}
 }
 
+// Helper for AddScannableResourceToUnlock
+// Note: takes array and not UFGUnlockScannableResource directly because the access transformer doesn't grant non-classmember function access to it
+const bool AlreadyContainsPair(const TArray<FScannableResourcePair>& array, const FScannableResourcePair pairToAdd) {
+	for (const auto& existingEntry : array) {
+		if (existingEntry.ResourceDescriptor == pairToAdd.ResourceDescriptor &&
+			existingEntry.ResourceNodeType == pairToAdd.ResourceNodeType) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void UBPFContentLib::AddScannableResourceToUnlock(
+	TSubclassOf<UFGSchematic> Schematic,
+	UContentLibSubsystem* Subsystem,
+	const TSubclassOf<class UFGResourceDescriptor> ScannableResource,
+	const EResourceNodeType NodeType
+) {
+	FScannableResourcePair pairToAdd;
+	pairToAdd.ResourceDescriptor = ScannableResource;
+	pairToAdd.ResourceNodeType = NodeType;
+
+	UFGUnlockScannableResource* firstScannableUnlock = nullptr;
+	for (auto& unlock : Schematic.GetDefaultObject()->mUnlocks) {
+		if (auto asScannable = Cast<UFGUnlockScannableResource>(unlock)) {
+			if (AlreadyContainsPair(asScannable->mResourcePairsToAddToScanner, pairToAdd)) {
+				// We're done with checking ALL unlocks
+				UE_LOG(LogContentLib, Warning,
+					TEXT("CL: An Unlock of Schematic %s already contains Scannable Resource %s (%s), skipping"),
+					*Schematic->GetName(),
+					*ScannableResource->GetName(),
+					*GetResourceNodeTypeString(NodeType)
+				);
+				return;
+			}
+			if (!firstScannableUnlock) {
+				firstScannableUnlock = asScannable;
+			}
+		}
+	}
+
+	if (firstScannableUnlock) {
+		firstScannableUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
+	} else {
+		// Create a new unlock to house the pair
+
+		// TODO eventually switch away from FindObject(ANY_PACKAGE)
+		UClass* Class = FindObject<UClass>(ANY_PACKAGE, TEXT("BP_UnlockScannableResource_C"), false);
+		if (!Class) {
+			Class = LoadObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"));
+			if (!Class) {
+				UE_LOG(LogContentLib, Fatal, TEXT("CL: Couldn't find BP_UnlockScannableResource_C wanting to add to unlocks of %s"), *Schematic->GetName());
+			}
+		}
+
+		UFGUnlockScannableResource* newUnlock = NewObject<UFGUnlockScannableResource>(Schematic.GetDefaultObject(), Class);
+		newUnlock->mResourcePairsToAddToScanner.Add(pairToAdd);
+		Schematic.GetDefaultObject()->mUnlocks.Add(newUnlock);
+		UE_LOG(LogContentLib, Warning, TEXT("CL: Created new UFGUnlockScannableResource"));
+	}
+	UE_LOG(LogContentLib, Warning,
+		TEXT("CL: Added Scannable Resource %s (%s) to unlock in Schematic %s."),
+		*ScannableResource->GetName(),
+		*GetResourceNodeTypeString(NodeType),
+		*Schematic->GetName()
+	);
+}
+
 void UBPFContentLib::AddInfoOnlyToUnlock(TSubclassOf<UFGSchematic> Schematic, UContentLibSubsystem* Subsystem, FContentLib_UnlockInfoOnly InfoCardToAdd) {
 	UClass* Class = FindObject<UClass>(FindPackage(nullptr, TEXT("/Game/")), TEXT("BP_UnlockInfoOnly_C"), false);
 	if (!Class) {
@@ -972,11 +1136,11 @@ void UBPFContentLib::AddSchematicToPurchaseDep(TSubclassOf<UFGSchematic> Schemat
 bool UBPFContentLib::FailsBasicJsonFormCheck(FString jsonString) {
 	if (jsonString.IsEmpty() || !jsonString.StartsWith("{") || !jsonString.EndsWith("}")) {
 		if (jsonString.IsEmpty())
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String  %s"), *jsonString)
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - Empty String"))
 		else if (!jsonString.StartsWith("{"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt start with '{': %s"), *jsonString)
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesn't start with '{': %s"), *jsonString)
 		else if (!jsonString.EndsWith("}"))
-			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesnt end with '}':  %s"), *jsonString);
+			UE_LOG(LogContentLib, Error, TEXT("Invalid json - String doesn't end with '}': %s"), *jsonString);
 		return true;
 	}
 	return false;
