@@ -234,7 +234,7 @@ FString UCLRecipeBPFLib::SerializeRecipe(const TSubclassOf<UFGRecipe> Recipe)
 
 	Obj->Values.Add("Name",Name);
 	Obj->Values.Add("OverrideName", Override);
-	Obj->Values.Add("Category", Cat);
+	Obj->Values.Add("OverrideCategory", Cat);
 	Obj->Values.Add("Ingredients",Ing);
 	Obj->Values.Add("Products",Prod);
 	Obj->Values.Add("ProducedIn",Producer);
