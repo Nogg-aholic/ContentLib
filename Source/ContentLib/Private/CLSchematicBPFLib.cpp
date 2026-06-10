@@ -453,7 +453,7 @@ void UCLSchematicBPFLib::InitSchematicFromStruct(FContentLib_Schematic Schematic
 					ResearchTreeNodeClass, TEXT("mNodeDataStruct"));
 				SchematicStructProperty = FReflectionHelper::FindPropertyByShortNameChecked<FClassProperty>(
 					NodeDataStructProperty->Struct, TEXT("Schematic"));
-				TArray<UFGResearchTreeNode*>& Nodes = Cast<UFGResearchTree>(SchematicDep->GetDefaultObject())->mNodes;
+				TArray<TObjectPtr<class UFGResearchTreeNode>> Nodes = Cast<UFGResearchTree>(SchematicDep->GetDefaultObject())->mNodes;
 				bool Found = false;
 				for (UFGResearchTreeNode* Node : Nodes) {
 					if (!Node)
