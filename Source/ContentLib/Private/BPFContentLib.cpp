@@ -7,6 +7,8 @@
 #include "FGWorkBench.h"
 #include "FGResearchTree.h"
 #include "AvailabilityDependencies/FGSchematicPurchasedDependency.h"
+#include "HAL/PlatformFileManager.h"
+#include "Misc/FileHelper.h"
 #include "Resources/FGBuildingDescriptor.h"
 #include "Resources/FGItemDescriptor.h"
 #include "Unlocks/FGUnlockArmEquipmentSlot.h"
@@ -193,7 +195,7 @@ void UBPFContentLib::SetBooleanFieldWithLog(bool& Field, const FString FieldName
 
 	auto type = Result->TryGetField(FieldName)->Type;
 	if (type != EJson::Boolean) {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Boolean, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Boolean, was %s"), *FieldName, EJsonToDebugString(type));
 		return;
 	}
 
@@ -207,7 +209,7 @@ void UBPFContentLib::SetFloatFieldWithLog(float& Field, const FString FieldName,
 
 	auto type = Result->TryGetField(FieldName)->Type;
 	if (type != EJson::Number) {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number, was %s"), *FieldName, EJsonToDebugString(type));
 		return;
 	}
 
@@ -225,7 +227,7 @@ void UBPFContentLib::SetIntegerFieldWithLog(int32& Field, const FString FieldNam
 	} else if (type == EJson::Boolean) {
 		Field = static_cast<int32>(Result->TryGetField(FieldName)->AsBool());
 	} else {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean, was %s"), *FieldName, EJsonToDebugString(type));
 	}
 }
 
@@ -240,7 +242,7 @@ void UBPFContentLib::SetSmallIntegerFieldWithLog(uint8& Field, const FString Fie
 	} else if (type == EJson::Boolean) {
 		Field = static_cast<uint8>(Result->TryGetField(FieldName)->AsBool());
 	} else {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Number or Boolean, was %s"), *FieldName, EJsonToDebugString(type));
 	}
 }
 
@@ -251,7 +253,7 @@ void UBPFContentLib::SetStringFieldWithLog(FString& Field, const FString FieldNa
 
 	auto type = Result->TryGetField(FieldName)->Type;
 	if (type != EJson::String) {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type String, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type String, was %s"), *FieldName, EJsonToDebugString(type));
 		return;
 	}
 
@@ -265,7 +267,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 
 	auto type = Result->TryGetField(FieldName)->Type;
 	if (type != EJson::Array) {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Array, was %s"), *FieldName, *EJsonToDebugString(type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of Type Array, was %s"), *FieldName, EJsonToDebugString(type));
 		return false;
 	}
 	for (const auto& i : Result->TryGetField(FieldName)->AsArray()) {
@@ -278,7 +280,7 @@ bool UBPFContentLib::SetStringArrayFieldWithLog(TArray<FString>& Field, FString 
 			}
 		}
 		else {
-			UE_LOG(LogContentLib, Error, TEXT("Field %s contains Element that isn't a String, was %s, so skipping it"), *FieldName, *EJsonToDebugString(i->Type));
+			UE_LOG(LogContentLib, Error, TEXT("Field %s contains Element that isn't a String, was %s, so skipping it"), *FieldName, EJsonToDebugString(i->Type));
 		}
 	}
 	return true;
@@ -291,7 +293,7 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 
 	auto pendingResourcesToAdd = Result->TryGetField(FieldName);
 	if (pendingResourcesToAdd->Type != EJson::Array) {
-		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of type Array, was %s"), *FieldName, *EJsonToDebugString(pendingResourcesToAdd->Type));
+		UE_LOG(LogContentLib, Error, TEXT("Field %s is not of type Array, was %s"), *FieldName, EJsonToDebugString(pendingResourcesToAdd->Type));
 		return false;
 	}
 
