@@ -51,11 +51,11 @@ struct  CONTENTLIB_API  FFactoryGame_RecipeMJ
 
 
 	bool HasAssignedMJ() const;
-	bool TryAssignMJ(UContentLibSubsystem * System);
+	bool TryAssignMJ(UWorld* WorldContext, UContentLibSubsystem * System);
 
 	int32 GetItemAmount(TSubclassOf<UFGItemDescriptor> Item, bool Ingredient);
 	private:
-	bool CanCalculateMj(UContentLibSubsystem * System) const;
+	bool CanCalculateMj(UWorld* WorldContext, UContentLibSubsystem * System) const;
 	float GetAverageBuildingCost(TArray<TSubclassOf<UObject>> Exclude)const;
 	void AddValue(const float Value);
 	public:
@@ -156,7 +156,7 @@ struct  CONTENTLIB_API  FFactoryGame_Recipe
 	bool IsManualOnly() const;
 	bool IsManual() const;
 
-	TArray<float> GetIngredientsForProductRatio(TSubclassOf<UFGItemDescriptor> Item) const;
+	TArray<float> GetIngredientsForProductRatio(UWorld* WorldContext, TSubclassOf<UFGItemDescriptor> Item) const;
 	float GetItemToTotalProductRatio(TSubclassOf<UFGItemDescriptor> Item,UContentLibSubsystem* System ) const;
 
 	bool UnlockedFromAlternate();
@@ -169,11 +169,11 @@ struct  CONTENTLIB_API  FFactoryGame_Recipe
 
 	TArray<TSubclassOf<class UFGItemDescriptor>> Products() const;
 
-	TArray<TSubclassOf<class UFGItemDescriptor>> Ingredients() const;
+	TArray<TSubclassOf<class UFGItemDescriptor>> Ingredients(UWorld* WorldContext) const;
 
 	TArray<TSubclassOf<class UFGItemCategory>> ProductCats() const;
 
-	TArray<TSubclassOf<class UFGItemCategory>> IngredientCats() const;
+	TArray<TSubclassOf<class UFGItemCategory>> IngredientCats(UWorld* WorldContext) const;
 
 	UPROPERTY(BlueprintReadOnly)
 	FFactoryGame_RecipeMJ MJ;
@@ -196,6 +196,8 @@ class CONTENTLIB_API UContentLibSubsystem : public UGameInstanceSubsystem
 
 
 public:
+	
+	virtual UWorld* GetWorld() const override;
 
 	// Called when Content Registration has Finished
 	UFUNCTION(BlueprintCallable)
@@ -209,7 +211,7 @@ public:
         void CollectVisualKits();
 
 	UFUNCTION(BlueprintCallable)
-		void FullRecipeCalculation();
+		void FullRecipeCalculation(UWorld* WorldContext);
 
 	
 	UFUNCTION(BlueprintImplementableEvent)

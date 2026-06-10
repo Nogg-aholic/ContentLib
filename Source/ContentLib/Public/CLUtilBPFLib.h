@@ -29,11 +29,11 @@ public:
 		static void SortPairs(UPARAM(ref)TArray<TSubclassOf<UObject>>& Array_To_Sort_Keys, UPARAM(ref)TArray<float>& Array_To_Sort_Values, bool Descending = true);
 
 	UFUNCTION(BlueprintCallable)
-		static TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor> CalculateRecipesRecursively(TSubclassOf<UFGItemDescriptor> Item, TArray<TSubclassOf<UFGRecipe>> Exclude, bool UseAlternates, UContentLibSubsystem* System);
+		static TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor> CalculateRecipesRecursively(UWorld* WorldContext,TSubclassOf<UFGItemDescriptor> Item, TArray<TSubclassOf<UFGRecipe>> Exclude, bool UseAlternates, UContentLibSubsystem* System);
 
 
 	UFUNCTION(BlueprintCallable)
-		static void CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc, UContentLibSubsystem* System);
+		static void CalculateCost(UWorld* WorldContext, TArray<TSubclassOf<UFGRecipe>> RecipesToCalc, UContentLibSubsystem* System);
 
 
 	UFUNCTION(BlueprintCallable)
@@ -45,7 +45,7 @@ public:
 	static void PrintSortedItems( UContentLibSubsystem* System);
 
 	UFUNCTION(BlueprintCallable)
-	static void RecurseIngredients(TSubclassOf<class UFGItemDescriptor> Item , UPARAM(ref)TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , UPARAM(ref)TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst = false);
+	static void RecurseIngredients(UWorld* WorldContext, TSubclassOf<class UFGItemDescriptor> Item , UPARAM(ref)TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , UPARAM(ref)TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst = false);
 
 	UFUNCTION(BlueprintCallable)
 	static int32 CalculateDepth(UContentLibSubsystem* System, TSubclassOf<UFGItemDescriptor> Item);

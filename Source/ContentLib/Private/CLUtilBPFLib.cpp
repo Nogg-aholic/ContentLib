@@ -51,12 +51,12 @@ void UCLUtilBPFLib::SortPairs(TArray<TSubclassOf<UObject>>& Array_To_Sort_Keys, 
 	}
 }
 
-TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::CalculateRecipesRecursively(const TSubclassOf<UFGItemDescriptor> Item, const TArray<TSubclassOf<UFGRecipe>> Exclude, const bool UseAlternates, UContentLibSubsystem* System)
+TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::CalculateRecipesRecursively(UWorld* WorldContext, const TSubclassOf<UFGItemDescriptor> Item, const TArray<TSubclassOf<UFGRecipe>> Exclude, const bool UseAlternates, UContentLibSubsystem* System)
 {
 	TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  Map;
 	TArray<TSubclassOf<UFGRecipe>> nRecipes;
 	TArray<TSubclassOf<UFGItemDescriptor>> RecipesItem;
-	RecurseIngredients(Item, RecipesItem, nRecipes, System, UseAlternates, Exclude);
+	RecurseIngredients(WorldContext, Item, RecipesItem, nRecipes, System, UseAlternates, Exclude);
 
 	for (auto& i : RecipesItem) {
 		System->Items.Find(i)->MJValue = -1;
@@ -64,7 +64,7 @@ TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::Ca
 	for (auto& i : nRecipes) {
 		System->Recipes.Find(i)->MJ.MJ_Average = 0;
 	}
-	CalculateCost(nRecipes,System);
+	CalculateCost(WorldContext,nRecipes,System);
 	for (auto& i : RecipesItem) {
 		FFactoryGame_Descriptor& InValue = *System->Items.Find(i);
 		Map.Add(i, InValue);
@@ -72,7 +72,7 @@ TMap<TSubclassOf<UFGItemDescriptor>, FFactoryGame_Descriptor>  UCLUtilBPFLib::Ca
 	return Map;
 };
 
-void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,UContentLibSubsystem* System)
+void UCLUtilBPFLib::CalculateCost(UWorld* WorldContext, TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,UContentLibSubsystem* System)
 {
 	UE_LOG(LogContentLib, Display, TEXT("******************** Content Info MJ Calculation %i Recipes to Calculate ********************"), RecipesToCalc.Num());
 	int32 CounterInside = 0;
@@ -80,7 +80,7 @@ void UCLUtilBPFLib::CalculateCost(TArray<TSubclassOf<UFGRecipe>> RecipesToCalc,U
 	while (CounterInside < RecipesToCalc.Num()) {
 		for (auto& Recipe : RecipesToCalc) {
 			FFactoryGame_Recipe& ItemItr = *System->Recipes.Find(Recipe);
-			if (ItemItr.MJ.TryAssignMJ(System))
+			if (ItemItr.MJ.TryAssignMJ(WorldContext, System))
 				CounterInside++;
 		}
 		if (Loops < 20) {
@@ -152,13 +152,13 @@ int32 UCLUtilBPFLib::CalculateDepth(UContentLibSubsystem * System, const TSubcla
 		const TArray<TSubclassOf<UFGRecipe>> Exc;
 		TArray<TSubclassOf<UFGRecipe>> Recipes;
 		TArray<TSubclassOf<UFGItemDescriptor>> RecipesItem;
-		RecurseIngredients(Item,RecipesItem,Recipes,System,false,Exc,true);
+		RecurseIngredients(System->GetWorld(), Item,RecipesItem,Recipes,System,false,Exc,true);
 		return Recipes.Num();
 	}
 	return 0 ;
 }
 
-void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<class UFGItemDescriptor> Item, TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst)
+void UCLUtilBPFLib::RecurseIngredients(UWorld* WorldContext, const TSubclassOf<class UFGItemDescriptor> Item, TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst)
 {
 	if(!System)
 		return;
@@ -173,9 +173,9 @@ void UCLUtilBPFLib::RecurseIngredients(const TSubclassOf<class UFGItemDescriptor
 		if(Recipe.UnlockedFromAlternate() && SkipAlternate)
 			continue;
 		
-		for(auto& e: Recipe.Ingredients()) {
+		for(auto& e: Recipe.Ingredients(WorldContext)) {
 			if(!AllRecipes.Contains(i))
-				RecurseIngredients(e, AllItems,AllRecipes,System, SkipAlternate,Excluded);
+				RecurseIngredients(WorldContext, e, AllItems,AllRecipes,System, SkipAlternate,Excluded);
 			if(!AllItems.Contains(e))
 				AllItems.Add(e);
 		}

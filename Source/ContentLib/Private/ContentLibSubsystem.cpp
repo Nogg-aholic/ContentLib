@@ -29,6 +29,17 @@
 #include "UObject/CoreRedirects.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+UWorld* UContentLibSubsystem::GetWorld() const
+{
+	// Make sure the GameInstance is valid before getting the world
+	UGameInstance* GameInstance = GetTypedOuter<UGameInstance>();
+	if (GameInstance != nullptr)
+	{
+		return GameInstance->GetWorld();
+	}
+    
+	return nullptr;
+}
 
 void UContentLibSubsystem::FillLoadedClasses(bool logBuilders)
 {
@@ -161,12 +172,12 @@ int32 FFactoryGame_RecipeMJ::GetItemAmount(const TSubclassOf<UFGItemDescriptor> 
 	return Arr[Out.Find(Item)].Amount;
 }
 
-bool FFactoryGame_RecipeMJ::CanCalculateMj(UContentLibSubsystem* System) const
+bool FFactoryGame_RecipeMJ::CanCalculateMj(UWorld* WorldContext, UContentLibSubsystem* System) const
 {
 	if (!System || !nRecipe)
 		return false;
 	
-	for (auto& i : UFGRecipe::GetIngredients(nRecipe)) {
+	for (auto& i : UFGRecipe::GetIngredients(WorldContext, nRecipe)) {
 		if (!System->Items.Find(i.ItemClass)->HasMj())
 			return false;
 	}
@@ -189,12 +200,12 @@ void FFactoryGame_RecipeMJ::AddValue(const float Value)
 }
 
 
-bool FFactoryGame_RecipeMJ::TryAssignMJ(UContentLibSubsystem* System)
+bool FFactoryGame_RecipeMJ::TryAssignMJ(UWorld* WorldContext, UContentLibSubsystem* System)
 {
-	if(!CanCalculateMj(System))
+	if(!CanCalculateMj(WorldContext, System))
 		return false;
 	FFactoryGame_Recipe & Recipe = *System->Recipes.Find(nRecipe);
-	const auto ingredients = UFGRecipe::GetIngredients(nRecipe);
+	const auto ingredients = UFGRecipe::GetIngredients(WorldContext, nRecipe);
 	float Sum = 0.f;
 	for (auto& Ingredient : ingredients) {
 		System->Items.Find(Ingredient.ItemClass)->AssignAverageMj(System);
@@ -400,7 +411,7 @@ float FFactoryGame_Descriptor::AssignAverageMj(UContentLibSubsystem* System, con
 	
 };
 
-void UContentLibSubsystem::FullRecipeCalculation()
+void UContentLibSubsystem::FullRecipeCalculation(UWorld* WorldContext)
 {
 	TArray<TSubclassOf<UFGRecipe>> NormalRecipes;
 	TArray<TSubclassOf<UFGRecipe>> AlternateRecipes;
@@ -421,12 +432,12 @@ void UContentLibSubsystem::FullRecipeCalculation()
 
 	// do a bunch of times to average them out
 	for(int32 i = 0 ; i < 10; i++)
-		UCLUtilBPFLib::CalculateCost(NormalRecipes,this);
+		UCLUtilBPFLib::CalculateCost(WorldContext, NormalRecipes,this);
 	// once for generating , another time to average
 	for(int32 i = 0 ; i < 2; i++)
-	UCLUtilBPFLib::CalculateCost(AlternateRecipes,this);
-	UCLUtilBPFLib::CalculateCost(ManualOnly,this);
-	UCLUtilBPFLib::CalculateCost(BuildingRecipes,this);
+	UCLUtilBPFLib::CalculateCost(WorldContext, AlternateRecipes,this);
+	UCLUtilBPFLib::CalculateCost(WorldContext, ManualOnly,this);
+	UCLUtilBPFLib::CalculateCost(WorldContext, BuildingRecipes,this);
 	
 	UE_LOG(LogContentLib, Display,TEXT("-----------------------------------------------------"));
 	UE_LOG(LogContentLib, Display,TEXT("___________________Results Recipes___________________"));
@@ -608,9 +619,9 @@ FFactoryGame_Recipe::FFactoryGame_Recipe(const TSubclassOf<UFGRecipe> Class, con
 	MJ = FFactoryGame_RecipeMJ(Class);
 }
 
-TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(const TSubclassOf<UFGItemDescriptor> Item) const
+TArray<float> FFactoryGame_Recipe::GetIngredientsForProductRatio(UWorld* WorldContext, const TSubclassOf<UFGItemDescriptor> Item) const
 {
-	const auto Ingredients = UFGRecipe::GetIngredients(nRecipeClass);
+	const auto Ingredients = UFGRecipe::GetIngredients(WorldContext, nRecipeClass);
 	const auto Products = UFGRecipe::GetProducts(nRecipeClass);
 	TArray<float> Array;
 	for (auto& i : Ingredients) {
@@ -684,7 +695,7 @@ void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverItem ----------------------"));
 		return;
 	}
-	for (auto& Ingredient : Ingredients()) {
+	for (auto& Ingredient : Ingredients(System->GetWorld())) {
 		FFactoryGame_Descriptor Item = FFactoryGame_Descriptor(Ingredient, nRecipeClass);
 		if (System->Items.Contains(Ingredient))
 			System->Items.Find(Ingredient)->IngredientInRecipe.Add(nRecipeClass);
@@ -777,10 +788,10 @@ TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Products() const
 	return out;
 }
 
-TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients() const
+TArray<TSubclassOf<UFGItemDescriptor>> FFactoryGame_Recipe::Ingredients(UWorld* WorldContext) const
 {
 	TArray<TSubclassOf<class UFGItemDescriptor>> out;
-	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(nRecipeClass);
+	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(WorldContext, nRecipeClass);
 	for (auto& IngredientStruct : IngredientStructs) {
 		if (IngredientStruct.ItemClass)
 			out.Add(IngredientStruct.ItemClass);
@@ -803,10 +814,10 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::ProductCats() const
 	return Out;
 }
 
-TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats() const
+TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats(UWorld* WorldContext) const
 {
 	TArray<TSubclassOf<class UFGItemCategory>> Out;
-	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(nRecipeClass);
+	TArray<FItemAmount> IngredientStructs = UFGRecipe::GetIngredients(WorldContext, nRecipeClass);
 	for (auto& Ingredient : IngredientStructs) {
 		auto Cat = UFGItemDescriptor::GetCategory(Ingredient.ItemClass);
 		if (Cat && Cat->IsChildOf(UFGItemCategory::StaticClass())){
