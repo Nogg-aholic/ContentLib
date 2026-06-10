@@ -157,10 +157,6 @@ FString UCLItemBPFLib::GenerateStringFromCLItem(FContentLib_Item Item)
 	{
 		FormString = "Gas";
 	}
-	else if (CDO.Form == EResourceForm::RF_HEAT)
-	{
-		FormString = "Heat";
-	}
 	else if (CDO.Form == EResourceForm::RF_INVALID)
 	{
 		FormString = "Invalid";
@@ -352,10 +348,6 @@ FString UCLItemBPFLib::GenerateFromDescriptorClass(TSubclassOf<UFGItemDescriptor
 	{
 		FormString = "Gas";
 	}
-	else if (CDO->mForm == EResourceForm::RF_HEAT)
-	{
-		FormString = "Heat";
-	}
 	else if (CDO->mForm == EResourceForm::RF_INVALID)
 	{
 		FormString = "Invalid";
@@ -517,10 +509,6 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 		else if (CS.Equals("Gas", ESearchCase::IgnoreCase))
 		{
 			Item.Form = EResourceForm::RF_GAS;
-		}
-		else if (CS.Equals("Heat", ESearchCase::IgnoreCase))
-		{
-			Item.Form = EResourceForm::RF_HEAT;
 		}
 		else if (CS.Equals("Invalid", ESearchCase::IgnoreCase))
 		{
