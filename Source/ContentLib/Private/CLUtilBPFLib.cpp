@@ -146,13 +146,13 @@ void UCLUtilBPFLib::PrintSortedItems(UContentLibSubsystem* System)
 };
 
 
-int32 UCLUtilBPFLib::CalculateDepth(UContentLibSubsystem * System, const TSubclassOf<UFGItemDescriptor> Item)
+int32 UCLUtilBPFLib::CalculateDepth(UWorld* WorldContext, UContentLibSubsystem * System, const TSubclassOf<UFGItemDescriptor> Item)
 {
 	if (Item) {
 		const TArray<TSubclassOf<UFGRecipe>> Exc;
 		TArray<TSubclassOf<UFGRecipe>> Recipes;
 		TArray<TSubclassOf<UFGItemDescriptor>> RecipesItem;
-		RecurseIngredients(System->GetWorld(), Item,RecipesItem,Recipes,System,false,Exc,true);
+		RecurseIngredients(WorldContext, Item,RecipesItem,Recipes,System,false,Exc,true);
 		return Recipes.Num();
 	}
 	return 0 ;

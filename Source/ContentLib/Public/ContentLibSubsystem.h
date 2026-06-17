@@ -111,9 +111,9 @@ struct  CONTENTLIB_API  FFactoryGame_Schematic
 	GENERATED_BODY()
 	public:
 	FFactoryGame_Schematic();
-	FFactoryGame_Schematic(TSubclassOf< class UFGSchematic > inClass, UContentLibSubsystem* System);
+	FFactoryGame_Schematic(TSubclassOf< class UFGSchematic > inClass, UWorld* WorldContext, UContentLibSubsystem* System);
 
-	void DiscoverUnlocks(UContentLibSubsystem* System);
+	void DiscoverUnlocks(UWorld* WorldContext, UContentLibSubsystem* System);
 	
 	private:
 	void GatherDependencies();
@@ -152,7 +152,7 @@ struct  CONTENTLIB_API  FFactoryGame_Recipe
 	FFactoryGame_Recipe(const TSubclassOf<UFGRecipe> Class, FFactoryGame_Schematic Schematic);
 
 	void DiscoverMachines(UContentLibSubsystem* System ) const;
-	void DiscoverItem(UContentLibSubsystem* System ) const;
+	void DiscoverItem(UWorld* WorldContext, UContentLibSubsystem* System ) const;
 	bool IsManualOnly() const;
 	bool IsManual() const;
 
@@ -196,12 +196,10 @@ class CONTENTLIB_API UContentLibSubsystem : public UGameInstanceSubsystem
 
 
 public:
-	
-	virtual UWorld* GetWorld() const override;
 
 	// Called when Content Registration has Finished
 	UFUNCTION(BlueprintCallable)
-		void ClientInit();
+		void ClientInit(UWorld* WorldContext);
 	
 	// Clears and rebuilds records of all content. Called multiple times as new content is created by ContentLib.
 	UFUNCTION(BlueprintCallable)
@@ -221,7 +219,7 @@ public:
 	void HandleResearchTreeNodeChange(UFGResearchTreeNode * Node, FContentLib_ResearchNode NodeStruct, TSubclassOf<UFGSchematic> Schematic,TSubclassOf<UFGResearchTree> ResearchTree);
 
 	UFUNCTION(BlueprintCallable)
-    FFactoryGame_Schematic HandleSchematic(TSubclassOf<UFGSchematic> Schematic);
+    FFactoryGame_Schematic HandleSchematic(TSubclassOf<UFGSchematic> Schematic, UWorld* WorldContext);
 
 	UPROPERTY(BlueprintReadOnly, Category = "Info")
 	TMap<TSubclassOf<class AFGBuildable>,TSubclassOf<class UFGBuildingDescriptor>> BuildGunBuildings;

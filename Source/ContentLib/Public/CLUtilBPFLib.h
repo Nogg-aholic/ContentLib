@@ -48,7 +48,7 @@ public:
 	static void RecurseIngredients(UWorld* WorldContext, TSubclassOf<class UFGItemDescriptor> Item , UPARAM(ref)TArray<TSubclassOf<class UFGItemDescriptor>> & AllItems , UPARAM(ref)TArray<TSubclassOf<class UFGRecipe>> & AllRecipes ,UContentLibSubsystem * System, bool SkipAlternate, TArray<TSubclassOf<class UFGRecipe>> Excluded, bool UseFirst = false);
 
 	UFUNCTION(BlueprintCallable)
-	static int32 CalculateDepth(UContentLibSubsystem* System, TSubclassOf<UFGItemDescriptor> Item);
+	static int32 CalculateDepth(UWorld* WorldContext, UContentLibSubsystem* System, TSubclassOf<UFGItemDescriptor> Item);
 
 	UFUNCTION(BlueprintCallable)
     static void AddToSchematicArrayProp(UPARAM(ref)FFactoryGame_Schematic& Obj, TSubclassOf<UFGSchematic> Schematic, int32 Index);

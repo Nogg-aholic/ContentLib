@@ -29,17 +29,6 @@
 #include "UObject/CoreRedirects.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-UWorld* UContentLibSubsystem::GetWorld() const
-{
-	// Make sure the GameInstance is valid before getting the world
-	UGameInstance* GameInstance = GetTypedOuter<UGameInstance>();
-	if (GameInstance != nullptr)
-	{
-		return GameInstance->GetWorld();
-	}
-    
-	return nullptr;
-}
 
 void UContentLibSubsystem::FillLoadedClasses(bool logBuilders)
 {
@@ -452,7 +441,7 @@ void UContentLibSubsystem::FullRecipeCalculation(UWorld* WorldContext)
 	UE_LOG(LogContentLib, Display,TEXT("-----------------------------------------------------"));
 }
 
-void UContentLibSubsystem::ClientInit()
+void UContentLibSubsystem::ClientInit(UWorld* WorldContext)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	TArray< FString> Paths;
@@ -565,7 +554,7 @@ void UContentLibSubsystem::ClientInit()
 	TArray<UClass*> Arr;
 	GetDerivedClasses(UFGSchematic::StaticClass(), Arr, true);
 	for(auto i : Arr) {
-		HandleSchematic(i);
+		HandleSchematic(i, WorldContext);
 	}
 
 	static FStructProperty* NodeDataStructProperty = nullptr;
@@ -599,9 +588,9 @@ void UContentLibSubsystem::ClientInit()
 
 
 
-FFactoryGame_Schematic UContentLibSubsystem::HandleSchematic(const TSubclassOf<class UFGSchematic> Schematic)
+FFactoryGame_Schematic UContentLibSubsystem::HandleSchematic(const TSubclassOf<class UFGSchematic> Schematic, UWorld* WorldContext)
 {
-	return Schematics.Add(Schematic, FFactoryGame_Schematic(Schematic, this));
+	return Schematics.Add(Schematic, FFactoryGame_Schematic(Schematic, WorldContext, this));
 }
 
 
@@ -689,13 +678,13 @@ void FFactoryGame_Recipe::DiscoverMachines(UContentLibSubsystem* System ) const
 	}
 }
 
-void FFactoryGame_Recipe::DiscoverItem(UContentLibSubsystem* System ) const
+void FFactoryGame_Recipe::DiscoverItem(UWorld* WorldContext, UContentLibSubsystem* System ) const
 {
 	if (!System) {
 		UE_LOG(LogContentLib, Error, TEXT("------------------------FFactoryGame_Recipe nullptr Subsystem in function DiscoverItem ----------------------"));
 		return;
 	}
-	for (auto& Ingredient : Ingredients(System->GetWorld())) {
+	for (auto& Ingredient : Ingredients(WorldContext)) {
 		FFactoryGame_Descriptor Item = FFactoryGame_Descriptor(Ingredient, nRecipeClass);
 		if (System->Items.Contains(Ingredient))
 			System->Items.Find(Ingredient)->IngredientInRecipe.Add(nRecipeClass);
@@ -831,13 +820,13 @@ TArray<TSubclassOf<UFGItemCategory>> FFactoryGame_Recipe::IngredientCats(UWorld*
 
 FFactoryGame_Schematic::FFactoryGame_Schematic() {}
 
-FFactoryGame_Schematic::FFactoryGame_Schematic(TSubclassOf<UFGSchematic> inClass, UContentLibSubsystem* System)
+FFactoryGame_Schematic::FFactoryGame_Schematic(TSubclassOf<UFGSchematic> inClass, UWorld* WorldContext, UContentLibSubsystem* System)
 {
 	nClass = inClass;
-	DiscoverUnlocks(System);
+	DiscoverUnlocks(WorldContext, System);
 }
 
-void FFactoryGame_Schematic::DiscoverUnlocks(UContentLibSubsystem* System)
+void FFactoryGame_Schematic::DiscoverUnlocks(UWorld* WorldContext, UContentLibSubsystem* System)
 {
 	GatherDependencies();
 
@@ -853,7 +842,7 @@ void FFactoryGame_Schematic::DiscoverUnlocks(UContentLibSubsystem* System)
 
 				if (!System->Recipes.Contains(UnlockRecipe)) {
 					FFactoryGame_Recipe RecipeStruct = FFactoryGame_Recipe(UnlockRecipe, *this);
-					RecipeStruct.DiscoverItem(System);
+					RecipeStruct.DiscoverItem(WorldContext, System);
 					RecipeStruct.DiscoverMachines(System);
 					System->Recipes.Add(UnlockRecipe, RecipeStruct);
 				}
@@ -868,7 +857,7 @@ void FFactoryGame_Schematic::DiscoverUnlocks(UContentLibSubsystem* System)
 
 			for (auto UnlockSchematic : UnlockSchematics) {
 				if (!System->Schematics.Contains(UnlockSchematic)) {
-					System->HandleSchematic(UnlockSchematic);
+					System->HandleSchematic(UnlockSchematic, WorldContext);
 				}
 			}
 		}
