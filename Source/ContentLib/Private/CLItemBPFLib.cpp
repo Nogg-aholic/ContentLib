@@ -496,9 +496,9 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 		return FContentLib_Item();
 
 	auto Item = FContentLib_Item();
-	if (Result->HasField("Form") && Result->TryGetField("Form")->Type == EJson::String)
+	if (Result->HasField(TEXT("Form")) && Result->TryGetField(TEXT("Form"))->Type == EJson::String)
 	{
-		const FString CS = Result->TryGetField("Form")->AsString();
+		const FString CS = Result->TryGetField(TEXT("Form"))->AsString();
 		if (CS.Equals("Solid", ESearchCase::IgnoreCase))
 		{
 			Item.Form = EResourceForm::RF_SOLID;
@@ -521,9 +521,9 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 	}
 
 
-	if (Result->HasField("StackSize") && Result->TryGetField("StackSize")->Type == EJson::String)
+	if (Result->HasField(TEXT("StackSize")) && Result->TryGetField(TEXT("StackSize"))->Type == EJson::String)
 	{
-		const FString CS = Result->TryGetField("StackSize")->AsString();
+		const FString CS = Result->TryGetField(TEXT("StackSize"))->AsString();
 		if (CS.Equals("One", ESearchCase::IgnoreCase))
 		{
 			Item.StackSize = EStackSize::SS_ONE;
@@ -570,16 +570,16 @@ FContentLib_Item UCLItemBPFLib::GenerateCLItemFromString(FString jsonString)
 	UBPFContentLib::SetStringFieldWithLog(Item.ResourceSinkTrack, "ResourceSinkTrack", Result);
 
 
-	if (Result->HasField("ResourceItem") && Result->TryGetField("ResourceItem")->Type == EJson::Object)
+	if (Result->HasField(TEXT("ResourceItem")) && Result->TryGetField(TEXT("ResourceItem"))->Type == EJson::Object)
 	{
-		const auto OBJ = Result->TryGetField("ResourceItem")->AsObject();
+		const auto OBJ = Result->TryGetField(TEXT("ResourceItem"))->AsObject();
 		UBPFContentLib::SetLinearColorFieldWithLog(Item.ResourceItem.PingColor, "PingColor", OBJ);
 		UBPFContentLib::SetFloatFieldWithLog(Item.ResourceItem.CollectSpeedMultiplier, "CollectSpeedMultiplier", OBJ);
 	}
 
-	if (Result->HasField("FuelWasteItem") && Result->TryGetField("FuelWasteItem")->Type == EJson::Object)
+	if (Result->HasField(TEXT("FuelWasteItem")) && Result->TryGetField(TEXT("FuelWasteItem"))->Type == EJson::Object)
 	{
-		const auto OBJ = Result->TryGetField("FuelWasteItem")->AsObject();
+		const auto OBJ = Result->TryGetField(TEXT("FuelWasteItem"))->AsObject();
 		UBPFContentLib::SetStringFieldWithLog(Item.FuelWasteItem.SpentFuelClass, "SpentFuelClass", Result);
 		UBPFContentLib::SetIntegerFieldWithLog(Item.FuelWasteItem.AmountOfWaste, "AmountOfWaste", Result);
 	}

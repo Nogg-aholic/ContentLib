@@ -161,9 +161,9 @@ FContentLib_Recipe UCLRecipeBPFLib::GenerateCLRecipeFromString(FString String)
 		return FContentLib_Recipe();
 	}
 
-	if (ParsedJson->HasField("Category")) {
+	if (ParsedJson->HasField(TEXT("Category"))) {
 		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Recipe field 'Category'! It has been renamed to 'OverrideCategory'. This will be a real error soon, but for now it still works."), *String);
-		ParsedJson->SetStringField("OverrideCategory", ParsedJson->TryGetField("Category")->AsString());
+		ParsedJson->SetStringField("OverrideCategory", ParsedJson->TryGetField(TEXT("Category"))->AsString());
 	}
 
 	FContentLib_Recipe Recipe;

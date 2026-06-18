@@ -40,9 +40,9 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 		return false;
 	}
 	UClass* Class = nullptr;
-	if(Result->HasField("Class") && Result->Values.Find("Class")->Get()->Type == EJson::String)
+	if(Result->HasField(TEXT("Class")) && Result->Values.Find("Class")->Get()->Type == EJson::String)
 	{
-		const FString ClassPath = Result->GetStringField("Class");
+		const FString ClassPath = Result->GetStringField(TEXT("Class"));
 		UObject* Loaded = LoadObject<UObject>(nullptr, *ClassPath);
 		if (Loaded)
 		{
@@ -55,9 +55,9 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 			{
 				Loaded = Class->GetDefaultObject();;
 			}
-			if(Result->HasField("Edits") && Result->Values.Find("Edits")->Get()->Type == EJson::Array)
+			if(Result->HasField(TEXT("Edits")) && Result->Values.Find("Edits")->Get()->Type == EJson::Array)
 			{
-				TArray<TSharedPtr<FJsonValue>> Arr = Result->GetArrayField("Edits");
+				TArray<TSharedPtr<FJsonValue>> Arr = Result->GetArrayField(TEXT("Edits"));
 				for(auto i : Arr)
 				{
 					if(i->Type != EJson::Object)
@@ -67,13 +67,13 @@ bool UCLCDOBPFLib::GenerateCLCDOFromString(FString String, bool DoLog)
 					else
 					{
 						auto Obj = i->AsObject();
-						if(Obj->HasField("Property") && Obj->Values.Find("Property")->Get()->Type == EJson::String)
+						if(Obj->HasField(TEXT("Property")) && Obj->Values.Find("Property")->Get()->Type == EJson::String)
 						{
-							FString PropertyName = Obj->GetStringField("Property");
+							FString PropertyName = Obj->GetStringField(TEXT("Property"));
 							FProperty * Prop = Class->FindPropertyByName(FName(PropertyName));
 							if(Prop)
 							{
-								if(Obj->HasField("Value") && Obj->Values.Find("Value")->Get()->Type != EJson::Null)
+								if(Obj->HasField(TEXT("Value")) && Obj->Values.Find("Value")->Get()->Type != EJson::Null)
 								{
 									EditCDO(Prop, *Obj->Values.Find("Value"), DoLog, Loaded);
 								}
@@ -229,9 +229,9 @@ void UCLCDOBPFLib::EditCDO(FProperty * Prop, TSharedPtr<FJsonValue> json,bool Do
 
 				MProp->KeyProp->InitializeValue(PropertyValue);
 				MProp->ValueProp->InitializeValue(ValueValue);
-				TSharedPtr<FJsonValue> KeyValue = jsonArr[i]->AsObject()->TryGetField("CL_Key");
+				TSharedPtr<FJsonValue> KeyValue = jsonArr[i]->AsObject()->TryGetField(TEXT("CL_Key"));
 				EditCDO(MProp->KeyProp,KeyValue, DoLog, PropertyValue);
-				TSharedPtr<FJsonValue> ObjectValue = jsonArr[i]->AsObject()->TryGetField("CL_Value");
+				TSharedPtr<FJsonValue> ObjectValue = jsonArr[i]->AsObject()->TryGetField(TEXT("CL_Value"));
 				EditCDO(MProp->ValueProp,ObjectValue, DoLog, ValueValue);
 				MapHelper.AddPair(PropertyValue,ValueValue);
 				MProp->KeyProp->DestroyValue(PropertyValue);

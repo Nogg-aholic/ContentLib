@@ -87,11 +87,11 @@ bool UBPFContentLib::SetStringIntMapFieldWithLog(TMap<FString, int32>& Field, FS
 	for (auto i : Result->TryGetField(FieldName)->AsArray()) {
 		if (i->Type == EJson::Object) {
 			const auto Obj = i->AsObject();
-			const bool HasItem = Obj->HasField("Item");
-			const bool HasAmount = Obj->HasField("Amount");
+			const bool HasItem = Obj->HasField(TEXT("Item"));
+			const bool HasAmount = Obj->HasField(TEXT("Amount"));
 			if (HasItem && HasAmount) {
-				const TSharedPtr<FJsonValue> Item = Obj->TryGetField("Item");
-				const TSharedPtr<FJsonValue> Amount = Obj->TryGetField("Amount");
+				const TSharedPtr<FJsonValue> Item = Obj->TryGetField(TEXT("Item"));
+				const TSharedPtr<FJsonValue> Amount = Obj->TryGetField(TEXT("Amount"));
 
 				if (Item->Type == EJson::String && Amount->Type == EJson::Number) {
 					Field.Add(Item->AsString(), Amount->AsNumber());
@@ -117,28 +117,28 @@ bool UBPFContentLib::SetStringIntMapFieldWithLog(TMap<FString, int32>& Field, FS
 bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result) {
 	if (Result->HasField(FieldName) && Result->TryGetField(FieldName)->Type == EJson::Object) {
 		const auto Obj = Result->TryGetField(FieldName)->AsObject();
-		if (Obj->HasField("r") && Obj->HasField("g") && Obj->HasField("b") && Obj->HasField("a")) {
-			if (Obj->TryGetField("r")->Type == EJson::Number) {
+		if (Obj->HasField(TEXT("r")) && Obj->HasField(TEXT("g")) && Obj->HasField(TEXT("b")) && Obj->HasField(TEXT("a"))) {
+			if (Obj->TryGetField(TEXT("r"))->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.R, "r", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
-			if (Obj->TryGetField("g")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("g"))->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.G, "g", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("b")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("b"))->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.B, "b", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("a")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("a"))->Type == EJson::Number) {
 				UBPFContentLib::SetSmallIntegerFieldWithLog(Field.A, "a", Obj);
 			}
 			else {
@@ -154,29 +154,29 @@ bool UBPFContentLib::SetColorFieldWithLog(FColor& Field, FString FieldName, TSha
 bool UBPFContentLib::SetLinearColorFieldWithLog(FLinearColor& Field, FString FieldName, TSharedPtr<FJsonObject> Result) {
 	if (Result->HasField(FieldName) && Result->TryGetField(FieldName)->Type == EJson::Object) {
 		const auto Obj = Result->TryGetField(FieldName)->AsObject();
-		if (Obj->HasField("r") && Obj->HasField("g") && Obj->HasField("b") && Obj->HasField("a")) {
-			if (Obj->TryGetField("r")->Type == EJson::Number) {
+		if (Obj->HasField(TEXT("r")) && Obj->HasField(TEXT("g")) && Obj->HasField(TEXT("b")) && Obj->HasField(TEXT("a"))) {
+			if (Obj->TryGetField(TEXT("r"))->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.R, "r", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("R value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("g")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("g"))->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.G, "g", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("G value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("b")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("b"))->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.B, "b", Obj);
 			}
 			else {
 				UE_LOG(LogContentLib, Error, TEXT("b value in Color is not of type Number !"));
 			}
 
-			if (Obj->TryGetField("a")->Type == EJson::Number) {
+			if (Obj->TryGetField(TEXT("a"))->Type == EJson::Number) {
 				UBPFContentLib::SetFloatFieldWithLog(Field.A, "a", Obj);
 			}
 			else {
@@ -300,11 +300,11 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 	bool Added = false;
 	for (const auto& candidateResourceEntry : pendingResourcesToAdd->AsArray()) {
 		auto candidateResource = candidateResourceEntry->AsObject();
-		if (!candidateResource->HasField("Resource")) {
+		if (!candidateResource->HasField(TEXT("Resource"))) {
 			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property Resource"), *FieldName);
 			return false;
 		}
-		auto Resource = candidateResource->TryGetField("Resource");
+		auto Resource = candidateResource->TryGetField(TEXT("Resource"));
 		if (Resource->Type != EJson::String) {
 			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .Resource is not of type String"), *FieldName);
 			return false;
@@ -315,11 +315,11 @@ bool UBPFContentLib::SetScannableResourcesArrayFieldWithLog(TArray<FContentLib_U
 			return false;
 		}
 
-		if (!candidateResource->HasField("NodeType")) {
+		if (!candidateResource->HasField(TEXT("NodeType"))) {
 			UE_LOG(LogContentLib, Error, TEXT("Field %s entry is missing property NodeType"), *FieldName);
 			return false;
 		}
-		auto NodeType = candidateResource->TryGetField("NodeType");
+		auto NodeType = candidateResource->TryGetField(TEXT("NodeType"));
 		if (NodeType->Type != EJson::String)
 		{
 			UE_LOG(LogContentLib, Error, TEXT("Field %s entry .NodeType is not of type String"), *FieldName);
