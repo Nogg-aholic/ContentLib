@@ -6,6 +6,7 @@
 #include "FGWorldSettings.h"
 #include "ContentLib.h"
 #include "Serialization/JsonSerializer.h"
+#include "FGResourceSettings.h"
 #include "FGResourceSinkSettings.h"
 #include "FGResourceSinkSubsystem.h"
 #include "Engine/DataTable.h"
@@ -666,10 +667,8 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 {
 	if(!Item)
 		return;
+
 	UFGItemDescriptor* CDO = Item.GetDefaultObject();
-	
-	// Must set this to -1 or it will default to 0, causing the item to have a stack size of 0
-	CDO->mCachedStackSize = -1;
 
 	if (ItemStruct.Form != EResourceForm::RF_LAST_ENUM)
 	{
@@ -679,6 +678,12 @@ void UCLItemBPFLib::InitItemFromStruct(const TSubclassOf<UFGItemDescriptor> Item
 	if(ItemStruct.StackSize != EStackSize::SS_LAST_ENUM)
 	{
 		CDO->mStackSize = ItemStruct.StackSize;
+
+		// As of 1.2, this field is set at editor time on save/edit instead of calculated and cached at runtime
+		// https://discord.com/channels/555424930502541343/562722670974599227/1516804434687168602
+		if (const int32* stackSizePtr = UFGResourceSettings::Get()->mStackSizes.FindKey(ItemStruct.StackSize)) {
+			CDO->mCachedStackSize = *stackSizePtr;
+		}
 	}
 	if (ItemStruct.Name != "")
 	{
