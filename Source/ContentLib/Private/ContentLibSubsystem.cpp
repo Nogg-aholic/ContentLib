@@ -458,7 +458,7 @@ void UContentLibSubsystem::ClientInit(UWorld* WorldContext)
 			TArray<FAssetData> AssetsData;
 			FARFilter Filter;
 			Filter.TagsAndValues.Add(TEXT("NativeParentClass"));
-			Filter.ClassNames.Add("Blueprint");
+			Filter.ClassPaths.Add(UBlueprint::StaticClass()->GetClassPathName());
 			Filter.bRecursivePaths = true;
 			Filter.PackagePaths.Add(*i);
 			Filter.bIncludeOnlyOnDiskAssets = true;
@@ -523,7 +523,7 @@ void UContentLibSubsystem::ClientInit(UWorld* WorldContext)
 	TArray<FAssetData> AssetsData;
 	FARFilter Filter;
 	Filter.TagsAndValues.Add(TEXT("NativeParentClass"));
-	Filter.ClassNames.Add("Blueprint");
+	Filter.ClassPaths.Add(UBlueprint::StaticClass()->GetClassPathName());
 	Filter.PackagePaths.Add("/Game/FactoryGame/Recipes");
 	Filter.PackagePaths.Add("/Game/FactoryGame/Schematics");
 	Filter.PackagePaths.Add("/Game/FactoryGame/Resources");
