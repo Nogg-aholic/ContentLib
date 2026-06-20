@@ -26,9 +26,9 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 
 	UBPFContentLib::SetStringFieldWithLog(NodeStruct.ResearchTree, "ResearchTree", Result);
 
-	for (const auto& i : Result->TryGetField("Parents")->AsArray()) {
+	for (const auto& i : Result->TryGetField(TEXT("Parents"))->AsArray()) {
 		if (i->Type == EJson::Object) {
-			if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
+			if (i->AsObject()->HasField(TEXT("X")) && i->AsObject()->HasField(TEXT("Y"))) {
 				FContentLib_Vector2D Vector2D;
 
 				UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", Result);
@@ -38,25 +38,25 @@ FContentLib_ResearchNode UCLSchematicBPFLib::GenerateResearchStructFromString(FS
 		}
 	}
 
-	for (const auto& i : Result->TryGetField("Children")->AsArray()) {
+	for (const auto& i : Result->TryGetField(TEXT("Children"))->AsArray()) {
 		if (i->Type == EJson::Object) {
-			if (i->AsObject()->HasField("Child") && i->AsObject()->HasField("Roads")) {
+			if (i->AsObject()->HasField(TEXT("Child")) && i->AsObject()->HasField(TEXT("Roads"))) {
 				FContentLib_ResearchNodeRoads Node;
 				FContentLib_Vector2D Key;
-				if (i->AsObject()->TryGetField("Child")->Type == EJson::Object) {
-					if (i->AsObject()->TryGetField("Child")->AsObject()->HasField("X") && i->AsObject()->TryGetField("Child")->AsObject()->TryGetField("X")->Type == EJson::Number &&
-						i->AsObject()->TryGetField("Child")->AsObject()->HasField("Y") && i->AsObject()->TryGetField("Child")->AsObject()->TryGetField("Y")->Type == EJson::Number)
+				if (i->AsObject()->TryGetField(TEXT("Child"))->Type == EJson::Object) {
+					if (i->AsObject()->TryGetField(TEXT("Child"))->AsObject()->HasField(TEXT("X")) && i->AsObject()->TryGetField(TEXT("Child"))->AsObject()->TryGetField(TEXT("X"))->Type == EJson::Number &&
+						i->AsObject()->TryGetField(TEXT("Child"))->AsObject()->HasField(TEXT("Y")) && i->AsObject()->TryGetField(TEXT("Child"))->AsObject()->TryGetField(TEXT("Y"))->Type == EJson::Number)
 					{
-						UBPFContentLib::SetIntegerFieldWithLog(Key.X, "X", i->AsObject()->TryGetField("Child")->AsObject());
-						UBPFContentLib::SetIntegerFieldWithLog(Key.Y, "Y", i->AsObject()->TryGetField("Child")->AsObject());
+						UBPFContentLib::SetIntegerFieldWithLog(Key.X, "X", i->AsObject()->TryGetField(TEXT("Child"))->AsObject());
+						UBPFContentLib::SetIntegerFieldWithLog(Key.Y, "Y", i->AsObject()->TryGetField(TEXT("Child"))->AsObject());
 					}
 				}
 				Node.ChildNode = Key;
 
 				TArray<FContentLib_Vector2D> Values;
-				for (auto e : i->AsObject()->TryGetField("Roads")->AsArray()) {
+				for (auto e : i->AsObject()->TryGetField(TEXT("Roads"))->AsArray()) {
 					if (e->Type == EJson::Object) {
-						if (e->AsObject()->HasField("X") && e->AsObject()->HasField("Y")) {
+						if (e->AsObject()->HasField(TEXT("X")) && e->AsObject()->HasField(TEXT("Y"))) {
 							FContentLib_Vector2D Vector2D;
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", Result);
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.Y, "Y", Result);
@@ -85,9 +85,9 @@ FContentLib_ResearchNodeRoads UCLSchematicBPFLib::GenerateResearchNodeRoadsFromS
 	FContentLib_ResearchNodeRoads Roads;
 
 
-	for (const auto& i : Result->TryGetField("Roads")->AsArray()) {
+	for (const auto& i : Result->TryGetField(TEXT("Roads"))->AsArray()) {
 		if (i->Type == EJson::Object) {
-			if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
+			if (i->AsObject()->HasField(TEXT("X")) && i->AsObject()->HasField(TEXT("Y"))) {
 				FContentLib_Vector2D Vector2D;
 
 				UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -132,25 +132,25 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	if (!ParsedJson.IsValid())
 		return FContentLib_Schematic();
 
-	auto LegacyCategoryField = ParsedJson->TryGetField("Cat");
+	auto LegacyCategoryField = ParsedJson->TryGetField(TEXT("Cat"));
 	if (LegacyCategoryField) {
 		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Schematic field 'Cat'! It has been renamed to 'Category'. This will be a real error soon, but for now it still works."), *String);
 		ParsedJson->SetStringField("Category", LegacyCategoryField->AsString());
 	}
 
-	auto LegacySubCategoriesField = ParsedJson->TryGetField("SubCat");
+	auto LegacySubCategoriesField = ParsedJson->TryGetField(TEXT("SubCat"));
 	if (LegacySubCategoriesField) {
 		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Schematic field 'SubCat'! It has been renamed to 'SubCategories'. This will be a real error soon, but for now it still works."), *String);
 		ParsedJson->SetArrayField("SubCategories", LegacySubCategoriesField->AsArray());
 	}
 
-	auto LegacyInventorySlotsField = ParsedJson->TryGetField("SlotsToGive");
+	auto LegacyInventorySlotsField = ParsedJson->TryGetField(TEXT("SlotsToGive"));
 	if (LegacyInventorySlotsField) {
 		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Schematic field 'SlotsToGive'! It has been renamed to 'InventorySlotsToGive'. This will be a real error soon, but for now it still works."), *String);
 		ParsedJson->SetNumberField("InventorySlotsToGive", LegacyInventorySlotsField->AsNumber());
 	}
 
-	auto LegacyClearSubCategoriesField = ParsedJson->TryGetField("ClearCats");
+	auto LegacyClearSubCategoriesField = ParsedJson->TryGetField(TEXT("ClearCats"));
 	if (LegacyClearSubCategoriesField) {
 		UE_LOG(LogContentLib, Error, TEXT("You are using the outdated Schematic field 'ClearCats'! It has been renamed to 'ClearSubCategories'. This will be a real error soon, but for now it still works."), *String);
 		ParsedJson->SetBoolField("ClearSubCategories", LegacyClearSubCategoriesField->AsBool());
@@ -194,15 +194,15 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearDeps, "ClearDeps", ParsedJson);
 	UBPFContentLib::SetBooleanFieldWithLog(Schematic.ClearItemsToGive, "ClearItemsToGive", ParsedJson);
 
-	if (ParsedJson->HasField("ResearchTree")) {
-		const auto TResult = ParsedJson->TryGetField("ResearchTree");
+	if (ParsedJson->HasField(TEXT("ResearchTree"))) {
+		const auto TResult = ParsedJson->TryGetField(TEXT("ResearchTree"));
 		UBPFContentLib::SetStringFieldWithLog(Schematic.ResearchTree.ResearchTree, "ResearchTree", TResult->AsObject());
 
 		if (TResult->Type == EJson::Object) {
-			const auto TTResult = TResult->AsObject()->TryGetField("Coords");
+			const auto TTResult = TResult->AsObject()->TryGetField(TEXT("Coords"));
 
 			if (TTResult->Type == EJson::Object) {
-				if (TTResult->AsObject()->HasField("X") && TTResult->AsObject()->HasField("Y")) {
+				if (TTResult->AsObject()->HasField(TEXT("X")) && TTResult->AsObject()->HasField(TEXT("Y"))) {
 					FContentLib_Vector2D Vector2D;
 
 					UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", TTResult->AsObject());
@@ -210,11 +210,11 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 					Schematic.ResearchTree.Coordinates = Vector2D;
 				}
 			}
-			if (TResult->AsObject()->HasField("Parents") && TResult->AsObject()->TryGetField("Parents")->Type == EJson::Array) {
-				for (const auto& i : TResult->AsObject()->TryGetField("Parents")->AsArray())
+			if (TResult->AsObject()->HasField(TEXT("Parents")) && TResult->AsObject()->TryGetField(TEXT("Parents"))->Type == EJson::Array) {
+				for (const auto& i : TResult->AsObject()->TryGetField(TEXT("Parents"))->AsArray())
 				{
 					if (i->Type == EJson::Object) {
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
+						if (i->AsObject()->HasField(TEXT("X")) && i->AsObject()->HasField(TEXT("Y"))) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -224,11 +224,11 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 					}
 				}
 			}
-			if (TResult->AsObject()->HasField("UnHiddenBy") && TResult->AsObject()->TryGetField("UnHiddenBy")->Type == EJson::Array)
+			if (TResult->AsObject()->HasField(TEXT("UnHiddenBy")) && TResult->AsObject()->TryGetField(TEXT("UnHiddenBy"))->Type == EJson::Array)
 			{
-				for (const auto& i : TResult->AsObject()->TryGetField("UnHiddenBy")->AsArray()) {
+				for (const auto& i : TResult->AsObject()->TryGetField(TEXT("UnHiddenBy"))->AsArray()) {
 					if (i->Type == EJson::Object) {
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
+						if (i->AsObject()->HasField(TEXT("X")) && i->AsObject()->HasField(TEXT("Y"))) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -239,10 +239,10 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 				}
 			}
 
-			if (TResult->AsObject()->HasField("NodesToUnHide") && TResult->AsObject()->TryGetField("NodesToUnHide")->Type == EJson::Array) {
-				for (const auto& i : TResult->AsObject()->TryGetField("NodesToUnHide")->AsArray()) {
+			if (TResult->AsObject()->HasField(TEXT("NodesToUnHide")) && TResult->AsObject()->TryGetField(TEXT("NodesToUnHide"))->Type == EJson::Array) {
+				for (const auto& i : TResult->AsObject()->TryGetField(TEXT("NodesToUnHide"))->AsArray()) {
 					if (i->Type == EJson::Object) {
-						if (i->AsObject()->HasField("X") && i->AsObject()->HasField("Y")) {
+						if (i->AsObject()->HasField(TEXT("X")) && i->AsObject()->HasField(TEXT("Y"))) {
 							FContentLib_Vector2D Vector2D;
 
 							UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", i->AsObject());
@@ -252,18 +252,18 @@ FContentLib_Schematic UCLSchematicBPFLib::GenerateCLSchematicFromString(FString 
 					}
 				}
 			}
-			if (TResult->AsObject()->HasField("Children") && TResult->AsObject()->TryGetField("Children")->Type == EJson::Array) {
-				for (const auto& i : TResult->AsObject()->TryGetField("Children")->AsArray()) {
+			if (TResult->AsObject()->HasField(TEXT("Children")) && TResult->AsObject()->TryGetField(TEXT("Children"))->Type == EJson::Array) {
+				for (const auto& i : TResult->AsObject()->TryGetField(TEXT("Children"))->AsArray()) {
 					if (i->Type == EJson::Object) {
-						if (i->AsObject()->HasField("ChildNode") && i->AsObject()->HasField("Roads")) {
+						if (i->AsObject()->HasField(TEXT("ChildNode")) && i->AsObject()->HasField(TEXT("Roads"))) {
 							FContentLib_Vector2D Key;
-							if (i->AsObject()->TryGetField("ChildNode")->Type == EJson::Object) {
-								UBPFContentLib::SetIntegerFieldWithLog(Key.X, "X", i->AsObject()->TryGetField("ChildNode")->AsObject());
-								UBPFContentLib::SetIntegerFieldWithLog(Key.Y, "Y", i->AsObject()->TryGetField("ChildNode")->AsObject());
+							if (i->AsObject()->TryGetField(TEXT("ChildNode"))->Type == EJson::Object) {
+								UBPFContentLib::SetIntegerFieldWithLog(Key.X, "X", i->AsObject()->TryGetField(TEXT("ChildNode"))->AsObject());
+								UBPFContentLib::SetIntegerFieldWithLog(Key.Y, "Y", i->AsObject()->TryGetField(TEXT("ChildNode"))->AsObject());
 							}
 
 							TArray<FContentLib_Vector2D> Values;
-							for (const auto& e : i->AsObject()->TryGetField("Roads")->AsArray()) {
+							for (const auto& e : i->AsObject()->TryGetField(TEXT("Roads"))->AsArray()) {
 								if (e->Type == EJson::Object) {
 									FContentLib_Vector2D Vector2D;
 									UBPFContentLib::SetIntegerFieldWithLog(Vector2D.X, "X", e->AsObject());
