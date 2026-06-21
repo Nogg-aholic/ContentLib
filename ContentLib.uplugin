@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.9.0",
-	"SemVersion": "1.9.0",
+	"VersionName": "1.10.0",
+	"SemVersion": "1.10.0",
 	"FriendlyName": "ContentLib",
 	"Description": "Easily create or modify Items, Recipes, and more via JSON for any machine and any mod!",
 	"Category": "Modding",
@@ -26,8 +26,8 @@
 		{
 			"Name": "SML",
 			"Enabled": true,
-			"SemVersion": "^3.11.3"
+			"SemVersion": "^3.12.0"
 		}
 	],
-	"GameVersion": ">=416835"
+	"GameVersion": ">=491125"
 }
